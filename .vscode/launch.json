@@ -1,0 +1,53 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // DEFAULT (F5): Seeker via USB — requires `adb reverse tcp:3001 tcp:3001` once per session.
+      // 127.0.0.1 on the device resolves to Mac localhost via ADB reverse tunnel.
+      "name": "Sage — Seeker (ADB reverse)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "args": [
+        "--dart-define=API_BASE_URL=http://127.0.0.1:3001"
+      ]
+    },
+    {
+      // Railway backend — works on any device, no local setup needed.
+      "name": "Sage — Railway backend",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug"
+    },
+    {
+      // Local backend on Android emulator (10.0.2.2 → host localhost)
+      "name": "Sage — Local backend (emulator)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "args": [
+        "--dart-define=API_BASE_URL=http://10.0.2.2:3001"
+      ]
+    },
+    {
+      // Local backend on physical device over Wi-Fi — update IP with: ipconfig getifaddr en0
+      "name": "Sage — Local backend (Wi-Fi)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "args": [
+        "--dart-define=API_BASE_URL=http://192.168.68.135:3001"
+      ]
+    },
+    {
+      // iOS simulator — localhost works directly
+      "name": "Sage — Local backend (iOS sim)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "args": [
+        "--dart-define=API_BASE_URL=http://localhost:3001"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sage brand navy — matches SplashScreen._bg and onboarding background -->
+    <color name="sage_navy">#0A0A2E</color>
+</resources>
