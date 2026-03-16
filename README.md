@@ -4,6 +4,12 @@ Mobile-first autonomous liquidity provision on Meteora DLMM, powered by ML signa
 
 Built for the **Solana Mobile Hackathon 2025**.
 
+## Download
+
+[**Download Sage v1.0.0 APK**](https://github.com/Immadominion/sage/releases/download/v1.0.0/sage-v1.0.0.apk) — Android 7.0+ (API 24)
+
+> Requires a Solana wallet app (Phantom, Solflare, etc.) installed on your device.
+
 ## Features
 
 - **Wallet Connect** — Sign-In With Solana via Mobile Wallet Adapter (Phantom, Solflare)
