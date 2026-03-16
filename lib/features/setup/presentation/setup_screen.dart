@@ -194,14 +194,33 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     }
   }
 
-  /// Try signAndSendTransactions first; on simulation failure, fall back
-  /// to signTransactions + backend submit (bypasses wallet simulation).
+  /// Sign a transaction via MWA and submit to the backend.
+  ///
+  /// When [setupLiveBotId] is provided, always uses sign-only + submitSigned
+  /// so the backend can trigger `finalizeLiveSession` after confirmation.
+  /// Otherwise tries signAndSend first, falling back to sign + submit.
   Future<void> _signAndSubmitWithFallback(
     MwaWalletService mwa,
     WalletRepository walletRepo,
     Uint8List txBytes,
-    String cluster,
-  ) async {
+    String cluster, {
+    String? setupLiveBotId,
+  }) async {
+    // For setup-live TXs, always route through backend so it can finalize
+    // the session key creation automatically after on-chain confirmation.
+    if (setupLiveBotId != null) {
+      final signedTxs = await mwa.signTransactions([txBytes], cluster: cluster);
+      if (signedTxs.isEmpty) {
+        throw Exception('Transaction signing was cancelled');
+      }
+      final txBase64 = base64Encode(signedTxs.first);
+      await walletRepo.submitSigned(
+        transactionBase64: txBase64,
+        setupLiveBotId: setupLiveBotId,
+      );
+      return;
+    }
+
     try {
       final signatures = await mwa.signAndSendTransactions([
         txBytes,
@@ -211,8 +230,6 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       }
     } catch (e) {
       final msg = e.toString();
-      // If the error is a simulation failure or generic MWA send error,
-      // try sign-only + backend submit as fallback.
       final isSimulationError =
           msg.contains('simulation') ||
           msg.contains('Simulation') ||
@@ -223,13 +240,11 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
       debugPrint('[Setup] signAndSend failed ($msg), trying sign + submit');
 
-      // Sign only (no simulation by wallet app)
       final signedTxs = await mwa.signTransactions([txBytes], cluster: cluster);
       if (signedTxs.isEmpty) {
         throw Exception('Transaction signing was cancelled');
       }
 
-      // Submit via backend RPC
       final txBase64 = base64Encode(signedTxs.first);
       await walletRepo.submitSigned(transactionBase64: txBase64);
     }
@@ -247,70 +262,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       final isLive = _execMode == ExecutionMode.live;
       final modeName = isLive ? 'live' : 'simulation';
 
-      // ── Create Seal wallet on-chain ──
-      // All users get a real on-chain wallet (sponsored by backend).
-      // Live mode: create + fund with deposit. Sim mode: create only.
       final walletRepo = ref.read(walletRepositoryProvider);
       final mwa = ref.read(mwaWalletServiceProvider);
-
-      try {
-        if (isLive && depositSol != null && depositSol > 0) {
-          // Live mode: combined create-wallet + deposit TX
-          final txData = await walletRepo.prepareCreateAndFund(
-            depositSol: depositSol,
-            dailyLimitSol: _dailyLimit,
-            perTxLimitSol: _positionSize,
-          );
-
-          final network = txData['network'] as String? ?? 'mainnet-beta';
-          final txBytes = Uint8List.fromList(
-            base64Decode(txData['transaction'] as String),
-          );
-          await _signAndSubmitWithFallback(mwa, walletRepo, txBytes, network);
-        } else {
-          // Simulation / explore mode: create wallet only (sponsored, no deposit)
-          final txData = await walletRepo.prepareCreate(
-            dailyLimitSol: _dailyLimit,
-            perTxLimitSol: _positionSize,
-          );
-
-          final network = txData['network'] as String? ?? 'mainnet-beta';
-          final txBytes = Uint8List.fromList(
-            base64Decode(txData['transaction'] as String),
-          );
-          await _signAndSubmitWithFallback(mwa, walletRepo, txBytes, network);
-        }
-      } catch (walletError) {
-        // 409 = wallet already exists from a previous attempt — safe to continue
-        final msg = walletError.toString();
-        if (msg.contains('409') || msg.contains('already exists')) {
-          debugPrint('[Setup] Wallet already exists, skipping creation');
-
-          // If live mode with deposit, try deposit-only since wallet exists
-          if (isLive && depositSol != null && depositSol > 0) {
-            try {
-              final txData = await walletRepo.prepareDeposit(
-                amountSol: depositSol,
-              );
-              final network = txData['network'] as String? ?? 'mainnet-beta';
-              final txBytes = Uint8List.fromList(
-                base64Decode(txData['transaction'] as String),
-              );
-              await _signAndSubmitWithFallback(
-                mwa,
-                walletRepo,
-                txBytes,
-                network,
-              );
-            } catch (depositError) {
-              // Non-fatal — wallet exists, user can fund later
-              debugPrint('[Setup] Deposit failed: $depositError');
-            }
-          }
-        } else {
-          rethrow;
-        }
-      }
 
       // ── Create bot config — name is auto-generated by backend ──
       final config = BotConfig(
@@ -342,7 +295,9 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
       await ref.read(botListProvider.notifier).createBot(config);
 
-      // ── Live-mode Seal setup (agent + session in one TX) ──
+      // ── Live-mode: ONE MWA signature handles everything ──
+      // Backend creates wallet (if needed) + registers agent + deposits
+      // trading capital to session signer — all in a single transaction.
       bool liveSetupSucceeded = false;
       if (isLive) {
         final bots = ref.read(botListProvider).value ?? [];
@@ -351,36 +306,42 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
           try {
             final setupData = await walletRepo.setupLive(
               botId: createdBot.botId,
+              depositSol: depositSol ?? 0,
               dailyLimitSol: _dailyLimit,
               perTxLimitSol: _positionSize,
               sessionMaxAmountSol: _dailyLimit * 30,
               sessionMaxPerTxSol: _positionSize * 2,
             );
 
-            final txBase64 = setupData['transaction'] as String;
-            final txBytes2 = Uint8List.fromList(base64Decode(txBase64));
-            final network2 =
-                (setupData['network'] as String?) ?? EnvConfig.solanaNetwork;
+            // If already finalized (409 retry), skip signing
+            if (setupData['finalized'] != true) {
+              final txBase64 = setupData['transaction'] as String;
+              final txBytes = Uint8List.fromList(base64Decode(txBase64));
+              final network =
+                  (setupData['network'] as String?) ?? EnvConfig.solanaNetwork;
 
-            // Owner signs via MWA (one wallet popup)
-            await _signAndSubmitWithFallback(
-              mwa,
-              walletRepo,
-              txBytes2,
-              network2,
-            );
+              // Single MWA signature — backend handles finalization
+              await _signAndSubmitWithFallback(
+                mwa,
+                walletRepo,
+                txBytes,
+                network,
+                setupLiveBotId: createdBot.botId,
+              );
+            }
             liveSetupSucceeded = true;
           } catch (e) {
-            // Seal setup failed — wallet + bot exist, user can retry
-            // from the bot detail screen. Do NOT auto-start the bot
-            // since the on-chain session was never confirmed.
-            debugPrint('[Setup] setup-live failed: $e');
+            final msg = e.toString();
+            if (msg.contains('409') || msg.contains('already')) {
+              liveSetupSucceeded = true;
+            } else {
+              debugPrint('[Setup] setup-live failed: $e');
+            }
           }
         }
       }
 
       // Auto-start the bot so user sees it running immediately.
-      // Only auto-start if: (a) simulation mode, or (b) live setup succeeded.
       if (!isLive || liveSetupSucceeded) {
         try {
           final bots = ref.read(botListProvider).value ?? [];
@@ -397,8 +358,6 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
       if (mounted) {
         HapticFeedback.heavyImpact();
-        // Refresh auth state so setupCompletedProvider picks up the
-        // server-side flag — this drives the router redirect.
         ref.invalidate(authStateProvider);
         context.go('/');
       }

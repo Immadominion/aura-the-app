@@ -4,20 +4,34 @@
 /// Configured via `--dart-define` at build time:
 ///
 /// ```bash
-/// # Development — uses Railway-hosted backend by default
+/// # Development — uses localhost (requires ADB reverse or emulator)
 /// flutter run
 ///
-/// # Production
-/// flutter run --dart-define=ENV=production
+/// # Production APK build
+/// flutter build apk --release \
+///   --dart-define=ENV=production \
+///   --dart-define=API_BASE_URL=https://<your-railway-url> \
+///   --dart-define=SOLANA_RPC_URL=https://<your-helius-rpc>
 ///
 /// # Custom backend URL (e.g., local dev on LAN)
 /// flutter run --dart-define=API_BASE_URL=http://192.168.1.100:3001
 /// ```
+///
+/// **IMPORTANT**: Before building a release APK, update [_kProductionApiUrl]
+/// with your deployed Railway backend URL.
 library;
 
 import 'package:flutter/foundation.dart';
 
 enum Environment { development, staging, production }
+
+/// Default production backend URL. Update this when Railway deployment is live.
+/// Override per-build via `--dart-define=API_BASE_URL=<url>`.
+const String _kProductionApiUrl =
+    'https://sage-the-backend-production.up.railway.app';
+
+/// Default production Solana RPC. Override via `--dart-define=SOLANA_RPC_URL=<url>`.
+const String _kProductionRpcUrl = '';
 
 class EnvConfig {
   /// Current environment, set via `--dart-define=ENV=<value>`
@@ -53,31 +67,23 @@ class EnvConfig {
 
   /// Backend API base URL.
   ///
-  /// Set via `--dart-define=API_BASE_URL=<url>` at build time.
-  /// Falls back to localhost for development builds.
-  ///
-  /// ```bash
-  /// # Production
-  /// flutter run --dart-define=API_BASE_URL=https://your-backend.up.railway.app
-  ///
-  /// # Local dev (use your Mac's LAN IP for Android)
-  /// flutter run --dart-define=API_BASE_URL=http://192.168.1.100:3001
-  /// ```
+  /// Priority: `--dart-define=API_BASE_URL` > [_kProductionApiUrl] > localhost.
   static String get apiBaseUrl {
     if (_apiBaseUrlOverride.isNotEmpty) return _apiBaseUrlOverride;
 
     switch (environment) {
       case Environment.production:
-        // Must be provided via --dart-define=API_BASE_URL
-        throw StateError(
-          'API_BASE_URL must be set via --dart-define for production builds',
-        );
       case Environment.staging:
-        throw StateError(
-          'API_BASE_URL must be set via --dart-define for staging builds',
-        );
+        if (_kProductionApiUrl.isEmpty) {
+          debugPrint(
+            '⚠️ API_BASE_URL not configured for ${environment.name}. '
+            'Set _kProductionApiUrl in env_config.dart or pass '
+            '--dart-define=API_BASE_URL=<url>',
+          );
+        }
+        return _kProductionApiUrl;
       case Environment.development:
-        return 'http://localhost:3001';
+        return 'http://172.20.10.5:3001';
     }
   }
 
@@ -107,15 +113,18 @@ class EnvConfig {
 
   /// Solana RPC endpoint.
   ///
-  /// Production builds MUST supply `--dart-define=SOLANA_RPC_URL=<url>`.
+  /// Priority: `--dart-define=SOLANA_RPC_URL` > [_kProductionRpcUrl] > public devnet.
   static String get solanaRpcUrl {
     if (_solanaRpcUrlOverride.isNotEmpty) return _solanaRpcUrlOverride;
 
     switch (environment) {
       case Environment.production:
-        throw StateError(
-          'SOLANA_RPC_URL must be set via --dart-define for production builds',
+        if (_kProductionRpcUrl.isNotEmpty) return _kProductionRpcUrl;
+        debugPrint(
+          '⚠️ SOLANA_RPC_URL not configured for production. '
+          'Using public mainnet RPC — expect rate limits.',
         );
+        return 'https://api.mainnet-beta.solana.com';
       case Environment.staging:
       case Environment.development:
         return 'https://api.devnet.solana.com';
@@ -147,4 +156,10 @@ class EnvConfig {
         return 'Development';
     }
   }
+
+  /// Whether the backend API URL is configured.
+  ///
+  /// Returns `false` in production/staging when neither `--dart-define` nor
+  /// [_kProductionApiUrl] is set. The app should show a config error screen.
+  static bool get isApiConfigured => apiBaseUrl.isNotEmpty;
 }

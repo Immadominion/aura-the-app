@@ -24,6 +24,7 @@ import 'package:sage/features/wallet/presentation/widgets/stat_item.dart';
 import 'package:sage/features/wallet/presentation/widgets/setting_tile.dart';
 import 'package:sage/shared/widgets/mwa_button_tap_effect.dart';
 import 'package:sage/shared/widgets/sage_bottom_sheet.dart';
+import 'package:sage/shared/widgets/deposit_sheet.dart';
 import 'package:sage/shared/widgets/withdraw_sheet.dart';
 
 /// Profile — wallet identity, portfolio summary, settings entry.
@@ -88,6 +89,10 @@ class ProfileScreen extends ConsumerWidget {
       loading: () => '… SOL',
       error: (_, _) => 'No wallet',
     );
+
+    // Seal wallet on-chain state
+    final walletStateAsync = ref.watch(walletStateProvider);
+    final sealWallet = walletStateAsync.whenOrNull(data: (ws) => ws);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -482,7 +487,8 @@ class ProfileScreen extends ConsumerWidget {
                         children: [
                           Expanded(
                             child: MWAButtonTapEffect(
-                              onTap: () => context.go('/control'),
+                              onTap: () =>
+                                  _showDepositSheet(context, ref, c, text),
                               child: Container(
                                 padding: EdgeInsets.symmetric(vertical: 14.h),
                                 decoration: BoxDecoration(
@@ -562,6 +568,132 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1, end: 0),
 
+              SizedBox(height: 24.h),
+
+              // ── Seal Wallet Info ──
+              if (sealWallet != null && sealWallet.exists) ...[
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.r),
+                    color: c.surface,
+                    border: Border.all(color: c.borderSubtle, width: 1),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            PhosphorIconsBold.shieldCheck,
+                            size: 16.sp,
+                            color: c.accent,
+                          ),
+                          SizedBox(width: 8.w),
+                          Text(
+                            'SEAL WALLET',
+                            style: text.labelMedium?.copyWith(
+                              letterSpacing: 1.2,
+                              color: c.textTertiary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.h),
+                      // Address row
+                      Row(
+                        children: [
+                          Text(
+                            'Address',
+                            style: text.bodySmall?.copyWith(
+                              color: c.textTertiary,
+                              fontSize: 11.sp,
+                            ),
+                          ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () {
+                              Clipboard.setData(
+                                ClipboardData(text: sealWallet.address),
+                              );
+                              HapticFeedback.lightImpact();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Wallet address copied'),
+                                ),
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                Text(
+                                  '${sealWallet.address.substring(0, 6)}…${sealWallet.address.substring(sealWallet.address.length - 4)}',
+                                  style: text.bodySmall?.copyWith(
+                                    fontFamily: 'monospace',
+                                    fontSize: 11.sp,
+                                    color: c.textSecondary,
+                                  ),
+                                ),
+                                SizedBox(width: 4.w),
+                                Icon(
+                                  PhosphorIconsBold.copy,
+                                  size: 12.sp,
+                                  color: c.textTertiary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      // Balance row
+                      Row(
+                        children: [
+                          Text(
+                            'Balance',
+                            style: text.bodySmall?.copyWith(
+                              color: c.textTertiary,
+                              fontSize: 11.sp,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            idleBalanceLabel,
+                            style: text.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11.sp,
+                              color: c.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      // Daily limit row
+                      Row(
+                        children: [
+                          Text(
+                            'Daily Limit',
+                            style: text.bodySmall?.copyWith(
+                              color: c.textTertiary,
+                              fontSize: 11.sp,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '${sealWallet.dailyLimitSOL.toStringAsFixed(1)} SOL '
+                            '(${sealWallet.remainingTodaySOL.toStringAsFixed(1)} remaining)',
+                            style: text.bodySmall?.copyWith(
+                              fontSize: 11.sp,
+                              color: c.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.1, end: 0),
+              ],
+
               SizedBox(height: 32.h),
 
               // ── Settings List ──
@@ -616,6 +748,28 @@ class ProfileScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────
+// Deposit Sheet Launcher
+// ─────────────────────────────────────────────────────────
+
+void _showDepositSheet(
+  BuildContext context,
+  WidgetRef ref,
+  SageColors c,
+  TextTheme text,
+) {
+  SageBottomSheet.show<bool>(
+    context: context,
+    title: 'Fund Wallet',
+    builder: (c, text) =>
+        DepositSheet(recommendedSol: 1.0, minSol: 0.1, c: c, text: text),
+  ).then((success) {
+    if (success == true) {
+      ref.invalidate(walletBalanceProvider);
+    }
+  });
 }
 
 // ─────────────────────────────────────────────────────────

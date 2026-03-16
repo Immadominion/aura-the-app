@@ -12,7 +12,11 @@ import 'package:sage/core/services/auth_service.dart';
 import 'package:sage/core/services/mwa_wallet_service.dart';
 import 'package:sage/core/theme/app_colors.dart';
 
-/// Withdraw SOL from Sage wallet back to user's wallet.
+/// Withdraw SOL from Sage bot wallets back to user's wallet.
+///
+/// Smart withdrawal — drains session signer balances AND the wallet
+/// PDA in a single transaction. One tap, one MWA signature, all
+/// funds returned to the user's Phantom wallet.
 ///
 /// Designed for use inside [SageBottomSheet.show()].
 /// Handles its own loading/success/error state.
@@ -54,10 +58,9 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
 
   String get _connectedWallet => ref.read(connectedWalletAddressProvider) ?? '';
 
-  /// Recover all SOL by closing the Seal wallet on-chain.
-  /// This is the ONLY supported withdrawal path — direct SystemProgram
-  /// transfer from the Seal PDA is impossible because the PDA is owned
-  /// by the Seal program, not SystemProgram.
+  /// Withdraw SOL from session signers back to the user's wallet.
+  /// Backend builds + partially signs the TX (session keys), then the
+  /// owner signs via MWA (as feePayer) and the backend submits.
   Future<void> _executeWithdraw() async {
     if (_connectedWallet.isEmpty) {
       setState(() {
@@ -74,12 +77,16 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
       final walletRepo = ref.read(walletRepositoryProvider);
       final mwa = ref.read(mwaWalletServiceProvider);
 
-      // Step 1: Prepare the owner-signed recovery TX (DeregisterAgents + CloseWallet)
-      final recovery = await walletRepo.prepareRecoverWallet();
-      final txBase64 = recovery['transaction'] as String;
-      final network = (recovery['network'] as String?) ?? 'mainnet-beta';
+      // Step 1: Backend prepares TX draining session signers + wallet PDA
+      final withdrawal = await walletRepo.prepareWithdraw();
+      final txBase64 = withdrawal['transaction'] as String;
+      final network = (withdrawal['network'] as String?) ?? 'mainnet-beta';
+      final closesWallet = withdrawal['closesWallet'] == true;
+      _withdrawnSol =
+          (withdrawal['withdrawSol'] as num?)?.toDouble() ??
+          widget.availableBalanceSol;
 
-      // Step 2: Sign via MWA
+      // Step 2: Sign via MWA (owner is feePayer)
       final signedTxs = await mwa.signTransactions([
         Uint8List.fromList(base64Decode(txBase64)),
       ], cluster: network);
@@ -88,14 +95,13 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
         throw Exception('Transaction signing was cancelled');
       }
 
-      // Step 3: Submit
+      // Step 3: Submit — if wallet PDA was closed, tell backend to clean up DB
       final result = await walletRepo.submitSigned(
         transactionBase64: base64Encode(signedTxs.first),
-        recoverWalletClose: true,
+        recoverWalletClose: closesWallet,
       );
 
       _signature = result['signature'] as String?;
-      _withdrawnSol = widget.availableBalanceSol;
       ref.invalidate(walletBalanceProvider);
 
       if (mounted) {
@@ -115,22 +121,22 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
 
   String _parseError(Object e) {
     final msg = e.toString();
+    if (msg.contains('No funds available') ||
+        msg.contains('No session signer funds')) {
+      return 'No funds available to withdraw.';
+    }
     if (msg.contains('Wallet not found')) {
       return 'No on-chain wallet found. It may already be closed.';
-    }
-    if (msg.contains('agents still registered') ||
-        msg.contains('InvalidAccountData')) {
-      return 'Some agents could not be removed. Try again or contact support.';
     }
     if (msg.contains('signing was cancelled')) {
       return 'You cancelled the transaction. No funds were moved.';
     }
-    if (msg.contains('balance too low')) {
-      return 'Wallet balance too low to withdraw.';
+    if (msg.contains('InsufficientFunds')) {
+      return 'Not enough SOL for transaction fees. Make sure your Phantom wallet has some SOL.';
     }
     // Generic
     final match = RegExp(r'message:\s*(.+)').firstMatch(msg);
-    return match?.group(1) ?? 'Recovery failed. Please try again.';
+    return match?.group(1) ?? 'Withdrawal failed. Please try again.';
   }
 
   @override
@@ -147,7 +153,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // Input state — recovery confirmation
+  // Input state — withdrawal confirmation
   // ═══════════════════════════════════════════════════════════════
 
   Widget _buildInput(SageColors c, TextTheme text) {
@@ -158,27 +164,27 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Close your on-chain Sage wallet and return all SOL to your connected wallet.',
+          'Withdraw SOL from your bot wallets back to your connected Phantom wallet.',
           style: text.bodyMedium?.copyWith(color: c.textSecondary),
         ),
 
         SizedBox(height: 12.h),
 
-        // Warning note
+        // Info note
         SizedBox(
           width: double.infinity,
 
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(PhosphorIconsBold.warning, size: 16.sp, color: c.warning),
+              Icon(PhosphorIconsBold.info, size: 16.sp, color: c.accent),
               SizedBox(width: 8.w),
               Expanded(
                 child: Text(
-                  'This will permanently close your Sage wallet. '
-                  'All active bots will be stopped. You can create a new wallet later.',
+                  'All funds will be returned to your Phantom wallet. '
+                  'You can set up new bots anytime.',
                   style: text.bodySmall?.copyWith(
-                    color: c.warning,
+                    color: c.textSecondary,
                     fontSize: 12.sp,
                   ),
                 ),
@@ -191,7 +197,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
 
         // Balance info
         _InfoRow(
-          label: 'Wallet Balance',
+          label: 'Available',
           value: '${widget.availableBalanceSol.toStringAsFixed(4)} SOL',
           c: c,
           text: text,
@@ -203,7 +209,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
         _InfoRow(
           label: 'Destination',
           value: _connectedWallet.isNotEmpty
-              ? '${_connectedWallet.substring(0, 6)}…${_connectedWallet.substring(_connectedWallet.length - 4)}'
+              ? '${_connectedWallet.substring(0, 6)}\u2026${_connectedWallet.substring(_connectedWallet.length - 4)}'
               : 'Not connected',
           c: c,
           text: text,
@@ -230,12 +236,12 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
           Padding(
             padding: EdgeInsets.only(bottom: 16.h),
             child: Text(
-              'No balance to recover.',
+              'No balance to withdraw.',
               style: text.bodySmall?.copyWith(color: c.loss),
             ),
           ),
 
-        // Recover button
+        // Withdraw button
         GestureDetector(
           onTap: hasEnough ? _executeWithdraw : null,
           child: Container(
@@ -247,7 +253,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
             ),
             child: Center(
               child: Text(
-                'Recover All SOL',
+                'Withdraw All SOL',
                 style: text.titleMedium?.copyWith(
                   color: c.buttonPrimaryText,
                   fontWeight: FontWeight.w700,
@@ -299,7 +305,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
             ),
             SizedBox(height: 20.h),
             Text(
-              'Closing wallet…',
+              'Withdrawing…',
               style: text.titleMedium?.copyWith(
                 color: c.textSecondary,
                 fontWeight: FontWeight.w600,
@@ -307,7 +313,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
             ),
             SizedBox(height: 8.h),
             Text(
-              'Recovering ${widget.availableBalanceSol.toStringAsFixed(4)} SOL to your wallet',
+              'Sending ${widget.availableBalanceSol.toStringAsFixed(4)} SOL to your wallet',
               style: text.bodySmall?.copyWith(color: c.textTertiary),
             ),
           ],
@@ -336,7 +342,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
         SizedBox(height: 20.h),
 
         Text(
-          'Recovery Complete',
+          'Withdrawal Complete',
           style: text.titleLarge?.copyWith(
             fontWeight: FontWeight.w700,
             color: c.textPrimary,
@@ -346,7 +352,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
         SizedBox(height: 8.h),
 
         Text(
-          '${(_withdrawnSol ?? widget.availableBalanceSol).toStringAsFixed(4)} SOL returned to your wallet',
+          '${(_withdrawnSol ?? widget.availableBalanceSol).toStringAsFixed(4)} SOL sent to your wallet',
           style: text.bodyMedium?.copyWith(color: c.textSecondary),
         ),
 
@@ -431,7 +437,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
         SizedBox(height: 20.h),
 
         Text(
-          'Recovery Failed',
+          'Withdrawal Failed',
           style: text.titleLarge?.copyWith(
             fontWeight: FontWeight.w700,
             color: c.textPrimary,

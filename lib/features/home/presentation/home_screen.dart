@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sage/core/models/bot.dart';
 import 'package:sage/core/models/bot_event.dart';
 import 'package:sage/core/repositories/bot_repository.dart';
+import 'package:sage/core/repositories/wallet_repository.dart';
 import 'package:sage/core/repositories/position_repository.dart';
 import 'package:sage/core/services/event_service.dart';
 import 'package:sage/core/theme/app_colors.dart';
@@ -89,8 +90,20 @@ class HomeScreen extends ConsumerWidget {
           bottomPad,
           errorMessage: _friendlyError(err),
         ),
-        data: (bots) =>
-            _buildBody(context, ref, c, text, topPad, bottomPad, bots),
+        data: (bots) {
+          // Sort: running bots first, then by most recent activity
+          final sorted = List<Bot>.from(bots)
+            ..sort((a, b) {
+              // Running beats non-running
+              if (a.engineRunning && !b.engineRunning) return -1;
+              if (!a.engineRunning && b.engineRunning) return 1;
+              // Among same state, most recently active first
+              final aTime = a.lastActivityAt ?? DateTime(2000);
+              final bTime = b.lastActivityAt ?? DateTime(2000);
+              return bTime.compareTo(aTime);
+            });
+          return _buildBody(context, ref, c, text, topPad, bottomPad, sorted);
+        },
       ),
     );
   }
@@ -108,7 +121,10 @@ class HomeScreen extends ConsumerWidget {
     // Aggregate data across all bots.
     final runningBots = bots.where((b) => b.engineRunning).toList();
     final allPositions = bots.expand((b) => b.livePositions).toList();
-    final totalDeployed = bots.fold<double>(
+    // Only count live bot balances — simulation bots use virtual money
+    // that should not inflate the real portfolio figure.
+    final liveBots = bots.where((b) => b.mode == BotMode.live).toList();
+    final totalDeployed = liveBots.fold<double>(
       0,
       (sum, b) => sum + b.currentBalanceSol,
     );
@@ -124,9 +140,17 @@ class HomeScreen extends ConsumerWidget {
               ) /
               runningBots.length;
 
-    final wholePart = totalDeployed.toStringAsFixed(1).split('.')[0];
-    final decimalPart =
-        '.${totalDeployed.toStringAsFixed(1).split('.')[1]} SOL';
+    // Real Seal wallet balance (idle SOL)
+    final walletBalanceAsync = ref.watch(walletBalanceProvider);
+    final walletBalanceSol = walletBalanceAsync.whenOrNull(
+      data: (wb) => wb.balanceSOL,
+    );
+
+    // Hero: show wallet balance if available, otherwise sum of live bot balances
+    final heroBalance = walletBalanceSol ?? totalDeployed;
+
+    final wholePart = heroBalance.toStringAsFixed(1).split('.')[0];
+    final decimalPart = '.${heroBalance.toStringAsFixed(1).split('.')[1]} SOL';
     final pnlStr = totalPnl >= 0
         ? '+${totalPnl.toStringAsFixed(2)} SOL'
         : '${totalPnl.toStringAsFixed(2)} SOL';
@@ -154,7 +178,7 @@ class HomeScreen extends ConsumerWidget {
                   SizedBox(height: topPad + 56.h),
 
                   const SageLabel(
-                    'HOME',
+                    'WALLET',
                   ).animate().fadeIn(duration: 500.ms, delay: 200.ms),
 
                   SizedBox(height: 10.h),
@@ -318,7 +342,7 @@ class HomeScreen extends ConsumerWidget {
                               }),
 
                               // "See All" link → navigates to Automate tab
-                              if (bots.length > 3) ...[
+                              if (bots.length > 2) ...[
                                 SizedBox(height: 4.h),
                                 GestureDetector(
                                   onTap: () => context.go('/control'),

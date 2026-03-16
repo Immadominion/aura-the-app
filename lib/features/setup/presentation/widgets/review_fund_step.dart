@@ -72,7 +72,10 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
 
   double get _recommended =>
       widget.positionSizeSOL * widget.maxConcurrentPositions;
-  double get _minimum => widget.positionSizeSOL * 2;
+  // Minimum = position size + 0.075 SOL overhead (rent + fees + finalization),
+  // rounded up to nearest 0.05 SOL
+  double get _minimum =>
+      ((widget.positionSizeSOL + 0.075) * 20).ceilToDouble() / 20;
   double get _profitPerTrade =>
       widget.positionSizeSOL * (widget.profitTargetPercent / 100);
   double get _lossPerTrade =>
@@ -270,8 +273,9 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
             SizedBox(height: 14.h),
 
             Text(
-              'A Seal smart wallet will be created on-chain. '
-              'You can withdraw anytime.',
+              'This is your bot\'s trading capital. '
+              'One wallet approval covers everything. '
+              'You can deposit more or withdraw anytime.',
               style: widget.text.bodySmall?.copyWith(
                 color: widget.c.textSecondary,
                 fontSize: 12.sp,
@@ -304,7 +308,7 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
           SageButton(
             label:
                 widget.activateLabel ??
-                (_isLive ? 'Create Wallet & Activate' : 'Activate'),
+                (_isLive ? 'Deploy & Fund Bot' : 'Activate'),
             onPressed: () => widget.onActivate(
               widget.showFunding && _isLive ? _depositAmount : null,
             ),

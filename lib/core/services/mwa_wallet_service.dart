@@ -50,6 +50,9 @@ String _base58encode(Uint8List bytes) {
 // Auto-discovers whatever wallet app is installed.
 // ─────────────────────────────────────────────────────────
 
+/// MWA identity URI shown in wallet approval dialogs.
+final _identityUri = Uri.parse('https://sage.app');
+
 /// Result of an MWA wallet connection attempt.
 class MwaConnectionResult {
   final bool success;
@@ -162,7 +165,7 @@ class MwaWalletService {
       final client = await session.start();
 
       final auth = await client.authorize(
-        identityUri: Uri.parse('https://sage.app'),
+        identityUri: _identityUri,
         identityName: 'Sage',
         iconUri: Uri.parse('favicon.ico'),
         cluster: 'mainnet-beta',
@@ -210,7 +213,7 @@ class MwaWalletService {
 
       // Step 1: Authorize — wallet shows approval prompt.
       final auth = await client.authorize(
-        identityUri: Uri.parse('https://sage.app'),
+        identityUri: _identityUri,
         identityName: 'Sage',
         iconUri: Uri.parse('favicon.ico'),
         cluster: 'mainnet-beta',
@@ -273,7 +276,7 @@ class MwaWalletService {
 
       // Reauthorize using stored auth token.
       final reauth = await client.reauthorize(
-        identityUri: Uri.parse('https://sage.app'),
+        identityUri: _identityUri,
         identityName: 'Sage',
         iconUri: Uri.parse('favicon.ico'),
         authToken: _authToken!,
@@ -339,7 +342,7 @@ class MwaWalletService {
       if (_authToken != null && cluster == _authCluster) {
         try {
           final reauth = await client.reauthorize(
-            identityUri: Uri.parse('https://sage.app'),
+            identityUri: _identityUri,
             identityName: 'Sage',
             iconUri: Uri.parse('favicon.ico'),
             authToken: _authToken!,
@@ -362,7 +365,7 @@ class MwaWalletService {
         // No stored token, reauthorize failed, or cluster changed — full authorize.
         debugPrint('[MWA] Using full authorize flow (cluster=$cluster)');
         final auth = await client.authorize(
-          identityUri: Uri.parse('https://sage.app'),
+          identityUri: _identityUri,
           identityName: 'Sage',
           iconUri: Uri.parse('favicon.ico'),
           cluster: cluster,
@@ -442,7 +445,7 @@ class MwaWalletService {
       if (_authToken != null && cluster == _authCluster) {
         try {
           final reauth = await client.reauthorize(
-            identityUri: Uri.parse('https://sage.app'),
+            identityUri: _identityUri,
             identityName: 'Sage',
             iconUri: Uri.parse('favicon.ico'),
             authToken: _authToken!,
@@ -464,7 +467,7 @@ class MwaWalletService {
       if (sessionAuthToken == null) {
         debugPrint('[MWA] Using full authorize flow (cluster=$cluster)');
         final auth = await client.authorize(
-          identityUri: Uri.parse('https://sage.app'),
+          identityUri: _identityUri,
           identityName: 'Sage',
           iconUri: Uri.parse('favicon.ico'),
           cluster: cluster,

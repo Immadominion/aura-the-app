@@ -91,6 +91,23 @@ class WalletRepository {
     return response.data as Map<String, dynamic>;
   }
 
+  /// Prepare a partial withdrawal from session signers.
+  /// Backend signs with session keys; caller signs with MWA (owner/feePayer).
+  /// Non-destructive — wallet PDA stays alive.
+  ///
+  /// [amountSol] — amount to withdraw (0 = drain everything).
+  /// [botIds] — optional list of bot IDs to withdraw from.
+  Future<Map<String, dynamic>> prepareWithdraw({
+    double amountSol = 0,
+    List<String>? botIds,
+  }) async {
+    final response = await _api.post(
+      '/wallet/withdraw',
+      data: {'amountSol': amountSol, if (botIds != null) 'botIds': botIds},
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
   // ═══════════════════════════════════════════════════════════════
   // Per-Bot Agent & Session Key Operations
   // ═══════════════════════════════════════════════════════════════
@@ -169,13 +186,17 @@ class WalletRepository {
   }
 
   /// One-shot live mode setup: server generates agent + session keypairs,
-  /// builds RegisterAgent + CreateSession in a single TX (partially signed
-  /// by the generated agent key). The caller must sign with MWA (owner).
+  /// creates wallet PDA if needed, and deposits trading capital — all in
+  /// a single transaction requiring ONE MWA signature.
+  ///
+  /// [depositSol] is the user's trading capital that goes directly to
+  /// the session signer. If 0, the backend calculates the minimum needed.
   ///
   /// Returns `{ transaction, agentPubkey, sessionAddress, sessionPubkey,
-  ///   sponsored, blockhash, lastValidBlockHeight, ... }`.
+  ///   walletCreated, totalCostSol, sessionFundingSol, ... }`.
   Future<Map<String, dynamic>> setupLive({
     required String botId,
+    double depositSol = 0,
     double dailyLimitSol = 10,
     double perTxLimitSol = 2,
     int sessionDurationSecs = 7 * 24 * 60 * 60,
@@ -186,6 +207,7 @@ class WalletRepository {
       '/wallet/setup-live',
       data: {
         'botId': botId,
+        'depositSol': depositSol,
         'dailyLimitSol': dailyLimitSol,
         'perTxLimitSol': perTxLimitSol,
         'sessionDurationSecs': sessionDurationSecs,

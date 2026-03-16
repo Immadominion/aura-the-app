@@ -25,7 +25,7 @@ class WalletState {
   double get remainingTodaySOL => dailyLimitSOL - spentTodaySOL;
 
   factory WalletState.fromJson(Map<String, dynamic> json) {
-    final exists = json['exists'] as bool? ?? true;
+    final exists = json['exists'] as bool? ?? false;
     if (!exists) {
       return WalletState(
         address: json['walletAddress'] as String? ?? '',
@@ -68,7 +68,7 @@ class WalletBalance {
   });
 
   factory WalletBalance.fromJson(Map<String, dynamic> json) => WalletBalance(
-    balanceSOL: (json['sol'] as num).toDouble(),
-    balanceLamports: json['lamports'] as int,
+    balanceSOL: (json['sol'] as num?)?.toDouble() ?? 0,
+    balanceLamports: json['lamports'] as int? ?? 0,
   );
 }

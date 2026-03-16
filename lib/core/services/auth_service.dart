@@ -164,11 +164,15 @@ class AuthService {
 
   // ── User caching for offline resilience ──────────────────────
 
+  static const _cachedAtKey = 'cached_user_at';
+  static const _staleThreshold = Duration(minutes: 30);
+
   Future<void> _cacheUser(User user) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final json = jsonEncode(user.toJson());
       await prefs.setString(_cachedUserKey, json);
+      await prefs.setInt(_cachedAtKey, DateTime.now().millisecondsSinceEpoch);
     } catch (e) {
       debugPrint('[Auth] Failed to cache user: $e');
     }
@@ -179,6 +183,20 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       final json = prefs.getString(_cachedUserKey);
       if (json == null) return null;
+
+      final cachedAt = prefs.getInt(_cachedAtKey);
+      if (cachedAt != null) {
+        final age = DateTime.now().difference(
+          DateTime.fromMillisecondsSinceEpoch(cachedAt),
+        );
+        if (age > _staleThreshold) {
+          debugPrint(
+            '[Auth] Cached user is stale (${age.inMinutes}min old) — discarding',
+          );
+          return null;
+        }
+      }
+
       final map = jsonDecode(json) as Map<String, dynamic>;
       debugPrint('[Auth] Returning cached user (offline mode)');
       return User.fromJson(map);

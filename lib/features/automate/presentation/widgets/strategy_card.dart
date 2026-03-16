@@ -51,7 +51,11 @@ class StrategyCard extends StatelessWidget {
         stateLabel = 'Not Started';
     }
 
-    final pnlColor = pnl.startsWith('+') ? c.profit : c.loss;
+    final pnlColor = pnl.startsWith('-')
+        ? c.loss
+        : pnl.startsWith('+')
+        ? c.profit
+        : c.textSecondary;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

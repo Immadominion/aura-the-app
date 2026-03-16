@@ -128,40 +128,6 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
     });
   }
 
-  /// Ensure the user has an on-chain Seal wallet. If it was closed or never
-  /// created, this prepares + signs + submits a wallet-creation TX via MWA.
-  Future<void> _ensureSealWallet(
-    WalletRepository walletRepo,
-    MwaWalletService mwa,
-  ) async {
-    final walletState = await walletRepo.getWalletState();
-    if (walletState.exists) return; // Already exists — nothing to do.
-
-    // Wallet doesn't exist on-chain — create it (user pays rent/fees).
-    try {
-      final txData = await walletRepo.prepareCreate(
-        dailyLimitSol: _dailyLimit,
-        perTxLimitSol: _positionSize,
-      );
-      final network = (txData['network'] as String?) ?? EnvConfig.solanaNetwork;
-      final txBytes = Uint8List.fromList(
-        base64Decode(txData['transaction'] as String),
-      );
-
-      final signedTxs = await mwa.signTransactions([txBytes], cluster: network);
-      if (signedTxs.isEmpty) {
-        throw Exception('Wallet creation signing was cancelled');
-      }
-
-      final txBase64 = base64Encode(signedTxs.first);
-      await walletRepo.submitSigned(transactionBase64: txBase64);
-    } catch (e) {
-      // 409 = wallet already exists (race / previous attempt) — safe
-      final msg = e.toString();
-      if (!msg.contains('409') && !msg.contains('already exists')) rethrow;
-    }
-  }
-
   /// Sign once via MWA, then submit from the backend.
   ///
   /// This avoids wallet-side simulation failures on partially-signed setup
@@ -186,7 +152,12 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
   }
 
   /// Deploy — creates the bot and handles live-mode seal setup.
-  Future<void> _deploy(double? _) async {
+  ///
+  /// For live mode, everything happens in a SINGLE transaction:
+  /// wallet creation (if needed) + agent registration + deposit — all in
+  /// one MWA signature. The user's [depositSol] goes directly to the
+  /// session signer as trading capital.
+  Future<void> _deploy(double? depositSol) async {
     if (_isActivating) return;
     setState(() => _isActivating = true);
     HapticFeedback.mediumImpact();
@@ -233,42 +204,40 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
       createdBot = await ref.read(botListProvider.notifier).createBot(config);
       if (createdBot.botId.isEmpty) throw Exception('Bot creation failed');
 
-      // ── Step 2: Live-mode Seal setup (agent + session in one TX) ──
+      // ── Step 2: Live-mode setup — ONE MWA signature ──
+      // Backend handles: wallet creation (if needed) + agent registration
+      // + deposit goes directly to session signer as trading capital.
       if (isLive) {
         try {
           final walletRepo = ref.read(walletRepositoryProvider);
           final mwa = ref.read(mwaWalletServiceProvider);
 
-          // Ensure Seal wallet exists on-chain (may have been closed/recovered)
-          await _ensureSealWallet(walletRepo, mwa);
-
-          // Server generates keypairs + builds combined TX
           final setupData = await walletRepo.setupLive(
             botId: createdBot.botId,
+            depositSol: depositSol ?? 0,
             dailyLimitSol: _dailyLimit,
             perTxLimitSol: _positionSize,
             sessionMaxAmountSol: _dailyLimit,
             sessionMaxPerTxSol: _positionSize,
           );
 
-          final txBase64 = setupData['transaction'] as String;
-          final txBytes = Uint8List.fromList(base64Decode(txBase64));
+          // If setup was already finalized (409 with finalized: true), skip signing
+          if (setupData['finalized'] != true) {
+            final txBase64 = setupData['transaction'] as String;
+            final txBytes = Uint8List.fromList(base64Decode(txBase64));
+            final network =
+                (setupData['network'] as String?) ?? EnvConfig.solanaNetwork;
 
-          // Determine cluster from backend response
-          final network =
-              (setupData['network'] as String?) ?? EnvConfig.solanaNetwork;
-
-          // Owner signs via MWA once, backend handles submission.
-          await _signAndSubmitSetupTransaction(
-            mwa,
-            walletRepo,
-            txBytes,
-            network,
-            createdBot.botId,
-          );
+            // Single MWA signature — covers wallet creation, deposit, and agent setup
+            await _signAndSubmitSetupTransaction(
+              mwa,
+              ref.read(walletRepositoryProvider),
+              txBytes,
+              network,
+              createdBot.botId,
+            );
+          }
         } catch (e) {
-          // If seal setup fails, check if it's a 409 (already configured)
-          // — that means a previous attempt succeeded on-chain, safe to proceed.
           final msg = e.toString();
           final isAlreadyConfigured =
               msg.contains('409') || msg.contains('already has agent');
@@ -277,9 +246,7 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(
-                    'Bot created! Tap Start to sign and finish setup.',
-                  ),
+                  content: Text(_friendlyError(e)),
                   duration: const Duration(seconds: 4),
                 ),
               );
@@ -287,7 +254,6 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
             }
             return;
           }
-          // 409 = already configured, proceed to start
         }
       }
 
@@ -471,7 +437,9 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
             setState(() => _step = 1);
           },
           showFunding: _execMode == ExecutionMode.live,
-          activateLabel: 'Deploy Strategy',
+          activateLabel: _execMode == ExecutionMode.live
+              ? 'Deploy & Fund Bot'
+              : 'Deploy Strategy',
           onActivate: _deploy,
           isActivating: _isActivating,
           c: c,

@@ -55,8 +55,18 @@ class AutomateScreen extends ConsumerWidget {
         loading: () =>
             Center(child: CircularProgressIndicator(color: c.accent)),
         error: (err, _) => _buildErrorState(ref, c, text, err),
-        data: (bots) =>
-            _buildBody(context, ref, c, text, topPad, bottomPad, bots),
+        data: (bots) {
+          // Sort: running bots first, then by most recent activity
+          final sorted = List<Bot>.from(bots)
+            ..sort((a, b) {
+              if (a.engineRunning && !b.engineRunning) return -1;
+              if (!a.engineRunning && b.engineRunning) return 1;
+              final aTime = a.lastActivityAt ?? DateTime(2000);
+              final bTime = b.lastActivityAt ?? DateTime(2000);
+              return bTime.compareTo(aTime);
+            });
+          return _buildBody(context, ref, c, text, topPad, bottomPad, sorted);
+        },
       ),
     );
   }
@@ -338,9 +348,11 @@ class AutomateScreen extends ConsumerWidget {
 
                     final pnl =
                         bot.performanceSummary?.totalPnlSol ?? bot.totalPnlSOL;
-                    final pnlStr = pnl >= 0
+                    final pnlStr = pnl > 0
                         ? '+${pnl.toStringAsFixed(2)} SOL'
-                        : '${pnl.toStringAsFixed(2)} SOL';
+                        : pnl < 0
+                        ? '${pnl.toStringAsFixed(2)} SOL'
+                        : '0.00 SOL';
 
                     final lastActivity = bot.lastActivityAt != null
                         ? _relativeTime(bot.lastActivityAt!)

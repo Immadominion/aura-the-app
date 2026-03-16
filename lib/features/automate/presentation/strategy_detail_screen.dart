@@ -29,6 +29,7 @@ import 'package:sage/features/automate/presentation/widgets/edit_config_sheet.da
 import 'package:sage/shared/widgets/mwa_button_tap_effect.dart';
 import 'package:sage/shared/widgets/sage_bottom_sheet.dart';
 import 'package:sage/shared/widgets/withdraw_sheet.dart';
+import 'package:sage/shared/widgets/deposit_sheet.dart';
 
 /// Bot Detail — Layer 2 of Automate mode.
 ///
@@ -58,6 +59,22 @@ String _apiError(Object e) {
   // Strip Dart exception class prefixes
   if (s.startsWith('Exception: ')) return s.substring(11);
   return s;
+}
+
+/// Convert raw engine lastError strings into user-friendly messages.
+String _friendlyLastError(String error) {
+  if (error.contains('insufficient_balance:')) {
+    // Strip any prefix like "Auto-stopped: " before parsing
+    final ibIdx = error.indexOf('insufficient_balance:');
+    final payload = error.substring(ibIdx + 'insufficient_balance:'.length);
+    final vals = payload.split(':');
+    final balance = vals.isNotEmpty ? vals[0].trim() : '?';
+    final required = vals.length > 1 ? vals[1].trim() : '?';
+    final depositNeeded = vals.length > 2 ? vals[2].trim() : required;
+    return 'Deposit at least $depositNeeded SOL using "Fund Wallet" to resume trading. '
+        '(Current: $balance SOL, needs: $required SOL)';
+  }
+  return error;
 }
 
 /// Fully wired to real data via [botDetailProvider].
@@ -97,6 +114,10 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
   }
 
   Future<void> _deleteBot() async {
+    // Check if this is a live bot — warn about fund recovery
+    final botAsync = ref.read(botDetailProvider(widget.botId));
+    final isLiveBot = botAsync.value?.mode == BotMode.live;
+
     // Confirm with bottom sheet — matches Sage design language
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
@@ -144,7 +165,9 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
               ),
               SizedBox(height: 8.h),
               Text(
-                'This will permanently delete this bot and all its history.\n\nThis action cannot be undone.',
+                isLiveBot
+                    ? 'This will permanently delete this bot and all its history.\n\nAny SOL remaining in the bot wallet will NOT be returned automatically. Use "Withdraw" from the menu first to recover your funds.\n\nThis action cannot be undone.'
+                    : 'This will permanently delete this bot and all its history.\n\nThis action cannot be undone.',
                 style: text.bodyMedium?.copyWith(color: c.textSecondary),
               ),
               SizedBox(height: 28.h),
@@ -616,73 +639,20 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
 
     final recommended = bot.positionSizeSOL * bot.maxConcurrentPositions;
 
-    final result = await SageBottomSheet.show<double>(
+    final success = await SageBottomSheet.show<bool>(
       context: context,
       title: 'Fund Wallet',
-      builder: (c, text) => _FundSheetContent(
-        recommended: recommended,
-        positionSize: bot.positionSizeSOL,
-        maxPositions: bot.maxConcurrentPositions,
+      builder: (c, text) => DepositSheet(
+        recommendedSol: recommended,
+        minSol: bot.positionSizeSOL,
         c: c,
         text: text,
       ),
     );
 
-    if (result == null || result <= 0 || _isPerformingAction) return;
-
-    setState(() => _isPerformingAction = true);
-    try {
-      final walletRepo = ref.read(walletRepositoryProvider);
-      final mwa = ref.read(mwaWalletServiceProvider);
-
-      final txData = await walletRepo.prepareDeposit(amountSol: result);
-      final network = txData['network'] as String? ?? EnvConfig.solanaNetwork;
-      final txBytes = Uint8List.fromList(
-        base64Decode(txData['transaction'] as String),
-      );
-
-      // Try signAndSend, fall back to sign + backend submit
-      try {
-        final signatures = await mwa.signAndSendTransactions([
-          txBytes,
-        ], cluster: network);
-        if (signatures.isEmpty) {
-          throw Exception('Transaction was rejected');
-        }
-      } catch (e) {
-        final msg = e.toString();
-        final isSimErr =
-            msg.contains('simulation') ||
-            msg.contains('Simulation') ||
-            msg.contains('Transaction failed') ||
-            msg.contains('failed to send');
-        if (!isSimErr) rethrow;
-
-        debugPrint('[Fund] signAndSend failed, trying sign + submit');
-        final signedTxs = await mwa.signTransactions([
-          txBytes,
-        ], cluster: network);
-        if (signedTxs.isEmpty) throw Exception('Signing cancelled');
-
-        final txBase64 = base64Encode(signedTxs.first);
-        await walletRepo.submitSigned(transactionBase64: txBase64);
-      }
-
-      HapticFeedback.heavyImpact();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Funded ${result.toStringAsFixed(1)} SOL')),
-        );
-        ref.invalidate(walletBalanceProvider);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Funding failed: ${_apiError(e)}')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isPerformingAction = false);
+    if (success == true && mounted) {
+      ref.invalidate(walletBalanceProvider);
+      ref.invalidate(botDetailProvider(widget.botId));
     }
   }
 
@@ -759,16 +729,25 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
         // Insufficient balance toast — only show once per engine run
         if (event.isBotError && !_lowBalanceShown) {
           final errMsg = event.data?['error'] as String? ?? '';
-          if (errMsg.startsWith('insufficient_balance:') && mounted) {
+          if (errMsg.contains('insufficient_balance') && mounted) {
             _lowBalanceShown = true;
+            // Parse deposit amount from error format insufficient_balance:<bal>:<req>:<needed>
+            final parts = errMsg.split(':');
+            final balIdx = parts.indexOf('insufficient_balance');
+            final needed = parts.length > balIdx + 3 ? parts[balIdx + 3] : '?';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text(
-                  'Bot wallet balance too low to trade. '
-                  'Deposit SOL to your Sage wallet.',
+                content: Text(
+                  'Bot needs more SOL to trade. Deposit at least $needed SOL '
+                  'using "Fund Wallet" below.',
                 ),
-                duration: const Duration(seconds: 5),
-                action: SnackBarAction(label: 'Dismiss', onPressed: () {}),
+                duration: const Duration(seconds: 8),
+                action: SnackBarAction(
+                  label: 'Fund',
+                  onPressed: () {
+                    // Scroll would be complex — just dismiss, the Fund button is visible
+                  },
+                ),
               ),
             );
           }
@@ -857,10 +836,16 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
 
     // PnL
     final pnl = bot.performanceSummary?.totalPnlSol ?? bot.totalPnlSOL;
-    final pnlColor = pnl >= 0 ? c.profit : c.loss;
-    final pnlStr = pnl >= 0
+    final pnlColor = pnl > 0
+        ? c.profit
+        : pnl < 0
+        ? c.loss
+        : c.textSecondary;
+    final pnlStr = pnl > 0
         ? '+${pnl.toStringAsFixed(4)} SOL'
-        : '${pnl.toStringAsFixed(4)} SOL';
+        : pnl < 0
+        ? '${pnl.toStringAsFixed(4)} SOL'
+        : '0.0000 SOL';
 
     // Strategy mode label
     final strategyLabel = bot.strategyMode == StrategyMode.ruleBased
@@ -1384,7 +1369,8 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
                     value: '${bot.cronIntervalSeconds}s',
                   ),
 
-                  if (bot.lastError != null) ...[
+                  if (bot.lastError != null &&
+                      bot.status != BotStatus.running) ...[
                     SizedBox(height: 24.h),
                     Text(
                       'LATEST NOTE',
@@ -1398,13 +1384,25 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
                       width: double.infinity,
                       padding: EdgeInsets.all(12.w),
                       child: Text(
-                        bot.lastError!,
+                        _friendlyLastError(bot.lastError!),
                         style: text.bodySmall?.copyWith(
                           color: c.textSecondary,
                           fontSize: 12.sp,
                         ),
                       ),
                     ),
+                    if (bot.lastError!.contains('insufficient_balance'))
+                      Padding(
+                        padding: EdgeInsets.only(top: 4.h),
+                        child: Text(
+                          'After funding, tap Start to resume.',
+                          style: text.bodySmall?.copyWith(
+                            color: c.textSecondary,
+                            fontSize: 11.sp,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
                   ],
 
                   // ── Seal Session Status (live mode only) ──
@@ -1420,314 +1418,6 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// Fund Sheet Content — tap-to-edit amount via SageBottomSheet
-// ═══════════════════════════════════════════════════════════════
-
-class _FundSheetContent extends StatefulWidget {
-  final double recommended;
-  final double positionSize;
-  final int maxPositions;
-  final SageColors c;
-  final TextTheme text;
-
-  const _FundSheetContent({
-    required this.recommended,
-    required this.positionSize,
-    required this.maxPositions,
-    required this.c,
-    required this.text,
-  });
-
-  @override
-  State<_FundSheetContent> createState() => _FundSheetContentState();
-}
-
-class _FundSheetContentState extends State<_FundSheetContent> {
-  late double _amount;
-
-  @override
-  void initState() {
-    super.initState();
-    _amount = widget.recommended;
-  }
-
-  void _openAmountEditor() {
-    final minDeposit = widget.positionSize;
-    final maxDeposit = widget.recommended * 3;
-
-    SageBottomSheet.show<double>(
-      context: context,
-      title: 'Deposit Amount',
-      builder: (c, text) => _AmountEditorContent(
-        current: _amount,
-        min: minDeposit,
-        max: maxDeposit,
-        c: c,
-        text: text,
-      ),
-    ).then((value) {
-      if (value != null) setState(() => _amount = value);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = widget.c;
-    final text = widget.text;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Add SOL to your Seal wallet for live trading.',
-          style: text.bodyMedium?.copyWith(color: c.textSecondary),
-        ),
-
-        SizedBox(height: 24.h),
-
-        // Tappable amount row — tap to edit
-        GestureDetector(
-          onTap: _openAmountEditor,
-          behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.h),
-            child: Row(
-              children: [
-                Text(
-                  'Deposit Amount',
-                  style: text.titleMedium?.copyWith(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: c.textSecondary,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '${_amount.toStringAsFixed(1)} SOL',
-                  style: text.titleMedium?.copyWith(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w700,
-                    color: c.accent,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-                SizedBox(width: 6.w),
-                Icon(
-                  PhosphorIconsBold.pencilSimple,
-                  size: 12.sp,
-                  color: c.textTertiary.withValues(alpha: 0.5),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        Divider(height: 1, color: c.borderSubtle),
-
-        // Recommendation info
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.h),
-          child: Text(
-            'Recommended: ${widget.recommended.toStringAsFixed(1)} SOL '
-            '(${widget.positionSize.toStringAsFixed(1)} × ${widget.maxPositions} positions)',
-            style: text.bodySmall?.copyWith(
-              color: c.textTertiary,
-              fontSize: 11.sp,
-            ),
-          ),
-        ),
-
-        SizedBox(height: 20.h),
-
-        // Fund button
-        GestureDetector(
-          onTap: () {
-            HapticFeedback.mediumImpact();
-            Navigator.pop(context, _amount);
-          },
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 16.h),
-            decoration: BoxDecoration(
-              color: c.accent,
-              borderRadius: BorderRadius.circular(14.r),
-            ),
-            child: Center(
-              child: Text(
-                'Fund ${_amount.toStringAsFixed(1)} SOL',
-                style: text.titleMedium?.copyWith(
-                  color: c.buttonPrimaryText,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        SizedBox(height: 8.h),
-
-        // Cancel
-        GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.h),
-              child: Text(
-                'Cancel',
-                style: text.bodyMedium?.copyWith(color: c.textTertiary),
-              ),
-            ),
-          ),
-        ),
-
-        SizedBox(height: 8.h),
-      ],
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// Amount Editor — slider inside SageBottomSheet (like param editor)
-// ═══════════════════════════════════════════════════════════════
-
-class _AmountEditorContent extends StatefulWidget {
-  final double current;
-  final double min;
-  final double max;
-  final SageColors c;
-  final TextTheme text;
-
-  const _AmountEditorContent({
-    required this.current,
-    required this.min,
-    required this.max,
-    required this.c,
-    required this.text,
-  });
-
-  @override
-  State<_AmountEditorContent> createState() => _AmountEditorContentState();
-}
-
-class _AmountEditorContentState extends State<_AmountEditorContent> {
-  late double _value;
-
-  @override
-  void initState() {
-    super.initState();
-    _value = widget.current;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = widget.c;
-    final text = widget.text;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(height: 8.h),
-
-        // Big value display
-        Text(
-          '${_value.toStringAsFixed(1)} SOL',
-          style: text.displayMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: c.textPrimary,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
-
-        SizedBox(height: 28.h),
-
-        // Slider
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: c.accent,
-            inactiveTrackColor: c.border,
-            thumbColor: c.accent,
-            overlayColor: c.accent.withValues(alpha: 0.12),
-            trackHeight: 3,
-            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8.r),
-          ),
-          child: Slider(
-            value: _value,
-            min: widget.min,
-            max: widget.max,
-            divisions: ((widget.max - widget.min) * 10).round().clamp(1, 200),
-            onChanged: (v) {
-              HapticFeedback.selectionClick();
-              setState(() => _value = v);
-            },
-          ),
-        ),
-
-        // Range labels
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8.w),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${widget.min.toStringAsFixed(1)} SOL',
-                style: text.labelSmall?.copyWith(
-                  color: c.textTertiary,
-                  fontSize: 10.sp,
-                ),
-              ),
-              Text(
-                '${widget.max.toStringAsFixed(1)} SOL',
-                style: text.labelSmall?.copyWith(
-                  color: c.textTertiary,
-                  fontSize: 10.sp,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        SizedBox(height: 28.h),
-
-        // Confirm button
-        GestureDetector(
-          onTap: () {
-            HapticFeedback.mediumImpact();
-            Navigator.pop(context, _value);
-          },
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 16.h),
-            decoration: BoxDecoration(
-              color: c.accent,
-              borderRadius: BorderRadius.circular(16.r),
-              boxShadow: [
-                BoxShadow(
-                  color: c.accent.withValues(alpha: 0.25),
-                  blurRadius: 0,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                'Set Amount',
-                style: text.labelLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        SizedBox(height: 8.h),
-      ],
     );
   }
 }

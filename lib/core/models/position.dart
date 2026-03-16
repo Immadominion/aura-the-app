@@ -80,9 +80,8 @@ class Position {
   bool get isProfitable => pnlPercent > 0;
 
   Duration get holdDuration => Duration(
-        milliseconds:
-            DateTime.now().millisecondsSinceEpoch - entryTimestamp,
-      );
+    milliseconds: DateTime.now().millisecondsSinceEpoch - entryTimestamp,
+  );
 
   String get holdDurationFormatted {
     final d = holdDuration;
@@ -99,14 +98,14 @@ class Position {
 
   factory Position.fromJson(Map<String, dynamic> json) {
     return Position(
-      positionId: json['positionId'] as String,
+      positionId: json['positionId'] as String? ?? '',
       botId: json['botId'] as String?,
-      poolAddress: json['poolAddress'] as String,
+      poolAddress: json['poolAddress'] as String? ?? '',
       poolName: json['poolName'] as String?,
       status: json['status'] as String? ?? 'active',
       entryPrice: _parseDouble(json['entryPrice']),
       currentPrice: _parseDouble(json['currentPrice']),
-      entryTimestamp: json['entryTimestamp'] as int,
+      entryTimestamp: json['entryTimestamp'] as int? ?? 0,
       exitTimestamp: json['exitTimestamp'] as int?,
       holdTimeMinutes: (json['holdTimeMinutes'] as num?)?.toDouble() ?? 0,
       entryAmountYSol: (json['entryAmountYSol'] as num?)?.toDouble() ?? 0,
@@ -122,8 +121,7 @@ class Position {
       tokenYMint: json['tokenYMint'] as String?,
       binStep: json['binStep'] as int?,
       entryActiveBinId: json['entryActiveBinId'] as int?,
-      highWaterMarkPercent:
-          (json['highWaterMarkPercent'] as num?)?.toDouble(),
+      highWaterMarkPercent: (json['highWaterMarkPercent'] as num?)?.toDouble(),
       entryFeatures: json['entryFeatures'] as Map<String, dynamic>?,
       source: json['source'] as String? ?? 'db',
     );
