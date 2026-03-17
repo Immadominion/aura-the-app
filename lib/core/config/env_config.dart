@@ -71,19 +71,21 @@ class EnvConfig {
   static String get apiBaseUrl {
     if (_apiBaseUrlOverride.isNotEmpty) return _apiBaseUrlOverride;
 
+    // Always use the production URL if it's configured, regardless of environment.
+    // This ensures release APKs never fall back to localhost.
+    if (_kProductionApiUrl.isNotEmpty) return _kProductionApiUrl;
+
     switch (environment) {
       case Environment.production:
       case Environment.staging:
-        if (_kProductionApiUrl.isEmpty) {
-          debugPrint(
-            '⚠️ API_BASE_URL not configured for ${environment.name}. '
-            'Set _kProductionApiUrl in env_config.dart or pass '
-            '--dart-define=API_BASE_URL=<url>',
-          );
-        }
-        return _kProductionApiUrl;
+        debugPrint(
+          '⚠️ API_BASE_URL not configured for ${environment.name}. '
+          'Set _kProductionApiUrl in env_config.dart or pass '
+          '--dart-define=API_BASE_URL=<url>',
+        );
+        return 'http://localhost:3001';
       case Environment.development:
-        return 'http://172.20.10.5:3001';
+        return 'http://localhost:3001';
     }
   }
 
