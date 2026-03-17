@@ -35,9 +35,22 @@ final onboardingSeenProvider = FutureProvider<bool>((ref) async {
 final setupCompletedProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateProvider);
   final user = authState.value;
-  if (user != null) return user.setupCompleted;
-  // Auth still loading or not authenticated — return false.
-  return false;
+  // Server says complete → trust it.
+  if (user != null && user.setupCompleted) return true;
+  // Not authenticated → false (router sends to login).
+  if (user == null) return false;
+  // Authenticated but server says incomplete — check local cache.
+  // This handles the case where POST /auth/setup-complete succeeded locally
+  // but the cached/server user object has stale data.
+  final localSetup = ref.watch(_localSetupCompletedProvider);
+  return localSetup.value ?? false;
+});
+
+/// Local SharedPreferences cache for setup_completed flag.
+/// Set by _markSetupComplete() in setup_screen.dart.
+final _localSetupCompletedProvider = FutureProvider<bool>((ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getBool('setup_completed') ?? false;
 });
 
 /// Minimum splash duration — guarantees the splash shows for at least 2 s
@@ -61,6 +74,7 @@ class _RouterRefresh extends ChangeNotifier {
     ref.listen(authStateProvider, (_, __) => notifyListeners());
     ref.listen(onboardingSeenProvider, (_, __) => notifyListeners());
     ref.listen(splashMinDelayProvider, (_, __) => notifyListeners());
+    ref.listen(_localSetupCompletedProvider, (_, __) => notifyListeners());
     // setupCompletedProvider is derived from authState, so it auto-updates.
   }
 }
