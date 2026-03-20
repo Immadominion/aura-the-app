@@ -319,4 +319,21 @@ class AuthNotifier extends AsyncNotifier<User?> {
       // Keep current state on errors.
     }
   }
+
+  /// Synchronously mark setup as completed in the local auth state.
+  /// Avoids the loading-state race that happens with invalidate().
+  void markSetupCompleted() {
+    final current = state.value;
+    if (current != null && !current.setupCompleted) {
+      state = AsyncValue.data(User(
+        id: current.id,
+        walletAddress: current.walletAddress,
+        sealWalletAddress: current.sealWalletAddress,
+        displayName: current.displayName,
+        setupCompleted: true,
+        execMode: current.execMode,
+        createdAt: current.createdAt,
+      ));
+    }
+  }
 }

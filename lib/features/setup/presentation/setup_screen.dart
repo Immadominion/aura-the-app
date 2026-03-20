@@ -204,7 +204,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     HapticFeedback.selectionClick();
     await _markSetupComplete();
     if (mounted) {
-      ref.invalidate(authStateProvider);
+      ref.read(authStateProvider.notifier).markSetupCompleted();
       context.go('/');
     }
   }
@@ -411,7 +411,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
       if (mounted) {
         HapticFeedback.heavyImpact();
-        ref.invalidate(authStateProvider);
+        ref.read(authStateProvider.notifier).markSetupCompleted();
         context.go('/');
       }
     } catch (e) {
