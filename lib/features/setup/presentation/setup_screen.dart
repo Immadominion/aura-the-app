@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -46,6 +47,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   bool _showCustomize = false;
   bool _isActivating = false;
   bool _useAiChat = false; // true = "Talk to Sage" instead of manual sliders
+  Timer? _persistDebounce;
 
   // ── Sage AI overrides ──
   late double _positionSize = 1.0;
@@ -95,36 +97,47 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     });
   }
 
-  /// Save current setup state to SharedPreferences for crash recovery.
-  void _persistSetupState() {
-    final persistence = ref.read(chatPersistenceProvider);
-    final pathStr = _path == SetupPath.sageAi
-        ? 'sage-ai'
-        : _path == SetupPath.custom
-        ? 'custom'
-        : null;
-    final modeStr = _execMode == ExecutionMode.live ? 'live' : 'simulation';
+  @override
+  void dispose() {
+    _persistDebounce?.cancel();
+    super.dispose();
+  }
 
-    persistence.saveSetupState(
-      step: _step,
-      path: pathStr,
-      execMode: modeStr,
-      useAiChat: _useAiChat,
-      params: StrategyParams(
-        entryScoreThreshold: _entryScore,
-        minVolume24h: _minVolume,
-        minLiquidity: _minLiquidity,
-        maxLiquidity: _maxLiquidity,
-        positionSizeSOL: _positionSize,
-        maxConcurrentPositions: _maxConcurrent,
-        defaultBinRange: _binRange,
-        profitTargetPercent: _profitTarget,
-        stopLossPercent: _stopLoss,
-        maxHoldTimeMinutes: _maxHoldMinutes,
-        maxDailyLossSOL: _dailyLimit,
-        cooldownMinutes: _cooldownMinutes,
-      ),
-    );
+  /// Save current setup state — debounced to avoid hammering the server.
+  /// Local cache updates immediately; server sync waits 800ms of inactivity.
+  void _persistSetupState() {
+    _persistDebounce?.cancel();
+    _persistDebounce = Timer(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      final persistence = ref.read(chatPersistenceProvider);
+      final pathStr = _path == SetupPath.sageAi
+          ? 'sage-ai'
+          : _path == SetupPath.custom
+          ? 'custom'
+          : null;
+      final modeStr = _execMode == ExecutionMode.live ? 'live' : 'simulation';
+
+      persistence.saveSetupState(
+        step: _step,
+        path: pathStr,
+        execMode: modeStr,
+        useAiChat: _useAiChat,
+        params: StrategyParams(
+          entryScoreThreshold: _entryScore,
+          minVolume24h: _minVolume,
+          minLiquidity: _minLiquidity,
+          maxLiquidity: _maxLiquidity,
+          positionSizeSOL: _positionSize,
+          maxConcurrentPositions: _maxConcurrent,
+          defaultBinRange: _binRange,
+          profitTargetPercent: _profitTarget,
+          stopLossPercent: _stopLoss,
+          maxHoldTimeMinutes: _maxHoldMinutes,
+          maxDailyLossSOL: _dailyLimit,
+          cooldownMinutes: _cooldownMinutes,
+        ),
+      );
+    });
   }
 
   void _selectPath(SetupPath path) {
