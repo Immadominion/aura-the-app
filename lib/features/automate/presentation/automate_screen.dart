@@ -44,7 +44,9 @@ class AutomateScreen extends ConsumerWidget {
             event.isBotStopped ||
             event.isBotError ||
             event.isScanCompleted) {
-          ref.invalidate(botListProvider);
+          ref
+              .read(botListProvider.notifier)
+              .refresh();
         }
       });
     });
@@ -103,7 +105,8 @@ class AutomateScreen extends ConsumerWidget {
           ),
           SizedBox(height: 16.h),
           TextButton.icon(
-            onPressed: () => ref.invalidate(botListProvider),
+            onPressed: () =>
+                ref.read(botListProvider.notifier).refresh(),
             icon: Icon(Icons.refresh, size: 18.sp, color: c.accent),
             label: Text('Retry', style: TextStyle(color: c.accent)),
           ),

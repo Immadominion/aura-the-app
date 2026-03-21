@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -85,7 +87,7 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
   @override
   void initState() {
     super.initState();
-    _depositAmount = _recommended;
+    _depositAmount = math.max(_recommended, _minimum);
   }
 
   @override

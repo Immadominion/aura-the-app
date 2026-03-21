@@ -10,6 +10,7 @@ import 'package:sage/core/models/bot.dart';
 import 'package:sage/core/config/env_config.dart';
 import 'package:sage/core/repositories/bot_repository.dart';
 import 'package:sage/core/repositories/wallet_repository.dart';
+import 'package:sage/core/services/auth_service.dart';
 import 'package:sage/core/services/mwa_wallet_service.dart';
 import 'package:sage/core/theme/app_colors.dart';
 import 'package:sage/core/theme/app_theme.dart';
@@ -157,14 +158,13 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
         );
         return;
       } catch (e) {
-        final isNetwork = e.toString().contains('SocketException') ||
+        final isNetwork =
+            e.toString().contains('SocketException') ||
             e.toString().contains('Connection refused') ||
             e.toString().contains('connection timeout');
         if (!isNetwork || attempt == 2) rethrow;
         debugPrint('[CreateStrategy] submitSigned attempt $attempt failed: $e');
-        await Future<void>.delayed(
-          Duration(milliseconds: 500 * (attempt + 1)),
-        );
+        await Future<void>.delayed(Duration(milliseconds: 500 * (attempt + 1)));
       }
     }
   }
@@ -181,6 +181,7 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
     HapticFeedback.mediumImpact();
 
     Bot? createdBot;
+    bool liveSetupSucceeded = false;
     try {
       final isSageAi = _path == SetupPath.sageAi;
       final strategyMode = isSageAi ? 'sage-ai' : 'rule-based';
@@ -235,8 +236,8 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
             depositSol: depositSol ?? 0,
             dailyLimitSol: _dailyLimit,
             perTxLimitSol: _positionSize,
-            sessionMaxAmountSol: _dailyLimit,
-            sessionMaxPerTxSol: _positionSize,
+            sessionMaxAmountSol: _dailyLimit * 30,
+            sessionMaxPerTxSol: _positionSize * 2,
           );
 
           // If setup was already finalized (409 with finalized: true), skip signing
@@ -255,17 +256,26 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
               createdBot.botId,
             );
           }
+          liveSetupSucceeded = true;
         } catch (e) {
           final msg = e.toString();
           final isAlreadyConfigured =
               msg.contains('409') || msg.contains('already has agent');
-          if (!isAlreadyConfigured) {
+          if (isAlreadyConfigured) {
+            liveSetupSucceeded = true;
+          } else {
+            // Live setup failed (user cancelled MWA, network error, etc.)
+            // Bot was created but has no agent/session keys — DON'T auto-start.
+            // Refresh list so user sees the bot, and show actionable error.
             await ref.read(botListProvider.notifier).refresh();
             if (mounted) {
+              setState(() => _isActivating = false);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(_friendlyError(e)),
-                  duration: const Duration(seconds: 4),
+                  content: Text(
+                    '${_friendlyError(e)} Bot created — tap it to retry setup.',
+                  ),
+                  duration: const Duration(seconds: 5),
                 ),
               );
               context.pop();
@@ -276,14 +286,20 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
       }
 
       // ── Step 3: Auto-start the bot ──
-      try {
-        await ref.read(botRepositoryProvider).startBot(createdBot.botId);
-        await ref.read(botListProvider.notifier).refresh();
-      } catch (_) {
-        // Non-fatal: bot created, start can be retried from detail screen.
+      if (!isLive || liveSetupSucceeded) {
+        try {
+          await ref.read(botRepositoryProvider).startBot(createdBot.botId);
+          await ref.read(botListProvider.notifier).refresh();
+        } catch (_) {
+          // Non-fatal: bot created, start can be retried from detail screen.
+        }
       }
 
+      // Ensure setup is marked complete (bot exists → setup is done).
+      ref.read(authStateProvider.notifier).markSetupCompleted();
+
       if (mounted) {
+        setState(() => _isActivating = false);
         HapticFeedback.heavyImpact();
         context.pop();
       }
@@ -316,6 +332,12 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
     if (msg.contains('authorization cancelled') ||
         msg.contains('rejected by wallet')) {
       return 'Wallet authorization was cancelled. Tap Deploy to try again.';
+    }
+    if (msg.contains('Minimum deposit')) {
+      // Surface the backend's deposit validation message directly
+      final match = RegExp(r'Minimum deposit is [\d.]+ SOL').firstMatch(msg);
+      if (match != null) return '${match.group(0)}. Increase your deposit.';
+      return 'Deposit too low — increase amount and try again.';
     }
     if (msg.contains('wallet not found') ||
         msg.contains('Seal wallet not found')) {

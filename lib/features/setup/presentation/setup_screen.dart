@@ -241,7 +241,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
           );
           return;
         } catch (e) {
-          final isNetwork = e.toString().contains('SocketException') ||
+          final isNetwork =
+              e.toString().contains('SocketException') ||
               e.toString().contains('Connection refused') ||
               e.toString().contains('connection timeout');
           if (!isNetwork || attempt == 2) rethrow;
@@ -287,11 +288,14 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
           await walletRepo.submitSigned(transactionBase64: txBase64);
           return;
         } catch (e) {
-          final isNetwork = e.toString().contains('SocketException') ||
+          final isNetwork =
+              e.toString().contains('SocketException') ||
               e.toString().contains('Connection refused') ||
               e.toString().contains('connection timeout');
           if (!isNetwork || attempt == 2) rethrow;
-          debugPrint('[Setup] submitSigned fallback attempt $attempt failed: $e');
+          debugPrint(
+            '[Setup] submitSigned fallback attempt $attempt failed: $e',
+          );
           await Future<void>.delayed(
             Duration(milliseconds: 500 * (attempt + 1)),
           );
@@ -346,16 +350,14 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         },
       );
 
-      await ref.read(botListProvider.notifier).createBot(config);
+      final createdBot =
+          await ref.read(botListProvider.notifier).createBot(config);
 
       // ── Live-mode: ONE MWA signature handles everything ──
       // Backend creates wallet (if needed) + registers agent + deposits
       // trading capital to session signer — all in a single transaction.
       bool liveSetupSucceeded = false;
       if (isLive) {
-        final bots = ref.read(botListProvider).value ?? [];
-        if (bots.isNotEmpty) {
-          final createdBot = bots.last;
           try {
             final setupData = await walletRepo.setupLive(
               botId: createdBot.botId,
@@ -391,17 +393,13 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
               debugPrint('[Setup] setup-live failed: $e');
             }
           }
-        }
       }
 
       // Auto-start the bot so user sees it running immediately.
       if (!isLive || liveSetupSucceeded) {
         try {
-          final bots = ref.read(botListProvider).value ?? [];
-          if (bots.isNotEmpty) {
-            await ref.read(botRepositoryProvider).startBot(bots.last.botId);
-            await ref.read(botListProvider.notifier).refresh();
-          }
+          await ref.read(botRepositoryProvider).startBot(createdBot.botId);
+          await ref.read(botListProvider.notifier).refresh();
         } catch (_) {
           // Non-fatal: bot was created successfully, start can be retried.
         }

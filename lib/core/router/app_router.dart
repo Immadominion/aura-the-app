@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sage/core/repositories/bot_repository.dart';
 import 'package:sage/core/services/auth_service.dart';
 import 'package:sage/features/navigation/presentation/app_shell.dart';
 import 'package:sage/features/home/presentation/home_screen.dart';
@@ -39,6 +40,11 @@ final setupCompletedProvider = Provider<bool>((ref) {
   if (user != null && user.setupCompleted) return true;
   // Not authenticated → false (router sends to login).
   if (user == null) return false;
+  // Authenticated + has bots → setup is definitely complete, even if the
+  // flag was never persisted (e.g. bot created via CreateStrategyScreen
+  // which doesn't call _markSetupComplete).
+  final botList = ref.watch(botListProvider);
+  if (botList.hasValue && botList.value!.isNotEmpty) return true;
   // Authenticated but server says incomplete — check local cache.
   // This handles the case where POST /auth/setup-complete succeeded locally
   // but the cached/server user object has stale data.
@@ -75,6 +81,7 @@ class _RouterRefresh extends ChangeNotifier {
     ref.listen(onboardingSeenProvider, (_, __) => notifyListeners());
     ref.listen(splashMinDelayProvider, (_, __) => notifyListeners());
     ref.listen(_localSetupCompletedProvider, (_, __) => notifyListeners());
+    ref.listen(botListProvider, (_, __) => notifyListeners());
     // setupCompletedProvider is derived from authState, so it auto-updates.
   }
 }

@@ -325,15 +325,17 @@ class AuthNotifier extends AsyncNotifier<User?> {
   void markSetupCompleted() {
     final current = state.value;
     if (current != null && !current.setupCompleted) {
-      state = AsyncValue.data(User(
-        id: current.id,
-        walletAddress: current.walletAddress,
-        sealWalletAddress: current.sealWalletAddress,
-        displayName: current.displayName,
-        setupCompleted: true,
-        execMode: current.execMode,
-        createdAt: current.createdAt,
-      ));
+      state = AsyncValue.data(
+        User(
+          id: current.id,
+          walletAddress: current.walletAddress,
+          sealWalletAddress: current.sealWalletAddress,
+          displayName: current.displayName,
+          setupCompleted: true,
+          execMode: current.execMode,
+          createdAt: current.createdAt,
+        ),
+      );
     }
   }
 }
