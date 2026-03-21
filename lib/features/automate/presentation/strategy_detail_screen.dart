@@ -314,20 +314,33 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
         try {
           await _runSetupLive(botData);
         } catch (e) {
-          // Setup failed (signing rejected / simulation error).
-          // Do NOT proceed to startBot — the on-chain accounts don't exist.
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Setup failed: ${_apiError(e)}')),
-            );
+          final msg = e.toString();
+          final isAlreadyConfigured =
+              msg.contains('409') || msg.contains('already has agent');
+          if (!isAlreadyConfigured) {
+            // Setup failed (signing rejected / simulation error).
+            // Do NOT proceed to startBot — the on-chain accounts don't exist.
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Setup failed: ${_apiError(e)}')),
+              );
+            }
+            return;
           }
-          return;
         }
-        // Now try starting again after successful setup
-        await repo.startBot(widget.botId);
-        HapticFeedback.mediumImpact();
-        ref.invalidate(botDetailProvider(widget.botId));
-        ref.invalidate(botListProvider);
+        // Retry startBot with backoff — finalizeLiveSession may still be running
+        for (var attempt = 0; attempt < 3; attempt++) {
+          try {
+            await repo.startBot(widget.botId);
+            HapticFeedback.mediumImpact();
+            ref.invalidate(botDetailProvider(widget.botId));
+            ref.invalidate(botListProvider);
+            return;
+          } catch (e) {
+            if (attempt == 2) rethrow;
+            await Future.delayed(Duration(milliseconds: 1000 * (attempt + 1)));
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -373,13 +386,21 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
       }
     }
 
+    // Include a deposit so the bot has trading capital.
+    // positionSize * 2 covers one trade + fees; user can top up via Fund Wallet.
+    final depositSol = bot.positionSizeSOL * 2;
+
     final setupData = await walletRepo.setupLive(
       botId: bot.botId,
+      depositSol: depositSol,
       dailyLimitSol: bot.maxDailyLossSOL,
       perTxLimitSol: bot.positionSizeSOL,
-      sessionMaxAmountSol: bot.maxDailyLossSOL,
-      sessionMaxPerTxSol: bot.positionSizeSOL,
+      sessionMaxAmountSol: bot.maxDailyLossSOL * 30,
+      sessionMaxPerTxSol: bot.positionSizeSOL * 2,
     );
+
+    // If already finalized (409 with finalized: true), skip signing
+    if (setupData['finalized'] == true) return;
 
     final txBase64 = setupData['transaction'] as String;
     final txBytes = Uint8List.fromList(base64Decode(txBase64));
@@ -397,10 +418,14 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
       setupLiveBotId: bot.botId,
     );
 
-    // Refresh bot data so agentPubkey/sessionAddress are populated
-    ref.invalidate(botDetailProvider(widget.botId));
-    // Small delay for invalidation to propagate
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Wait for backend's finalizeLiveSession to populate agent/session keys.
+    // Poll up to 5s — the on-chain confirmation + DB write typically takes 1-3s.
+    for (var i = 0; i < 10; i++) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      ref.invalidate(botDetailProvider(widget.botId));
+      final refreshed = await ref.read(botDetailProvider(widget.botId).future);
+      if (refreshed.agentPubkey != null) return;
+    }
   }
 
   Future<void> _stopBot() async {

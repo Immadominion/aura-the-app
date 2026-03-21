@@ -47,6 +47,9 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
   bool _isActivating = false;
   bool _useAiChat = false;
 
+  /// Tracks the bot created in Step 1 so retry doesn't create a duplicate.
+  Bot? _createdBot;
+
   final TextEditingController _nameController = TextEditingController();
 
   // ── Sage AI overrides ──
@@ -180,7 +183,6 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
     setState(() => _isActivating = true);
     HapticFeedback.mediumImpact();
 
-    Bot? createdBot;
     bool liveSetupSucceeded = false;
     try {
       final isSageAi = _path == SetupPath.sageAi;
@@ -219,8 +221,9 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
         },
       );
 
-      // ── Step 1: Create the bot ──
-      createdBot = await ref.read(botListProvider.notifier).createBot(config);
+      // ── Step 1: Create the bot (skip if already created from a prior attempt) ──
+      _createdBot ??= await ref.read(botListProvider.notifier).createBot(config);
+      final createdBot = _createdBot!;
       if (createdBot.botId.isEmpty) throw Exception('Bot creation failed');
 
       // ── Step 2: Live-mode setup — ONE MWA signature ──
@@ -266,19 +269,17 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
           } else {
             // Live setup failed (user cancelled MWA, network error, etc.)
             // Bot was created but has no agent/session keys — DON'T auto-start.
-            // Refresh list so user sees the bot, and show actionable error.
-            await ref.read(botListProvider.notifier).refresh();
+            // STAY on this screen so user can tap Deploy again to retry.
             if (mounted) {
               setState(() => _isActivating = false);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    '${_friendlyError(e)} Bot created — tap it to retry setup.',
+                    '${_friendlyError(e)} Tap Deploy to retry.',
                   ),
                   duration: const Duration(seconds: 5),
                 ),
               );
-              context.pop();
             }
             return;
           }

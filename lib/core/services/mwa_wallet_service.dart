@@ -51,7 +51,7 @@ String _base58encode(Uint8List bytes) {
 // ─────────────────────────────────────────────────────────
 
 /// MWA identity URI shown in wallet approval dialogs.
-final _identityUri = Uri.parse('https://sage.app');
+final _identityUri = Uri.parse('https://sage.scrolls.fun');
 
 /// Result of an MWA wallet connection attempt.
 class MwaConnectionResult {
@@ -167,7 +167,7 @@ class MwaWalletService {
       final auth = await client.authorize(
         identityUri: _identityUri,
         identityName: 'Sage',
-        iconUri: Uri.parse('favicon.ico'),
+        iconUri: Uri.parse('logo.png'),
         cluster: 'mainnet-beta',
       );
 
@@ -215,7 +215,7 @@ class MwaWalletService {
       final auth = await client.authorize(
         identityUri: _identityUri,
         identityName: 'Sage',
-        iconUri: Uri.parse('favicon.ico'),
+        iconUri: Uri.parse('logo.png'),
         cluster: 'mainnet-beta',
       );
 
@@ -278,7 +278,7 @@ class MwaWalletService {
       final reauth = await client.reauthorize(
         identityUri: _identityUri,
         identityName: 'Sage',
-        iconUri: Uri.parse('favicon.ico'),
+        iconUri: Uri.parse('logo.png'),
         authToken: _authToken!,
       );
 
@@ -344,7 +344,7 @@ class MwaWalletService {
           final reauth = await client.reauthorize(
             identityUri: _identityUri,
             identityName: 'Sage',
-            iconUri: Uri.parse('favicon.ico'),
+            iconUri: Uri.parse('logo.png'),
             authToken: _authToken!,
           );
           if (reauth != null) {
@@ -367,7 +367,7 @@ class MwaWalletService {
         final auth = await client.authorize(
           identityUri: _identityUri,
           identityName: 'Sage',
-          iconUri: Uri.parse('favicon.ico'),
+          iconUri: Uri.parse('logo.png'),
           cluster: cluster,
         );
         if (auth == null) {
@@ -447,7 +447,7 @@ class MwaWalletService {
           final reauth = await client.reauthorize(
             identityUri: _identityUri,
             identityName: 'Sage',
-            iconUri: Uri.parse('favicon.ico'),
+            iconUri: Uri.parse('logo.png'),
             authToken: _authToken!,
           );
           if (reauth != null) {
@@ -469,7 +469,7 @@ class MwaWalletService {
         final auth = await client.authorize(
           identityUri: _identityUri,
           identityName: 'Sage',
-          iconUri: Uri.parse('favicon.ico'),
+          iconUri: Uri.parse('logo.png'),
           cluster: cluster,
         );
         if (auth == null) {
