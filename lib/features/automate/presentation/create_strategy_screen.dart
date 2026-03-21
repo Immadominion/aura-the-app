@@ -50,6 +50,9 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
   /// Tracks the bot created in Step 1 so retry doesn't create a duplicate.
   Bot? _createdBot;
 
+  /// User-facing status message shown during the multi-step deploy process.
+  String _deployStatus = '';
+
   final TextEditingController _nameController = TextEditingController();
 
   // ── Sage AI overrides ──
@@ -150,6 +153,9 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
 
     final txBase64 = base64Encode(signedTxs.first);
 
+    // Update status — this step confirms on-chain and can take several seconds
+    if (mounted) setState(() => _deployStatus = 'Confirming on-chain…');
+
     // Wait for foreground restoration after MWA session closes,
     // then retry submitSigned with exponential backoff.
     await Future<void>.delayed(const Duration(milliseconds: 500));
@@ -180,8 +186,15 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
   /// session signer as trading capital.
   Future<void> _deploy(double? depositSol) async {
     if (_isActivating) return;
-    setState(() => _isActivating = true);
+    setState(() {
+      _isActivating = true;
+      _deployStatus = 'Preparing…';
+    });
     HapticFeedback.mediumImpact();
+
+    void updateStatus(String status) {
+      if (mounted) setState(() => _deployStatus = status);
+    }
 
     bool liveSetupSucceeded = false;
     try {
@@ -222,6 +235,7 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
       );
 
       // ── Step 1: Create the bot (skip if already created from a prior attempt) ──
+      updateStatus('Creating bot…');
       _createdBot ??= await ref.read(botListProvider.notifier).createBot(config);
       final createdBot = _createdBot!;
       if (createdBot.botId.isEmpty) throw Exception('Bot creation failed');
@@ -234,6 +248,7 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
           final walletRepo = ref.read(walletRepositoryProvider);
           final mwa = ref.read(mwaWalletServiceProvider);
 
+          updateStatus('Setting up Seal wallet…');
           final setupData = await walletRepo.setupLive(
             botId: createdBot.botId,
             depositSol: depositSol ?? 0,
@@ -251,6 +266,7 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
                 (setupData['network'] as String?) ?? EnvConfig.solanaNetwork;
 
             // Single MWA signature — covers wallet creation, deposit, and agent setup
+            updateStatus('Approve in wallet…');
             await _signAndSubmitSetupTransaction(
               mwa,
               ref.read(walletRepositoryProvider),
@@ -288,6 +304,7 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
 
       // ── Step 3: Auto-start the bot ──
       if (!isLive || liveSetupSucceeded) {
+        updateStatus('Starting bot…');
         try {
           await ref.read(botRepositoryProvider).startBot(createdBot.botId);
           await ref.read(botListProvider.notifier).refresh();
@@ -295,6 +312,9 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
           // Non-fatal: bot created, start can be retried from detail screen.
         }
       }
+
+      // Refresh wallet balance so it shows immediately on the detail screen.
+      ref.invalidate(walletBalanceProvider);
 
       // Ensure setup is marked complete (bot exists → setup is done).
       ref.read(authStateProvider.notifier).markSetupCompleted();
@@ -483,6 +503,7 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
               : 'Deploy Strategy',
           onActivate: _deploy,
           isActivating: _isActivating,
+          statusMessage: _deployStatus,
           c: c,
           text: text,
         );

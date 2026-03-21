@@ -46,6 +46,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   ExecutionMode _execMode = ExecutionMode.simulation;
   bool _showCustomize = false;
   bool _isActivating = false;
+  String _deployStatus = '';
   bool _useAiChat = false; // true = "Talk to Sage" instead of manual sliders
   Timer? _persistDebounce;
   final TextEditingController _nameController = TextEditingController();
@@ -306,8 +307,15 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
   Future<void> _activate(double? depositSol) async {
     if (_isActivating) return;
-    setState(() => _isActivating = true);
+    setState(() {
+      _isActivating = true;
+      _deployStatus = 'Preparing…';
+    });
     HapticFeedback.mediumImpact();
+
+    void updateStatus(String status) {
+      if (mounted) setState(() => _deployStatus = status);
+    }
 
     try {
       final isSageAi = _path == SetupPath.sageAi;
@@ -319,7 +327,6 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       final walletRepo = ref.read(walletRepositoryProvider);
       final mwa = ref.read(mwaWalletServiceProvider);
 
-      // ── Create bot config ──
       final config = BotConfig(
         name: _nameController.text.trim().isEmpty
             ? null
@@ -350,6 +357,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         },
       );
 
+      updateStatus('Creating bot…');
       final createdBot =
           await ref.read(botListProvider.notifier).createBot(config);
 
@@ -359,6 +367,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       bool liveSetupSucceeded = false;
       if (isLive) {
           try {
+            updateStatus('Setting up Seal wallet…');
             final setupData = await walletRepo.setupLive(
               botId: createdBot.botId,
               depositSol: depositSol ?? 0,
@@ -376,6 +385,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                   (setupData['network'] as String?) ?? EnvConfig.solanaNetwork;
 
               // Single MWA signature — backend handles finalization
+              updateStatus('Approve in wallet…');
               await _signAndSubmitWithFallback(
                 mwa,
                 walletRepo,
@@ -397,6 +407,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
       // Auto-start the bot so user sees it running immediately.
       if (!isLive || liveSetupSucceeded) {
+        updateStatus('Starting bot…');
         try {
           await ref.read(botRepositoryProvider).startBot(createdBot.botId);
           await ref.read(botListProvider.notifier).refresh();
@@ -406,6 +417,9 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       }
 
       await _markSetupComplete();
+
+      // Refresh wallet balance so it shows immediately on the detail screen.
+      ref.invalidate(walletBalanceProvider);
 
       if (mounted) {
         HapticFeedback.heavyImpact();
@@ -663,6 +677,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
           onSkip: _skip,
           onActivate: _activate,
           isActivating: _isActivating,
+          statusMessage: _deployStatus,
           c: c,
           text: text,
         );

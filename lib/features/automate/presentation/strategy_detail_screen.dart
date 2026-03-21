@@ -1558,25 +1558,49 @@ class _WalletBalanceRow extends ConsumerWidget {
     final text = context.sageText;
     final balanceAsync = ref.watch(walletBalanceProvider);
 
-    return balanceAsync.when(
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (balance) => Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.h),
-        child: Row(
-          children: [
-            Icon(PhosphorIconsBold.wallet, size: 14.sp, color: c.textTertiary),
-            SizedBox(width: 8.w),
-            Text(
-              'Wallet Balance',
-              style: text.titleMedium?.copyWith(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-                color: c.textSecondary,
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.h),
+      child: Row(
+        children: [
+          Icon(PhosphorIconsBold.wallet, size: 14.sp, color: c.textTertiary),
+          SizedBox(width: 8.w),
+          Text(
+            'Wallet Balance',
+            style: text.titleMedium?.copyWith(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: c.textSecondary,
+            ),
+          ),
+          const Spacer(),
+          balanceAsync.when(
+            loading: () => SizedBox(
+              width: 14.sp,
+              height: 14.sp,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: c.textTertiary,
               ),
             ),
-            const Spacer(),
-            Text(
+            error: (_, __) => GestureDetector(
+              onTap: () => ref.invalidate(walletBalanceProvider),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(PhosphorIconsBold.arrowClockwise,
+                      size: 12.sp, color: c.textTertiary),
+                  SizedBox(width: 4.w),
+                  Text(
+                    'Tap to retry',
+                    style: text.bodySmall?.copyWith(
+                      color: c.textTertiary,
+                      fontSize: 12.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            data: (balance) => Text(
               '${balance.balanceSOL.toStringAsFixed(4)} SOL',
               style: text.titleMedium?.copyWith(
                 fontSize: 14.sp,
@@ -1585,8 +1609,8 @@ class _WalletBalanceRow extends ConsumerWidget {
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

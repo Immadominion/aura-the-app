@@ -34,6 +34,9 @@ class ReviewFundStep extends StatefulWidget {
 
   final bool isActivating;
 
+  /// Status message shown below the deploy button during activation.
+  final String? statusMessage;
+
   /// Whether to show the funding/deposit section (initial setup only).
   /// When false (e.g. creating an additional bot), the wallet already
   /// exists and we skip the deposit slider.
@@ -58,6 +61,7 @@ class ReviewFundStep extends StatefulWidget {
     this.onSkip,
     required this.onActivate,
     required this.isActivating,
+    this.statusMessage,
     this.showFunding = true,
     this.activateLabel,
     required this.c,
@@ -317,6 +321,23 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
             isLoading: widget.isActivating,
             enabled: _disclaimerAccepted && !widget.isActivating,
           ).animate().fadeIn(duration: 400.ms, delay: 350.ms),
+
+          // ── Deploy status message ──
+          if (widget.isActivating &&
+              widget.statusMessage != null &&
+              widget.statusMessage!.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.only(top: 12.h),
+              child: Center(
+                child: Text(
+                  widget.statusMessage!,
+                  style: widget.text.bodySmall?.copyWith(
+                    color: widget.c.textSecondary,
+                    fontSize: 12.sp,
+                  ),
+                ),
+              ),
+            ),
 
           SizedBox(height: 12.h),
 
