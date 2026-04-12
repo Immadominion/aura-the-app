@@ -23,11 +23,11 @@ class StepIndicator extends StatelessWidget {
         final active = i <= current;
         return Expanded(
           child: Container(
-            height: 3.h,
+            height: 6.h,
             margin: EdgeInsets.symmetric(horizontal: 3.w),
             decoration: BoxDecoration(
               color: active ? c.accent : c.border,
-              borderRadius: BorderRadius.circular(1.5.r),
+              borderRadius: BorderRadius.circular(3.r),
             ),
           ),
         );

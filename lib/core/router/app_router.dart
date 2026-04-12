@@ -59,10 +59,10 @@ final _localSetupCompletedProvider = FutureProvider<bool>((ref) async {
   return prefs.getBool('setup_completed') ?? false;
 });
 
-/// Minimum splash duration — guarantees the splash shows for at least 2 s
-/// regardless of how fast auth state or onboarding flag resolve.
+/// Minimum splash duration — guarantees the splash shows for at least 4 s
+/// so the full animation (text → logo → tagline) plays to completion.
 final splashMinDelayProvider = FutureProvider<void>((ref) async {
-  await Future.delayed(const Duration(seconds: 2));
+  await Future.delayed(const Duration(milliseconds: 3800));
 });
 
 // ═══════════════════════════════════════════════════════════════

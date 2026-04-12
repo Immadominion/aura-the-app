@@ -9,16 +9,19 @@
 ## Key Findings
 
 ### 1. Profit Target Is Only an Exit Trigger
+
 - `profitTargetPercent` does NOT influence pool selection, bin range, strategy type, position sizing, or expected hold duration
 - It is checked in `checkExitConditions()` as: `pnlPercent >= position.profitTargetPercent`
 - Entry decisions are entirely driven by market scoring (volume/liquidity/fee/momentum) and/or ML predictions
 
 ### 2. P&L Excludes Fees
+
 - Exit P&L = `((currentPrice - entryPrice) / entryPrice) * 100`
 - DLMM LP profit is primarily from **fees**, not price movement
 - A position earning 5% fees but down 2% in price shows -2% (should be +3%)
 
 ### 3. Simulation Gaps vs Real DLMM
+
 - Dynamic fee model (volatility accumulator) not modeled
 - Only the active bin earns fees — our sim spreads fees across all bins
 - No liquidity share tracking (assumes 100% of bin fees go to us)
@@ -26,10 +29,12 @@
 - No out-of-range detection
 
 ### 4. Always Spot Strategy
+
 - `enterPosition()` always uses `StrategyType.Spot` regardless of market conditions
 - Curve and BidAsk distribution code exists in `dlmm-sim-math.ts` but is never used
 
 ### 5. ML Model Trains on 1,600 Samples
+
 - Current XGBoost model uses 12 features from Dune aggregates
 - Old-faithful-extractor can provide 50–200M labeled samples with 100+ features
 
@@ -88,11 +93,13 @@ The wallet system is **fully implemented** but disabled by a frontend feature fl
 | Backend network guard | ⚠️ Requires mainnet | `SOLANA_NETWORK !== "mainnet-beta"` blocks live mode |
 
 ### To Enable Live Trading
+
 1. Set `kLiveTradingEnabled = true` in Flutter
 2. Deploy backend with `SOLANA_NETWORK=mainnet-beta` and mainnet RPC
 3. Ensure `MASTER_ENCRYPTION_KEY` is set in production env
 
 ### Security Model
+
 - Private keys encrypted at rest (AES-256-GCM, env-based master key)
 - Decrypted only in-memory during active trading
 - Zeroized on bot stop (`keypair.secretKey.fill(0)`)

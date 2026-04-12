@@ -71,9 +71,7 @@ class WalletRepository {
       '/wallet/smart-withdraw',
       data: {'botIds': botIds},
     );
-    return SmartWithdrawResult.fromJson(
-      response.data as Map<String, dynamic>,
-    );
+    return SmartWithdrawResult.fromJson(response.data as Map<String, dynamic>);
   }
 }
 

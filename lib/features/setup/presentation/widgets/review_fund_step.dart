@@ -124,323 +124,315 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.symmetric(horizontal: 28.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 16.h),
-
-          // ── Back ──
-          GestureDetector(
-            onTap: widget.onBack,
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: EdgeInsets.only(bottom: 12.h),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    PhosphorIconsBold.caretLeft,
-                    size: 16.sp,
-                    color: widget.c.accent,
-                  ),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'Back',
-                    style: widget.text.titleMedium?.copyWith(
-                      color: widget.c.accent,
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          StepIndicator(current: 2, total: 3, c: widget.c),
-
-          SizedBox(height: 28.h),
-
-          // ── Headline ──
-          Text(
-                _isLive ? 'Review &\nFund' : 'Review &\nActivate',
-                style: widget.text.headlineLarge,
-              )
-              .animate()
-              .fadeIn(duration: 600.ms)
-              .slideY(begin: 0.05, end: 0, curve: Curves.easeOutCubic),
-
-          SizedBox(height: 8.h),
-
-          Text(
-            'Confirm your setup before launching.',
-            style: widget.text.bodyMedium?.copyWith(
-              color: widget.c.textSecondary,
-            ),
-          ).animate().fadeIn(duration: 500.ms, delay: 100.ms),
-
-          SizedBox(height: 28.h),
-
-          // ───────────── CONFIGURATION ─────────────
-          _sectionLabel(
-            'CONFIGURATION',
-          ).animate().fadeIn(duration: 400.ms, delay: 150.ms),
-
-          SizedBox(height: 14.h),
-
-          // Path + Mode (inline)
-          Row(
+    return Column(
+      children: [
+        // ── Fixed step indicator ──
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 28.w),
+          child: Column(
             children: [
-              Icon(
-                widget.path == SetupPath.sageAi
-                    ? PhosphorIconsBold.sparkle
-                    : PhosphorIconsBold.folderSimpleUser,
-                size: 14.sp,
-                color: widget.c.accent,
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                widget.path == SetupPath.sageAi ? 'Sage AI' : 'Custom Strategy',
-                style: widget.text.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: widget.c.textPrimary,
-                ),
-              ),
-              SizedBox(width: 8.w),
-              _modePill(),
+              SizedBox(height: 16.h),
+              StepIndicator(current: 2, total: 3, c: widget.c),
             ],
-          ).animate().fadeIn(duration: 400.ms, delay: 170.ms),
-
-          SizedBox(height: 16.h),
-
-          _kvRow('Position Size', '${widget.positionSizeSOL} SOL'),
-          SizedBox(height: 10.h),
-          _kvRow('Max Positions', '${widget.maxConcurrentPositions}'),
-          SizedBox(height: 10.h),
-          _kvRow('Daily Loss Limit', '${widget.maxDailyLossSOL} SOL'),
-
-          SizedBox(height: 24.h),
-
-          // ───────────── PER TRADE ─────────────
-          _sectionLabel(
-            'PER TRADE',
-          ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
-
-          SizedBox(height: 14.h),
-
-          _kvRow(
-            'Profit Target',
-            '+${widget.profitTargetPercent.toStringAsFixed(0)}%',
-            trailing: '+${_profitPerTrade.toStringAsFixed(3)} SOL',
-            trailingColor: widget.c.profit,
           ),
-          SizedBox(height: 10.h),
-          _kvRow(
-            'Stop Loss',
-            '-${widget.stopLossPercent.toStringAsFixed(0)}%',
-            trailing: '-${_lossPerTrade.toStringAsFixed(3)} SOL',
-            trailingColor: widget.c.loss,
-          ),
+        ),
 
-          SizedBox(height: 24.h),
+        // ── Scrollable content ──
+        Expanded(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: 28.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 28.h),
 
-          // ───────────── FUND WALLET / SIM INFO ─────────────
-          if (widget.showFunding && _isLive) ...[
-            _sectionLabel(
-              'FUND WALLET',
-            ).animate().fadeIn(duration: 400.ms, delay: 250.ms),
-            SizedBox(height: 10.h),
+                // ── Headline ──
+                Text(
+                      _isLive ? 'Review &\nFund' : 'Review &\nActivate',
+                      style: widget.text.headlineLarge,
+                    )
+                    .animate()
+                    .fadeIn(duration: 600.ms)
+                    .slideY(begin: 0.05, end: 0, curve: Curves.easeOutCubic),
 
-            // Tappable deposit amount row — opens slider editor sheet
-            GestureDetector(
-              onTap: _openDepositEditor,
-              behavior: HitTestBehavior.opaque,
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.h),
-                child: Row(
-                  children: [
-                    Text(
-                      'Deposit Amount',
-                      style: widget.text.titleMedium?.copyWith(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: widget.c.textSecondary,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '${_depositAmount.toStringAsFixed(1)} SOL',
-                      style: widget.text.titleMedium?.copyWith(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w700,
-                        color: widget.c.accent,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                    SizedBox(width: 6.w),
-                    Icon(
-                      PhosphorIconsBold.pencilSimple,
-                      size: 12.sp,
-                      color: widget.c.textTertiary.withValues(alpha: 0.5),
-                    ),
-                  ],
-                ),
-              ),
-            ).animate().fadeIn(duration: 400.ms, delay: 260.ms),
+                SizedBox(height: 8.h),
 
-            // Recommendation hint
-            Padding(
-              padding: EdgeInsets.only(top: 4.h),
-              child: Text(
-                'Recommended: ${_recommended.toStringAsFixed(1)} SOL '
-                '(${widget.positionSizeSOL.toStringAsFixed(1)} × ${widget.maxConcurrentPositions} positions)',
-                style: widget.text.bodySmall?.copyWith(
-                  color: widget.c.textTertiary,
-                  fontSize: 11.sp,
-                ),
-              ),
-            ).animate().fadeIn(duration: 400.ms, delay: 265.ms),
-
-            SizedBox(height: 14.h),
-
-            Text(
-              'This is your bot\'s trading capital. '
-              'One wallet approval covers everything. '
-              'You can deposit more or withdraw anytime.',
-              style: widget.text.bodySmall?.copyWith(
-                color: widget.c.textSecondary,
-                fontSize: 12.sp,
-                height: 1.5,
-              ),
-            ).animate().fadeIn(duration: 400.ms, delay: 270.ms),
-          ] else if (!_isLive) ...[
-            _sectionLabel(
-              'SIMULATION CAPITAL',
-            ).animate().fadeIn(duration: 400.ms, delay: 250.ms),
-            SizedBox(height: 10.h),
-            GestureDetector(
-              onTap: _openSimulationBalanceEditor,
-              behavior: HitTestBehavior.opaque,
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.h),
-                child: Row(
-                  children: [
-                    Text(
-                      'Virtual Capital',
-                      style: widget.text.titleMedium?.copyWith(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: widget.c.textSecondary,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '${_simulationBalanceAmount.toStringAsFixed(1)} SOL',
-                      style: widget.text.titleMedium?.copyWith(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w700,
-                        color: widget.c.accent,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                    SizedBox(width: 6.w),
-                    Icon(
-                      PhosphorIconsBold.pencilSimple,
-                      size: 12.sp,
-                      color: widget.c.textTertiary.withValues(alpha: 0.5),
-                    ),
-                  ],
-                ),
-              ),
-            ).animate().fadeIn(duration: 400.ms, delay: 260.ms),
-            Padding(
-              padding: EdgeInsets.only(top: 4.h),
-              child: Text(
-                'Minimum viable balance: ${_simulationMinimum.toStringAsFixed(1)} SOL. '
-                'Recommended: ${_simulationRecommended.toStringAsFixed(1)} SOL.',
-                style: widget.text.bodySmall?.copyWith(
-                  color: widget.c.textTertiary,
-                  fontSize: 11.sp,
-                ),
-              ),
-            ).animate().fadeIn(duration: 400.ms, delay: 265.ms),
-            SizedBox(height: 14.h),
-            Text(
-              'No wallet needed — you\'re trading with virtual SOL '
-              'using real market data. This only affects the simulation bankroll.',
-              style: widget.text.bodySmall?.copyWith(
-                color: widget.c.textTertiary,
-                fontSize: 12.sp,
-                height: 1.5,
-              ),
-            ).animate().fadeIn(duration: 400.ms, delay: 250.ms),
-          ],
-
-          SizedBox(height: 28.h),
-
-          // ───────────── DISCLAIMERS ─────────────
-          _buildDisclaimerSection().animate().fadeIn(
-            duration: 400.ms,
-            delay: 300.ms,
-          ),
-
-          SizedBox(height: 28.h),
-
-          // ── Activate ──
-          SageButton(
-            label:
-                widget.activateLabel ??
-                (_isLive ? 'Deploy & Fund Bot' : 'Activate'),
-            onPressed: () => widget.onActivate(
-              widget.showFunding && _isLive ? _depositAmount : null,
-            ),
-            isLoading: widget.isActivating,
-            enabled: _disclaimerAccepted && !widget.isActivating,
-          ).animate().fadeIn(duration: 400.ms, delay: 350.ms),
-
-          // ── Deploy status message ──
-          if (widget.isActivating &&
-              widget.statusMessage != null &&
-              widget.statusMessage!.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.only(top: 12.h),
-              child: Center(
-                child: Text(
-                  widget.statusMessage!,
-                  style: widget.text.bodySmall?.copyWith(
+                Text(
+                  'Confirm your setup before launching.',
+                  style: widget.text.bodyMedium?.copyWith(
                     color: widget.c.textSecondary,
-                    fontSize: 12.sp,
                   ),
+                ).animate().fadeIn(duration: 500.ms, delay: 100.ms),
+
+                SizedBox(height: 28.h),
+
+                // ───────────── CONFIGURATION ─────────────
+                _sectionLabel(
+                  'CONFIGURATION',
+                ).animate().fadeIn(duration: 400.ms, delay: 150.ms),
+
+                SizedBox(height: 14.h),
+
+                // Path + Mode (inline)
+                Row(
+                  children: [
+                    Icon(
+                      widget.path == SetupPath.sageAi
+                          ? PhosphorIconsBold.sparkle
+                          : PhosphorIconsBold.folderSimpleUser,
+                      size: 14.sp,
+                      color: widget.c.accent,
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      widget.path == SetupPath.sageAi
+                          ? 'Sage AI'
+                          : 'Custom Strategy',
+                      style: widget.text.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: widget.c.textPrimary,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    _modePill(),
+                  ],
+                ).animate().fadeIn(duration: 400.ms, delay: 170.ms),
+
+                SizedBox(height: 16.h),
+
+                _kvRow('Position Size', '${widget.positionSizeSOL} SOL'),
+                SizedBox(height: 10.h),
+                _kvRow('Max Positions', '${widget.maxConcurrentPositions}'),
+                SizedBox(height: 10.h),
+                _kvRow('Daily Loss Limit', '${widget.maxDailyLossSOL} SOL'),
+
+                SizedBox(height: 24.h),
+
+                // ───────────── PER TRADE ─────────────
+                _sectionLabel(
+                  'PER TRADE',
+                ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
+
+                SizedBox(height: 14.h),
+
+                _kvRow(
+                  'Profit Target',
+                  '+${widget.profitTargetPercent.toStringAsFixed(0)}%',
+                  trailing: '+${_profitPerTrade.toStringAsFixed(3)} SOL',
+                  trailingColor: widget.c.profit,
                 ),
-              ),
-            ),
+                SizedBox(height: 10.h),
+                _kvRow(
+                  'Stop Loss',
+                  '-${widget.stopLossPercent.toStringAsFixed(0)}%',
+                  trailing: '-${_lossPerTrade.toStringAsFixed(3)} SOL',
+                  trailingColor: widget.c.loss,
+                ),
 
-          SizedBox(height: 12.h),
+                SizedBox(height: 24.h),
 
-          // ── Skip ──
-          if (widget.onSkip != null)
-            Center(
-              child: GestureDetector(
-                onTap: widget.onSkip,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8.h),
-                  child: Text(
-                    'I\'ll explore first',
-                    style: widget.text.titleMedium?.copyWith(
+                // ───────────── FUND WALLET / SIM INFO ─────────────
+                if (widget.showFunding && _isLive) ...[
+                  _sectionLabel(
+                    'FUND WALLET',
+                  ).animate().fadeIn(duration: 400.ms, delay: 250.ms),
+                  SizedBox(height: 10.h),
+
+                  // Tappable deposit amount row — opens slider editor sheet
+                  GestureDetector(
+                    onTap: _openDepositEditor,
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.h),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Deposit Amount',
+                            style: widget.text.titleMedium?.copyWith(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: widget.c.textSecondary,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '${_depositAmount.toStringAsFixed(1)} SOL',
+                            style: widget.text.titleMedium?.copyWith(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w700,
+                              color: widget.c.accent,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: 6.w),
+                          Icon(
+                            PhosphorIconsBold.pencilSimple,
+                            size: 12.sp,
+                            color: widget.c.textTertiary.withValues(alpha: 0.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 260.ms),
+
+                  // Recommendation hint
+                  Padding(
+                    padding: EdgeInsets.only(top: 4.h),
+                    child: Text(
+                      'Recommended: ${_recommended.toStringAsFixed(1)} SOL '
+                      '(${widget.positionSizeSOL.toStringAsFixed(1)} × ${widget.maxConcurrentPositions} positions)',
+                      style: widget.text.bodySmall?.copyWith(
+                        color: widget.c.textTertiary,
+                        fontSize: 11.sp,
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 265.ms),
+
+                  SizedBox(height: 14.h),
+
+                  Text(
+                    'This is your bot\'s trading capital. '
+                    'One wallet approval covers everything. '
+                    'You can deposit more or withdraw anytime.',
+                    style: widget.text.bodySmall?.copyWith(
+                      color: widget.c.textSecondary,
+                      fontSize: 12.sp,
+                      height: 1.5,
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 270.ms),
+                ] else if (!_isLive) ...[
+                  _sectionLabel(
+                    'SIMULATION CAPITAL',
+                  ).animate().fadeIn(duration: 400.ms, delay: 250.ms),
+                  SizedBox(height: 10.h),
+                  GestureDetector(
+                    onTap: _openSimulationBalanceEditor,
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.h),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Virtual Capital',
+                            style: widget.text.titleMedium?.copyWith(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: widget.c.textSecondary,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '${_simulationBalanceAmount.toStringAsFixed(1)} SOL',
+                            style: widget.text.titleMedium?.copyWith(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w700,
+                              color: widget.c.accent,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: 6.w),
+                          Icon(
+                            PhosphorIconsBold.pencilSimple,
+                            size: 12.sp,
+                            color: widget.c.textTertiary.withValues(alpha: 0.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 260.ms),
+                  Padding(
+                    padding: EdgeInsets.only(top: 4.h),
+                    child: Text(
+                      'Minimum viable balance: ${_simulationMinimum.toStringAsFixed(1)} SOL. '
+                      'Recommended: ${_simulationRecommended.toStringAsFixed(1)} SOL.',
+                      style: widget.text.bodySmall?.copyWith(
+                        color: widget.c.textTertiary,
+                        fontSize: 11.sp,
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 265.ms),
+                  SizedBox(height: 14.h),
+                  Text(
+                    'No wallet needed — you\'re trading with virtual SOL '
+                    'using real market data. This only affects the simulation bankroll.',
+                    style: widget.text.bodySmall?.copyWith(
                       color: widget.c.textTertiary,
-                      fontSize: 14.sp,
+                      fontSize: 12.sp,
+                      height: 1.5,
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 250.ms),
+                ],
+
+                SizedBox(height: 28.h),
+
+                // ───────────── DISCLAIMERS ─────────────
+                _buildDisclaimerSection().animate().fadeIn(
+                  duration: 400.ms,
+                  delay: 300.ms,
+                ),
+
+                SizedBox(height: 28.h),
+
+                // ── Activate ──
+                SageButton(
+                  label:
+                      widget.activateLabel ??
+                      (_isLive ? 'Deploy & Fund Bot' : 'Activate'),
+                  onPressed: () => widget.onActivate(
+                    widget.showFunding && _isLive ? _depositAmount : null,
+                  ),
+                  isLoading: widget.isActivating,
+                  enabled: _disclaimerAccepted && !widget.isActivating,
+                ).animate().fadeIn(duration: 400.ms, delay: 350.ms),
+
+                // ── Deploy status message ──
+                if (widget.isActivating &&
+                    widget.statusMessage != null &&
+                    widget.statusMessage!.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.only(top: 12.h),
+                    child: Center(
+                      child: Text(
+                        widget.statusMessage!,
+                        style: widget.text.bodySmall?.copyWith(
+                          color: widget.c.textSecondary,
+                          fontSize: 12.sp,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ).animate().fadeIn(duration: 400.ms, delay: 400.ms),
 
-          SizedBox(height: 28.h),
-        ],
-      ),
+                SizedBox(height: 12.h),
+
+                // ── Skip ──
+                if (widget.onSkip != null)
+                  Center(
+                    child: GestureDetector(
+                      onTap: widget.onSkip,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.h),
+                        child: Text(
+                          'I\'ll explore first',
+                          style: widget.text.titleMedium?.copyWith(
+                            color: widget.c.textTertiary,
+                            fontSize: 14.sp,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 400.ms),
+
+                SizedBox(height: 28.h),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

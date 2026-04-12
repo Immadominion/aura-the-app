@@ -104,34 +104,6 @@ class _CustomStrategyStepState extends State<CustomStrategyStep> {
         children: [
           SizedBox(height: 16.h),
 
-          // ── iOS-style back button ──
-          GestureDetector(
-            onTap: widget.onBack,
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: EdgeInsets.only(bottom: 12.h),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    PhosphorIconsBold.caretLeft,
-                    size: 16.sp,
-                    color: widget.c.accent,
-                  ),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'Back',
-                    style: widget.text.titleMedium?.copyWith(
-                      color: widget.c.accent,
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
           StepIndicator(current: 1, total: 3, c: widget.c),
 
           SizedBox(height: 28.h),

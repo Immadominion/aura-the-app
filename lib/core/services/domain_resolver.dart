@@ -81,7 +81,9 @@ class DomainResolver {
   /// Whether a string looks like a domain (has a dot, no spaces).
   static bool isDomain(String input) {
     final trimmed = input.trim();
-    return trimmed.contains('.') && !trimmed.contains(' ') && trimmed.length > 3;
+    return trimmed.contains('.') &&
+        !trimmed.contains(' ') &&
+        trimmed.length > 3;
   }
 
   /// Whether a string looks like a valid base58 Solana address.

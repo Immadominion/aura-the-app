@@ -27,7 +27,8 @@ enum Environment { development, staging, production }
 
 /// Default production backend URL. Update this when Railway deployment is live.
 /// Override per-build via `--dart-define=API_BASE_URL=<url>`.
-const String _kProductionApiUrl = 'https://sage-the-backend-production.up.railway.app';
+const String _kProductionApiUrl =
+    'https://sage-the-backend-production.up.railway.app';
 
 /// Default production Solana RPC. Override via `--dart-define=SOLANA_RPC_URL=<url>`.
 const String _kProductionRpcUrl = '';

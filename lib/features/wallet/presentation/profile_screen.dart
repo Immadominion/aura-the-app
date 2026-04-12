@@ -134,11 +134,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
     // Separate live vs simulation balances
     final liveBotsList = bots.where((b) => b.mode == BotMode.live).toList();
-    final simBotsList = bots.where((b) => b.mode == BotMode.simulation).toList();
+    final simBotsList = bots
+        .where((b) => b.mode == BotMode.simulation)
+        .toList();
     final liveBalance = liveBotsList.fold<double>(
-      0, (s, b) => s + b.currentBalanceSol);
+      0,
+      (s, b) => s + b.currentBalanceSol,
+    );
     final simBalance = simBotsList.fold<double>(
-      0, (s, b) => s + b.currentBalanceSol);
+      0,
+      (s, b) => s + b.currentBalanceSol,
+    );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -146,611 +152,655 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         backgroundColor: c.background,
         body: Stack(
           children: [
-        SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, bottomPad + 32.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header ──
-              Padding(
-                padding: EdgeInsets.only(top: topPad + 12.h, bottom: 24.h),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () => context.pop(),
-                      child: Container(
-                        padding: EdgeInsets.all(8.w),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: c.surface,
-                          border: Border.all(color: c.borderSubtle, width: 1),
-                        ),
-                        child: Icon(
-                          PhosphorIconsBold.arrowLeft,
-                          size: 20.sp,
-                          color: c.textSecondary,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      'IDENTITY',
-                      style: text.labelMedium?.copyWith(
-                        letterSpacing: 1.2,
-                        color: c.textTertiary,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: _toggleSettings,
-                      child: Container(
-                        padding: EdgeInsets.all(8.w),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: c.surface,
-                          border: Border.all(color: c.borderSubtle, width: 1),
-                        ),
-                        child: AnimatedBuilder(
-                          animation: _settingsAnim,
-                          builder: (context, child) {
-                            return Transform.rotate(
-                              angle: _settingsAnim.value * math.pi / 4,
-                              child: Icon(
-                                _settingsOpen
-                                    ? PhosphorIconsBold.x
-                                    : PhosphorIconsBold.gear,
-                                size: 20.sp,
-                                color: c.textSecondary,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // ── Identity Card ──
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(24.w),
-                decoration: BoxDecoration(
-                  // Use surface color with an overlay for slight differentiation
-                  // that works in both light and dark modes
-                  color: c.surfaceElevated,
-                  borderRadius: BorderRadius.circular(32.r),
-                  border: Border.all(color: c.borderSubtle, width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: c.textPrimary.withValues(alpha: 0.05),
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // Avatar — DiceBear with loading/error fallback
-                    Container(
-                      width: 100.w,
-                      height: 100.w,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: c.background,
-                        border: Border.all(
-                          color: c.accent.withValues(alpha: 0.2),
-                          width: 2,
-                        ),
-                      ),
-                      child: ClipOval(
-                        child: Image.network(
-                          'https://api.dicebear.com/9.x/micah/png?seed=$avatarSeed',
-                          width: 100.w,
-                          height: 100.w,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return Center(
-                              child: Icon(
-                                PhosphorIconsBold.user,
-                                size: 36.sp,
-                                color: c.textTertiary,
-                              ),
-                            );
-                          },
-                          errorBuilder: (context, error, stack) {
-                            return Center(
-                              child: Icon(
-                                PhosphorIconsBold.user,
-                                size: 36.sp,
-                                color: c.textTertiary,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 16.h),
-
-                    // Name — domain or address
-                    Text(
-                      domainName ?? shortAddr,
-                      style: text.headlineMedium?.copyWith(
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.w700,
-                        color: c.textPrimary,
-                      ),
-                    ),
-                    if (domainName != null) ...[
-                      SizedBox(height: 2.h),
-                      Text(
-                        shortAddr,
-                        style: text.labelSmall?.copyWith(
-                          color: c.textTertiary,
-                          fontSize: 11.sp,
-                        ),
-                      ),
-                    ],
-                    SizedBox(height: 4.h),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
-                        vertical: 4.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: c.background,
-                        borderRadius: BorderRadius.circular(12.r),
-                        border: Border.all(
-                          color: c.borderSubtle.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6.w,
-                            height: 6.w,
-                            decoration: BoxDecoration(
-                              color: runningBots > 0
-                                  ? c.profit
-                                  : c.textTertiary,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          SizedBox(width: 6.w),
-                          Text(
-                            runningBots > 0 ? '$runningBots Active' : 'Idle',
-                            style: text.labelSmall?.copyWith(
-                              color: runningBots > 0
-                                  ? c.profit
-                                  : c.textTertiary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: 24.h),
-
-                    // Stats Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+            SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, bottomPad + 32.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Header ──
+                  Padding(
+                    padding: EdgeInsets.only(top: topPad + 12.h, bottom: 24.h),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        StatItem(
-                          label: 'Bots',
-                          value: '$totalBots',
-                          icon: PhosphorIconsFill.lightning,
-                          color: c.accent,
+                        GestureDetector(
+                          onTap: () => context.pop(),
+                          child: Container(
+                            padding: EdgeInsets.all(8.w),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: c.surface,
+                              border: Border.all(
+                                color: c.borderSubtle,
+                                width: 1,
+                              ),
+                            ),
+                            child: Icon(
+                              PhosphorIconsBold.arrowLeft,
+                              size: 20.sp,
+                              color: c.textSecondary,
+                            ),
+                          ),
                         ),
-                        Container(
-                          width: 1,
-                          height: 32.h,
-                          color: c.borderSubtle,
+                        Text(
+                          'IDENTITY',
+                          style: text.labelMedium?.copyWith(
+                            letterSpacing: 1.2,
+                            color: c.textTertiary,
+                          ),
                         ),
-                        StatItem(
-                          label: 'Win Rate',
-                          value: '${avgWinRate.toStringAsFixed(0)}%',
-                          icon: PhosphorIconsFill.trendUp,
-                          color: c.profit,
-                        ),
-                        Container(
-                          width: 1,
-                          height: 32.h,
-                          color: c.borderSubtle,
-                        ),
-                        StatItem(
-                          label: 'Trades',
-                          value: '$totalTrades',
-                          icon: PhosphorIconsFill.cpu,
-                          color: Colors.orangeAccent,
+                        GestureDetector(
+                          onTap: _toggleSettings,
+                          child: Container(
+                            padding: EdgeInsets.all(8.w),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: c.surface,
+                              border: Border.all(
+                                color: c.borderSubtle,
+                                width: 1,
+                              ),
+                            ),
+                            child: AnimatedBuilder(
+                              animation: _settingsAnim,
+                              builder: (context, child) {
+                                return Transform.rotate(
+                                  angle: _settingsAnim.value * math.pi / 4,
+                                  child: Icon(
+                                    _settingsOpen
+                                        ? PhosphorIconsBold.x
+                                        : PhosphorIconsBold.gear,
+                                    size: 20.sp,
+                                    color: c.textSecondary,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
+                  ),
 
-              SizedBox(height: 32.h),
-
-              // ── Compact Portfolio ──
-              Text(
-                'PORTFOLIO',
-                style: text.labelMedium?.copyWith(
-                  letterSpacing: 1.2,
-                  color: c.textTertiary,
-                ),
-              ).animate().fadeIn(delay: 200.ms),
-              SizedBox(height: 16.h),
-
-              // Portfolio Summary Card with integrated actions
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24.r),
-                  color: c.surface,
-                  border: Border.all(color: c.borderSubtle, width: 1),
-                ),
-                child: Column(
-                  children: [
-                    // ── Top: Value + Breakdown ──
-                    IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Left: Total Net Worth
-                          Expanded(
-                            flex: 3,
-                            child: Padding(
-                              padding: EdgeInsets.fromLTRB(
-                                20.w,
-                                20.w,
-                                12.w,
-                                20.w,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Total Value',
-                                    style: text.labelSmall?.copyWith(
-                                      color: c.textTertiary,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4.h),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      '${totalDeployed.toStringAsFixed(1)} SOL',
-                                      style: text.displaySmall?.copyWith(
-                                        fontSize: 26.sp,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: -1,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 8.h),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8.w,
-                                      vertical: 4.h,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: (totalPnl >= 0 ? c.profit : c.loss).withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(8.r),
-                                    ),
-                                    child: Text(
-                                      '${totalPnl >= 0 ? "+" : ""}${totalPnl.toStringAsFixed(2)} SOL P&L',
-                                      style: text.labelSmall?.copyWith(
-                                        color: totalPnl >= 0
-                                            ? c.profit
-                                            : c.loss,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                  // ── Identity Card ──
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(24.w),
+                    decoration: BoxDecoration(
+                      // Use surface color with an overlay for slight differentiation
+                      // that works in both light and dark modes
+                      color: c.surfaceElevated,
+                      borderRadius: BorderRadius.circular(32.r),
+                      border: Border.all(color: c.borderSubtle, width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: c.textPrimary.withValues(alpha: 0.05),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Avatar — DiceBear with loading/error fallback
+                        Container(
+                          width: 100.w,
+                          height: 100.w,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: c.background,
+                            border: Border.all(
+                              color: c.accent.withValues(alpha: 0.2),
+                              width: 2,
                             ),
                           ),
-                          Container(width: 1, color: c.borderSubtle),
-                          // Right: Deployed + Idle stacked compactly
-                          Expanded(
-                            flex: 3,
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 14.w,
-                                vertical: 16.h,
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Live Balance
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        PhosphorIconsFill.pulse,
-                                        size: 12.sp,
-                                        color: c.accent,
-                                      ),
-                                      SizedBox(width: 5.w),
-                                      Text(
-                                        'Live',
-                                        style: text.labelSmall?.copyWith(
-                                          color: c.textTertiary,
-                                          fontSize: 10.sp,
-                                        ),
-                                      ),
-                                    ],
+                          child: ClipOval(
+                            child: Image.network(
+                              'https://api.dicebear.com/9.x/micah/png?seed=$avatarSeed',
+                              width: 100.w,
+                              height: 100.w,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, progress) {
+                                if (progress == null) return child;
+                                return Center(
+                                  child: Icon(
+                                    PhosphorIconsBold.user,
+                                    size: 36.sp,
+                                    color: c.textTertiary,
                                   ),
-                                  SizedBox(height: 2.h),
-                                  Text(
-                                    '${liveBalance.toStringAsFixed(2)} SOL',
-                                    style: text.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                );
+                              },
+                              errorBuilder: (context, error, stack) {
+                                return Center(
+                                  child: Icon(
+                                    PhosphorIconsBold.user,
+                                    size: 36.sp,
+                                    color: c.textTertiary,
                                   ),
-                                  SizedBox(height: 12.h),
-                                  // Simulation Balance
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        PhosphorIconsFill.flask,
-                                        size: 12.sp,
-                                        color: c.textTertiary,
-                                      ),
-                                      SizedBox(width: 5.w),
-                                      Text(
-                                        'Simulation',
-                                        style: text.labelSmall?.copyWith(
-                                          color: c.textTertiary,
-                                          fontSize: 10.sp,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 2.h),
-                                  Text(
-                                    '${simBalance.toStringAsFixed(2)} SOL',
-                                    style: text.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+
+                        // Name — domain or address
+                        Text(
+                          domainName ?? shortAddr,
+                          style: text.headlineMedium?.copyWith(
+                            fontSize: 24.sp,
+                            fontWeight: FontWeight.w700,
+                            color: c.textPrimary,
+                          ),
+                        ),
+                        if (domainName != null) ...[
+                          SizedBox(height: 2.h),
+                          Text(
+                            shortAddr,
+                            style: text.labelSmall?.copyWith(
+                              color: c.textTertiary,
+                              fontSize: 11.sp,
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                    // ── Bottom: Deposit / Withdraw buttons ──
-                    if (kLiveTradingEnabled)
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: BorderSide(color: c.borderSubtle, width: 1),
+                        SizedBox(height: 4.h),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 4.h,
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: MWAButtonTapEffect(
-                                onTap: () =>
-                                    _showDepositSheet(context, ref, c, text),
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(vertical: 14.h),
-                                  decoration: BoxDecoration(
-                                    color: c.accent.withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.only(
-                                      bottomLeft: Radius.circular(24.r),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        PhosphorIconsBold.arrowDown,
-                                        size: 16.sp,
-                                        color: c.accent,
-                                      ),
-                                      SizedBox(width: 6.w),
-                                      Text(
-                                        'Deposit',
-                                        style: text.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: c.accent,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                          decoration: BoxDecoration(
+                            color: c.background,
+                            borderRadius: BorderRadius.circular(12.r),
+                            border: Border.all(
+                              color: c.borderSubtle.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6.w,
+                                height: 6.w,
+                                decoration: BoxDecoration(
+                                  color: runningBots > 0
+                                      ? c.profit
+                                      : c.textTertiary,
+                                  shape: BoxShape.circle,
                                 ),
                               ),
+                              SizedBox(width: 6.w),
+                              Text(
+                                runningBots > 0
+                                    ? '$runningBots Active'
+                                    : 'Idle',
+                                style: text.labelSmall?.copyWith(
+                                  color: runningBots > 0
+                                      ? c.profit
+                                      : c.textTertiary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(height: 24.h),
+
+                        // Stats Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            StatItem(
+                              label: 'Bots',
+                              value: '$totalBots',
+                              icon: PhosphorIconsFill.lightning,
+                              color: c.accent,
                             ),
                             Container(
                               width: 1,
-                              height: 44.h,
+                              height: 32.h,
                               color: c.borderSubtle,
                             ),
-                            Expanded(
-                              child: MWAButtonTapEffect(
-                                onTap: () => _showWithdrawSheet(
-                                  context,
-                                  ref,
-                                  0.0,
-                                  c,
-                                  text,
-                                ),
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(vertical: 14.h),
-                                  decoration: BoxDecoration(
-                                    color: c.accent.withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.only(
-                                      bottomRight: Radius.circular(24.r),
-                                    ),
+                            StatItem(
+                              label: 'Win Rate',
+                              value: '${avgWinRate.toStringAsFixed(0)}%',
+                              icon: PhosphorIconsFill.trendUp,
+                              color: c.profit,
+                            ),
+                            Container(
+                              width: 1,
+                              height: 32.h,
+                              color: c.borderSubtle,
+                            ),
+                            StatItem(
+                              label: 'Trades',
+                              value: '$totalTrades',
+                              icon: PhosphorIconsFill.cpu,
+                              color: Colors.orangeAccent,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ).animate().scale(
+                    duration: 400.ms,
+                    curve: Curves.easeOutBack,
+                  ),
+
+                  SizedBox(height: 32.h),
+
+                  // ── Compact Portfolio ──
+                  Text(
+                    'PORTFOLIO',
+                    style: text.labelMedium?.copyWith(
+                      letterSpacing: 1.2,
+                      color: c.textTertiary,
+                    ),
+                  ).animate().fadeIn(delay: 200.ms),
+                  SizedBox(height: 16.h),
+
+                  // Portfolio Summary Card with integrated actions
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24.r),
+                      color: c.surface,
+                      border: Border.all(color: c.borderSubtle, width: 1),
+                    ),
+                    child: Column(
+                      children: [
+                        // ── Top: Value + Breakdown ──
+                        IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Left: Total Net Worth
+                              Expanded(
+                                flex: 3,
+                                child: Padding(
+                                  padding: EdgeInsets.fromLTRB(
+                                    20.w,
+                                    20.w,
+                                    12.w,
+                                    20.w,
                                   ),
-                                  child: Row(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
-                                        PhosphorIconsBold.arrowUp,
-                                        size: 16.sp,
-                                        color: c.accent,
-                                      ),
-                                      SizedBox(width: 6.w),
                                       Text(
-                                        'Withdraw',
-                                        style: text.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: c.accent,
+                                        'Total Value',
+                                        style: text.labelSmall?.copyWith(
+                                          color: c.textTertiary,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4.h),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          '${totalDeployed.toStringAsFixed(1)} SOL',
+                                          style: text.displaySmall?.copyWith(
+                                            fontSize: 26.sp,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: -1,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 8.h),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8.w,
+                                          vertical: 4.h,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              (totalPnl >= 0
+                                                      ? c.profit
+                                                      : c.loss)
+                                                  .withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '${totalPnl >= 0 ? "+" : ""}${totalPnl.toStringAsFixed(2)} SOL P&L',
+                                          style: text.labelSmall?.copyWith(
+                                            color: totalPnl >= 0
+                                                ? c.profit
+                                                : c.loss,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(16.w),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: BorderSide(color: c.borderSubtle, width: 1),
-                          ),
-                        ),
-                        child: Text(
-                          kLiveTradingDisabledReason,
-                          style: text.bodySmall?.copyWith(
-                            color: c.textSecondary,
-                            fontSize: 12.sp,
-                            height: 1.5,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1, end: 0),
-
-              SizedBox(height: 24.h),
-
-              // ── Live Bot Wallets ──
-              Builder(builder: (_) {
-                final liveBots =
-                    bots.where((b) => b.mode == BotMode.live).toList();
-                if (liveBots.isEmpty) {
-                  return Text(
-                    'No live bots yet. Create a live bot to see wallet details here.',
-                    style: text.bodySmall?.copyWith(
-                      color: c.textSecondary,
-                      fontSize: 12.sp,
-                      height: 1.5,
-                    ),
-                  ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.1, end: 0);
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'LIVE WALLETS',
-                      style: text.labelSmall?.copyWith(
-                        letterSpacing: 1.2,
-                        color: c.textTertiary,
-                        fontSize: 10.sp,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    ...liveBots.map((bot) {
-                      final addr = bot.walletAddress ?? '';
-                      final shortBotAddr = addr.length > 8
-                          ? '${addr.substring(0, 4)}...${addr.substring(addr.length - 4)}'
-                          : addr;
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: 6.h),
-                        child: Row(
-                          children: [
-                            Icon(
-                              PhosphorIconsBold.wallet,
-                              size: 18.sp,
-                              color: c.textTertiary,
-                            ),
-                            SizedBox(width: 10.w),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    bot.name,
-                                    style: text.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                              Container(width: 1, color: c.borderSubtle),
+                              // Right: Deployed + Idle stacked compactly
+                              Expanded(
+                                flex: 3,
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 14.w,
+                                    vertical: 16.h,
                                   ),
-                                  if (addr.isNotEmpty)
-                                    GestureDetector(
-                                      onTap: () {
-                                        Clipboard.setData(
-                                          ClipboardData(text: addr),
-                                        );
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Wallet address copied',
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: Row(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Live Balance
+                                      Row(
                                         children: [
+                                          Icon(
+                                            PhosphorIconsFill.pulse,
+                                            size: 12.sp,
+                                            color: c.accent,
+                                          ),
+                                          SizedBox(width: 5.w),
                                           Text(
-                                            shortBotAddr,
-                                            style: text.bodySmall?.copyWith(
+                                            'Live',
+                                            style: text.labelSmall?.copyWith(
                                               color: c.textTertiary,
-                                              fontSize: 11.sp,
+                                              fontSize: 10.sp,
                                             ),
                                           ),
-                                          SizedBox(width: 4.w),
+                                        ],
+                                      ),
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        '${liveBalance.toStringAsFixed(2)} SOL',
+                                        style: text.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      SizedBox(height: 12.h),
+                                      // Simulation Balance
+                                      Row(
+                                        children: [
                                           Icon(
-                                            PhosphorIconsBold.copy,
+                                            PhosphorIconsFill.flask,
                                             size: 12.sp,
                                             color: c.textTertiary,
+                                          ),
+                                          SizedBox(width: 5.w),
+                                          Text(
+                                            'Simulation',
+                                            style: text.labelSmall?.copyWith(
+                                              color: c.textTertiary,
+                                              fontSize: 10.sp,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        '${simBalance.toStringAsFixed(2)} SOL',
+                                        style: text.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // ── Bottom: Deposit / Withdraw buttons ──
+                        if (kLiveTradingEnabled)
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                top: BorderSide(
+                                  color: c.borderSubtle,
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: MWAButtonTapEffect(
+                                    onTap: () => _showDepositSheet(
+                                      context,
+                                      ref,
+                                      c,
+                                      text,
+                                    ),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 14.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: c.accent.withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(24.r),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            PhosphorIconsBold.arrowDown,
+                                            size: 16.sp,
+                                            color: c.accent,
+                                          ),
+                                          SizedBox(width: 6.w),
+                                          Text(
+                                            'Deposit',
+                                            style: text.titleSmall?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                              color: c.accent,
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                ],
+                                  ),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 44.h,
+                                  color: c.borderSubtle,
+                                ),
+                                Expanded(
+                                  child: MWAButtonTapEffect(
+                                    onTap: () => _showWithdrawSheet(
+                                      context,
+                                      ref,
+                                      0.0,
+                                      c,
+                                      text,
+                                    ),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 14.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: c.accent.withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.only(
+                                          bottomRight: Radius.circular(24.r),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            PhosphorIconsBold.arrowUp,
+                                            size: 16.sp,
+                                            color: c.accent,
+                                          ),
+                                          SizedBox(width: 6.w),
+                                          Text(
+                                            'Withdraw',
+                                            style: text.titleSmall?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                              color: c.accent,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(16.w),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                top: BorderSide(
+                                  color: c.borderSubtle,
+                                  width: 1,
+                                ),
                               ),
                             ),
-                            Text(
-                              '${bot.currentBalanceSol.toStringAsFixed(4)} SOL',
+                            child: Text(
+                              kLiveTradingDisabledReason,
                               style: text.bodySmall?.copyWith(
                                 color: c.textSecondary,
-                                fontSize: 11.sp,
+                                fontSize: 12.sp,
+                                height: 1.5,
                               ),
                             ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
-                ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.1, end: 0);
-              }),
-            ],
-          ),
+                          ),
+                      ],
+                    ),
+                  ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1, end: 0),
+
+                  SizedBox(height: 24.h),
+
+                  // ── Live Bot Wallets ──
+                  Builder(
+                    builder: (_) {
+                      final liveBots = bots
+                          .where((b) => b.mode == BotMode.live)
+                          .toList();
+                      if (liveBots.isEmpty) {
+                        return Text(
+                              'No live bots yet. Create a live bot to see wallet details here.',
+                              style: text.bodySmall?.copyWith(
+                                color: c.textSecondary,
+                                fontSize: 12.sp,
+                                height: 1.5,
+                              ),
+                            )
+                            .animate()
+                            .fadeIn(delay: 350.ms)
+                            .slideY(begin: 0.1, end: 0);
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'LIVE WALLETS',
+                            style: text.labelSmall?.copyWith(
+                              letterSpacing: 1.2,
+                              color: c.textTertiary,
+                              fontSize: 10.sp,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          ...liveBots.map((bot) {
+                            final addr = bot.walletAddress ?? '';
+                            final shortBotAddr = addr.length > 8
+                                ? '${addr.substring(0, 4)}...${addr.substring(addr.length - 4)}'
+                                : addr;
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: 6.h),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    PhosphorIconsBold.wallet,
+                                    size: 18.sp,
+                                    color: c.textTertiary,
+                                  ),
+                                  SizedBox(width: 10.w),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          bot.name,
+                                          style: text.titleSmall?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        if (addr.isNotEmpty)
+                                          GestureDetector(
+                                            onTap: () {
+                                              Clipboard.setData(
+                                                ClipboardData(text: addr),
+                                              );
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Wallet address copied',
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Row(
+                                              children: [
+                                                Text(
+                                                  shortBotAddr,
+                                                  style: text.bodySmall
+                                                      ?.copyWith(
+                                                        color: c.textTertiary,
+                                                        fontSize: 11.sp,
+                                                      ),
+                                                ),
+                                                SizedBox(width: 4.w),
+                                                Icon(
+                                                  PhosphorIconsBold.copy,
+                                                  size: 12.sp,
+                                                  color: c.textTertiary,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    '${bot.currentBalanceSol.toStringAsFixed(4)} SOL',
+                                    style: text.bodySmall?.copyWith(
+                                      color: c.textSecondary,
+                                      fontSize: 11.sp,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                      ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.1, end: 0);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            // ── Settings Overlay ──
+            _SettingsOverlay(
+              animation: _settingsAnim,
+              onClose: _toggleSettings,
+            ),
+          ],
         ),
-        // ── Settings Overlay ──
-        _SettingsOverlay(
-          animation: _settingsAnim,
-          onClose: _toggleSettings,
-        ),
-      ],
-    ),
-  ),
-);
+      ),
+    );
   }
 }
 
@@ -796,9 +846,7 @@ class _SettingsOverlay extends ConsumerWidget {
                         20.w,
                         bottomPad + 32.h,
                       ),
-                      decoration: BoxDecoration(
-                        color: c.background,
-                      ),
+                      decoration: BoxDecoration(color: c.background),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -839,8 +887,7 @@ class _SettingsOverlay extends ConsumerWidget {
                             icon: PhosphorIconsBold.shieldCheck,
                             title: 'Security & Privacy',
                             subtitle: 'Biometrics, auto-lock',
-                            onTap: () =>
-                                _showSecuritySheet(context, c, text),
+                            onTap: () => _showSecuritySheet(context, c, text),
                           ),
                           SettingTile(
                             icon: PhosphorIconsBold.bell,
@@ -853,15 +900,13 @@ class _SettingsOverlay extends ConsumerWidget {
                             icon: PhosphorIconsBold.globe,
                             title: 'Network',
                             subtitle: 'RPC endpoints, priority fees',
-                            onTap: () =>
-                                _showNetworkSheet(context, c, text),
+                            onTap: () => _showNetworkSheet(context, c, text),
                           ),
                           SettingTile(
                             icon: PhosphorIconsBold.question,
                             title: 'Support',
                             subtitle: 'Docs, community, help',
-                            onTap: () =>
-                                _showSupportSheet(context, c, text),
+                            onTap: () => _showSupportSheet(context, c, text),
                             isLast: true,
                           ),
                           const Spacer(),
@@ -913,9 +958,9 @@ void _showDepositSheet(
   final bots = ref.read(botListProvider).value ?? [];
   final liveBots = bots.where((b) => b.mode == BotMode.live).toList();
   if (liveBots.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Create a live bot first')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Create a live bot first')));
     return;
   }
   if (liveBots.length == 1) {
@@ -959,9 +1004,9 @@ void _showWithdrawSheet(
   final bots = ref.read(botListProvider).value ?? [];
   final liveBots = bots.where((b) => b.mode == BotMode.live).toList();
   if (liveBots.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Create a live bot first')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Create a live bot first')));
     return;
   }
   if (liveBots.length == 1) {
@@ -1063,27 +1108,32 @@ void _showBotPicker(
             ),
           ),
           SizedBox(height: 16.h),
-          ...liveBots.map((bot) => ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(
-                  PhosphorIconsBold.wallet,
-                  color: c.accent,
-                  size: 20.sp,
-                ),
-                title: Text(bot.name, style: text.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-                subtitle: Text(
-                  '${bot.currentBalanceSol.toStringAsFixed(4)} SOL',
-                  style: text.bodySmall?.copyWith(color: c.textSecondary),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  if (deposit) {
-                    _depositForBot(context, ref, bot);
-                  } else {
-                    _withdrawForBot(context, ref, bot);
-                  }
-                },
-              )),
+          ...liveBots.map(
+            (bot) => ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                PhosphorIconsBold.wallet,
+                color: c.accent,
+                size: 20.sp,
+              ),
+              title: Text(
+                bot.name,
+                style: text.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                '${bot.currentBalanceSol.toStringAsFixed(4)} SOL',
+                style: text.bodySmall?.copyWith(color: c.textSecondary),
+              ),
+              onTap: () {
+                Navigator.pop(ctx);
+                if (deposit) {
+                  _depositForBot(context, ref, bot);
+                } else {
+                  _withdrawForBot(context, ref, bot);
+                }
+              },
+            ),
+          ),
         ],
       ),
     ),

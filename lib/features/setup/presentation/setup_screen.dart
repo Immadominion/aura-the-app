@@ -360,10 +360,9 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       // ── For live bots, show deposit sheet BEFORE navigation ──
       if (isLive && mounted) {
         updateStatus('Fund your bot…');
-        final recommended = (_positionSize + 0.07) *
-            (isSageAi
-                ? riskCfg.maxConcurrentPositions
-                : _maxConcurrent);
+        final recommended =
+            (_positionSize + 0.07) *
+            (isSageAi ? riskCfg.maxConcurrentPositions : _maxConcurrent);
         await SageBottomSheet.show<bool>(
           context: context,
           title: 'Fund Your Bot',
@@ -653,26 +652,48 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         statusBarColor: Colors.transparent,
         systemNavigationBarColor: c.background,
       ),
-      child: Scaffold(
-        backgroundColor: c.background,
-        body: SafeArea(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            switchInCurve: Curves.easeOutCubic,
-            switchOutCurve: Curves.easeInCubic,
-            transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0.03, 0),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
-                ),
-              );
+      child: PopScope(
+        canPop: _step == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop && _step > 0) {
+            HapticFeedback.selectionClick();
+            setState(() => _step -= 1);
+            _persistSetupState();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: c.background,
+          body: GestureDetector(
+            onHorizontalDragEnd: (details) {
+              if (details.primaryVelocity == null || _step == 0) return;
+              // Swipe right → go back
+              if (details.primaryVelocity! > 8) {
+                HapticFeedback.selectionClick();
+                setState(() => _step -= 1);
+                _persistSetupState();
+              }
             },
-            child: stepWidget,
+            behavior: HitTestBehavior.translucent,
+            child: SafeArea(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.03, 0),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: stepWidget,
+              ),
+            ),
           ),
         ),
       ),

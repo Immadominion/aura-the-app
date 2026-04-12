@@ -543,7 +543,8 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
     }
 
     // Include rent+fees overhead per position (~0.07 SOL) in recommendation
-    final recommended = (bot.positionSizeSOL + 0.07) * bot.maxConcurrentPositions;
+    final recommended =
+        (bot.positionSizeSOL + 0.07) * bot.maxConcurrentPositions;
 
     final success = await SageBottomSheet.show<bool>(
       context: context,
@@ -685,10 +686,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
               onPressed: () => Navigator.of(ctx).pop(true),
               child: Text(
                 'Go Live',
-                style: TextStyle(
-                  color: c.accent,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TextStyle(color: c.accent, fontWeight: FontWeight.w700),
               ),
             ),
           ],
@@ -1582,7 +1580,11 @@ class _WalletSection extends ConsumerWidget {
             },
             child: Row(
               children: [
-                Icon(PhosphorIconsBold.wallet, size: 14.sp, color: c.textTertiary),
+                Icon(
+                  PhosphorIconsBold.wallet,
+                  size: 14.sp,
+                  color: c.textTertiary,
+                ),
                 SizedBox(width: 8.w),
                 Text(
                   shortAddr,
@@ -1592,7 +1594,11 @@ class _WalletSection extends ConsumerWidget {
                   ),
                 ),
                 SizedBox(width: 4.w),
-                Icon(PhosphorIconsBold.copy, size: 12.sp, color: c.textTertiary),
+                Icon(
+                  PhosphorIconsBold.copy,
+                  size: 12.sp,
+                  color: c.textTertiary,
+                ),
               ],
             ),
           ),
@@ -1624,9 +1630,19 @@ class _WalletSection extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(PhosphorIconsBold.arrowClockwise, size: 12.sp, color: c.textTertiary),
+                    Icon(
+                      PhosphorIconsBold.arrowClockwise,
+                      size: 12.sp,
+                      color: c.textTertiary,
+                    ),
                     SizedBox(width: 4.w),
-                    Text('Tap to retry', style: text.bodySmall?.copyWith(color: c.textTertiary, fontSize: 12.sp)),
+                    Text(
+                      'Tap to retry',
+                      style: text.bodySmall?.copyWith(
+                        color: c.textTertiary,
+                        fontSize: 12.sp,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1659,9 +1675,20 @@ class _WalletSection extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(PhosphorIconsBold.arrowDown, size: 14.sp, color: c.accent),
+                      Icon(
+                        PhosphorIconsBold.arrowDown,
+                        size: 14.sp,
+                        color: c.accent,
+                      ),
                       SizedBox(width: 6.w),
-                      Text('Deposit', style: text.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: c.accent, fontSize: 13.sp)),
+                      Text(
+                        'Deposit',
+                        style: text.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.accent,
+                          fontSize: 13.sp,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -1681,9 +1708,20 @@ class _WalletSection extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(PhosphorIconsBold.arrowUp, size: 14.sp, color: c.textSecondary),
+                      Icon(
+                        PhosphorIconsBold.arrowUp,
+                        size: 14.sp,
+                        color: c.textSecondary,
+                      ),
                       SizedBox(width: 6.w),
-                      Text('Withdraw', style: text.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: c.textPrimary, fontSize: 13.sp)),
+                      Text(
+                        'Withdraw',
+                        style: text.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.textPrimary,
+                          fontSize: 13.sp,
+                        ),
+                      ),
                     ],
                   ),
                 ),

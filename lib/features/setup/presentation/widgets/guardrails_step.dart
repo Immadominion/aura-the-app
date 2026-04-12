@@ -66,27 +66,6 @@ class GuardrailsStep extends StatelessWidget {
         children: [
           SizedBox(height: 16.h),
 
-          // ── iOS-style back button ──
-          GestureDetector(
-            onTap: onBack,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(PhosphorIconsBold.caretLeft, size: 16.sp, color: c.accent),
-                SizedBox(width: 4.w),
-                Text(
-                  'Back',
-                  style: text.bodyMedium?.copyWith(
-                    color: c.accent,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          SizedBox(height: 12.h),
-
           // ── Step indicator ──
           StepIndicator(current: 1, total: 3, c: c),
 

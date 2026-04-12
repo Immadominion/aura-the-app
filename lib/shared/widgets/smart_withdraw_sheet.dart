@@ -20,15 +20,10 @@ class SmartWithdrawSheet extends ConsumerStatefulWidget {
   final SageColors c;
   final TextTheme text;
 
-  const SmartWithdrawSheet({
-    super.key,
-    required this.c,
-    required this.text,
-  });
+  const SmartWithdrawSheet({super.key, required this.c, required this.text});
 
   @override
-  ConsumerState<SmartWithdrawSheet> createState() =>
-      _SmartWithdrawSheetState();
+  ConsumerState<SmartWithdrawSheet> createState() => _SmartWithdrawSheetState();
 }
 
 enum _SheetState { loading, select, withdrawing, success, error }
@@ -82,8 +77,9 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
 
   void _toggleSelectAll() {
     if (_balances == null) return;
-    final withdrawable =
-        _balances!.wallets.where((w) => w.balanceSOL > 0.003).toList();
+    final withdrawable = _balances!.wallets
+        .where((w) => w.balanceSOL > 0.003)
+        .toList();
     if (_selectedBotIds.length == withdrawable.length) {
       setState(() => _selectedBotIds.clear());
     } else {
@@ -101,8 +97,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
 
     try {
       final repo = ref.read(walletRepositoryProvider);
-      final result =
-          await repo.smartWithdraw(_selectedBotIds.toList());
+      final result = await repo.smartWithdraw(_selectedBotIds.toList());
 
       if (!mounted) return;
 
@@ -210,7 +205,8 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
     }
 
     final withdrawable = wallets.where((w) => w.balanceSOL > 0.003).toList();
-    final allSelected = _selectedBotIds.length == withdrawable.length &&
+    final allSelected =
+        _selectedBotIds.length == withdrawable.length &&
         withdrawable.isNotEmpty;
 
     return Column(
@@ -289,8 +285,11 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
             ),
             child: Row(
               children: [
-                Icon(PhosphorIconsBold.currencyDollar,
-                    size: 18.sp, color: c.accent),
+                Icon(
+                  PhosphorIconsBold.currencyDollar,
+                  size: 18.sp,
+                  color: c.accent,
+                ),
                 SizedBox(width: 8.w),
                 Text(
                   'Withdrawing',
@@ -360,7 +359,10 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
   }
 
   Widget _buildWalletItem(
-      BotWalletBalances wallet, SageColors c, TextTheme text) {
+    BotWalletBalances wallet,
+    SageColors c,
+    TextTheme text,
+  ) {
     final selected = _selectedBotIds.contains(wallet.botId);
     final hasBalance = wallet.balanceSOL > 0.003;
 
@@ -381,16 +383,14 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
         duration: const Duration(milliseconds: 180),
         padding: EdgeInsets.all(10.w),
         decoration: BoxDecoration(
-          color: selected
-              ? c.accent.withValues(alpha: 0.1)
-              : c.surface,
+          color: selected ? c.accent.withValues(alpha: 0.1) : c.surface,
           borderRadius: BorderRadius.circular(14.r),
           border: Border.all(
             color: selected
                 ? c.accent
                 : hasBalance
-                    ? c.borderSubtle
-                    : c.borderSubtle.withValues(alpha: 0.4),
+                ? c.borderSubtle
+                : c.borderSubtle.withValues(alpha: 0.4),
             width: selected ? 1.5 : 1,
           ),
         ),
@@ -404,8 +404,9 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
                   width: 40.w,
                   height: 40.w,
                   decoration: BoxDecoration(
-                    color: (selected ? c.accent : c.textTertiary)
-                        .withValues(alpha: 0.12),
+                    color: (selected ? c.accent : c.textTertiary).withValues(
+                      alpha: 0.12,
+                    ),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -415,8 +416,8 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
                       color: selected
                           ? c.accent
                           : hasBalance
-                              ? c.textSecondary
-                              : c.textTertiary,
+                          ? c.textSecondary
+                          : c.textTertiary,
                     ),
                   ),
                 ),
@@ -433,8 +434,11 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
                         border: Border.all(color: c.surface, width: 2),
                       ),
                       child: Center(
-                        child: Icon(PhosphorIconsBold.check,
-                            size: 9.sp, color: c.buttonPrimaryText),
+                        child: Icon(
+                          PhosphorIconsBold.check,
+                          size: 9.sp,
+                          color: c.buttonPrimaryText,
+                        ),
                       ),
                     ),
                   ),
@@ -555,21 +559,11 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (succeeded.isNotEmpty)
-                _statusChip(
-                  '${succeeded.length} succeeded',
-                  c.profit,
-                  c,
-                  text,
-                ),
+                _statusChip('${succeeded.length} succeeded', c.profit, c, text),
               if (succeeded.isNotEmpty && failed.isNotEmpty)
                 SizedBox(width: 8.w),
               if (failed.isNotEmpty)
-                _statusChip(
-                  '${failed.length} failed',
-                  c.loss,
-                  c,
-                  text,
-                ),
+                _statusChip('${failed.length} failed', c.loss, c, text),
             ],
           ),
         ],
@@ -577,34 +571,39 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
         // Per-wallet results
         if (succeeded.length > 1) ...[
           SizedBox(height: 16.h),
-          ...succeeded.map((x) => Padding(
-                padding: EdgeInsets.symmetric(vertical: 2.h),
-                child: Row(
-                  children: [
-                    Icon(PhosphorIconsBold.checkCircle,
-                        size: 14.sp, color: c.profit),
-                    SizedBox(width: 6.w),
-                    Expanded(
-                      child: Text(
-                        x.botId,
-                        style: text.bodySmall?.copyWith(
-                          color: c.textTertiary,
-                          fontFamily: 'monospace',
-                          fontSize: 11.sp,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      '${(x.amountSOL ?? 0).toStringAsFixed(4)} SOL',
+          ...succeeded.map(
+            (x) => Padding(
+              padding: EdgeInsets.symmetric(vertical: 2.h),
+              child: Row(
+                children: [
+                  Icon(
+                    PhosphorIconsBold.checkCircle,
+                    size: 14.sp,
+                    color: c.profit,
+                  ),
+                  SizedBox(width: 6.w),
+                  Expanded(
+                    child: Text(
+                      x.botId,
                       style: text.bodySmall?.copyWith(
-                        color: c.textSecondary,
-                        fontWeight: FontWeight.w600,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                        color: c.textTertiary,
+                        fontFamily: 'monospace',
+                        fontSize: 11.sp,
                       ),
                     ),
-                  ],
-                ),
-              )),
+                  ),
+                  Text(
+                    '${(x.amountSOL ?? 0).toStringAsFixed(4)} SOL',
+                    style: text.bodySmall?.copyWith(
+                      color: c.textSecondary,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
 
         SizedBox(height: 28.h),
@@ -635,8 +634,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
     );
   }
 
-  Widget _statusChip(
-      String label, Color color, SageColors c, TextTheme text) {
+  Widget _statusChip(String label, Color color, SageColors c, TextTheme text) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
@@ -770,9 +768,9 @@ class _RiveAssetState extends State<_RiveAsset> {
         RiveLoading() => const SizedBox.expand(),
         RiveFailed() => const SizedBox.expand(),
         RiveLoaded() => RiveWidget(
-            controller: state.controller,
-            fit: Fit.contain,
-          ),
+          controller: state.controller,
+          fit: Fit.contain,
+        ),
       },
     );
   }

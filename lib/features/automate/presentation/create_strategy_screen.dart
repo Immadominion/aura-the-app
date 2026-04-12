@@ -276,10 +276,9 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
       // ── Step 2: For live bots, show deposit sheet BEFORE navigation ──
       if (isLive && mounted) {
         updateStatus('Fund your bot…');
-        final recommended = (_positionSize + 0.07) *
-            (isSageAi
-                ? riskCfg.maxConcurrentPositions
-                : _maxConcurrent);
+        final recommended =
+            (_positionSize + 0.07) *
+            (isSageAi ? riskCfg.maxConcurrentPositions : _maxConcurrent);
         await SageBottomSheet.show<bool>(
           context: context,
           title: 'Fund Your Bot',

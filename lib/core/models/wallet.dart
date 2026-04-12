@@ -98,7 +98,8 @@ class BotWalletBalances {
         botName: json['botName'] as String,
         walletAddress: json['walletAddress'] as String,
         balanceSOL: (json['balanceSOL'] as num?)?.toDouble() ?? 0,
-        tokens: (json['tokens'] as List<dynamic>?)
+        tokens:
+            (json['tokens'] as List<dynamic>?)
                 ?.map((e) => TokenBalance.fromJson(e as Map<String, dynamic>))
                 .toList() ??
             [],
@@ -113,9 +114,11 @@ class AggregateBalances {
 
   factory AggregateBalances.fromJson(Map<String, dynamic> json) =>
       AggregateBalances(
-        wallets: (json['wallets'] as List<dynamic>?)
-                ?.map((e) =>
-                    BotWalletBalances.fromJson(e as Map<String, dynamic>))
+        wallets:
+            (json['wallets'] as List<dynamic>?)
+                ?.map(
+                  (e) => BotWalletBalances.fromJson(e as Map<String, dynamic>),
+                )
                 .toList() ??
             [],
         totalSOL: (json['totalSOL'] as num?)?.toDouble() ?? 0,
@@ -165,11 +168,14 @@ class SmartWithdrawResult {
   factory SmartWithdrawResult.fromJson(Map<String, dynamic> json) =>
       SmartWithdrawResult(
         success: json['success'] as bool? ?? false,
-        totalWithdrawnSOL:
-            (json['totalWithdrawnSOL'] as num?)?.toDouble() ?? 0,
-        results: (json['results'] as List<dynamic>?)
-                ?.map((e) =>
-                    SmartWithdrawBotResult.fromJson(e as Map<String, dynamic>))
+        totalWithdrawnSOL: (json['totalWithdrawnSOL'] as num?)?.toDouble() ?? 0,
+        results:
+            (json['results'] as List<dynamic>?)
+                ?.map(
+                  (e) => SmartWithdrawBotResult.fromJson(
+                    e as Map<String, dynamic>,
+                  ),
+                )
                 .toList() ??
             [],
       );

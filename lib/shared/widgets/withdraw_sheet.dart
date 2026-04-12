@@ -135,10 +135,12 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
     // If custom destination, resolve domain first
     if (_useCustomDest && _destController.text.trim().isNotEmpty) {
       await _resolveDestination();
-      if (_resolveError != null || (_resolvedAddress == null && _useCustomDest)) {
+      if (_resolveError != null ||
+          (_resolvedAddress == null && _useCustomDest)) {
         setState(() {
           _state = _SheetState.error;
-          _errorMessage = _resolveError ?? 'Could not resolve destination address.';
+          _errorMessage =
+              _resolveError ?? 'Could not resolve destination address.';
         });
         return;
       }
@@ -300,7 +302,9 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: _useCustomDest ? c.accent.withValues(alpha: 0.15) : c.surfaceElevated,
+                    color: _useCustomDest
+                        ? c.accent.withValues(alpha: 0.15)
+                        : c.surfaceElevated,
                     borderRadius: BorderRadius.circular(6.r),
                     border: Border.all(
                       color: _useCustomDest ? c.accent : c.borderSubtle,
@@ -362,9 +366,12 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
                         ),
                       )
                     : _resolvedAddress != null
-                        ? Icon(PhosphorIconsBold.checkCircle,
-                            color: c.profit, size: 18.sp)
-                        : null,
+                    ? Icon(
+                        PhosphorIconsBold.checkCircle,
+                        color: c.profit,
+                        size: 18.sp,
+                      )
+                    : null,
               ),
               onChanged: (_) {
                 // Clear old resolved state on new input

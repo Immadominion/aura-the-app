@@ -35,7 +35,7 @@ class AutomateScreen extends ConsumerWidget {
 
     final botsAsync = ref.watch(botListProvider);
 
-    // Listen to SSE events — auto-refresh bot list AND invalidate detail cache
+    // Listen to SSE events — auto-refresh bot list on relevant events
     ref.listen<AsyncValue<BotEvent>>(botEventStreamProvider, (_, next) {
       next.whenData((event) {
         if (event.isPositionOpened ||
@@ -44,8 +44,7 @@ class AutomateScreen extends ConsumerWidget {
             event.isBotStopped ||
             event.isBotError ||
             event.isScanCompleted) {
-          ref.read(botListProvider.notifier).refresh();
-          ref.invalidate(botDetailProvider(event.botId));
+          ref.invalidate(botListProvider);
         }
       });
     });
@@ -53,22 +52,11 @@ class AutomateScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       body: botsAsync.when(
-        skipLoadingOnReload: true,
         loading: () =>
             Center(child: CircularProgressIndicator(color: c.accent)),
         error: (err, _) => _buildErrorState(ref, c, text, err),
-        data: (bots) {
-          // Sort: running bots first, then by most recent activity
-          final sorted = List<Bot>.from(bots)
-            ..sort((a, b) {
-              if (a.engineRunning && !b.engineRunning) return -1;
-              if (!a.engineRunning && b.engineRunning) return 1;
-              final aTime = a.lastActivityAt ?? DateTime(2000);
-              final bTime = b.lastActivityAt ?? DateTime(2000);
-              return bTime.compareTo(aTime);
-            });
-          return _buildBody(context, ref, c, text, topPad, bottomPad, sorted);
-        },
+        data: (bots) =>
+            _buildBody(context, ref, c, text, topPad, bottomPad, bots),
       ),
     );
   }
@@ -105,7 +93,7 @@ class AutomateScreen extends ConsumerWidget {
           ),
           SizedBox(height: 16.h),
           TextButton.icon(
-            onPressed: () => ref.read(botListProvider.notifier).refresh(),
+            onPressed: () => ref.invalidate(botListProvider),
             icon: Icon(Icons.refresh, size: 18.sp, color: c.accent),
             label: Text('Retry', style: TextStyle(color: c.accent)),
           ),
@@ -350,17 +338,9 @@ class AutomateScreen extends ConsumerWidget {
 
                     final pnl =
                         bot.performanceSummary?.totalPnlSol ?? bot.totalPnlSOL;
-                    final pnlStr = pnl > 0
+                    final pnlStr = pnl >= 0
                         ? '+${pnl.toStringAsFixed(2)} SOL'
-                        : pnl < 0
-                        ? '${pnl.toStringAsFixed(2)} SOL'
-                        : '0.00 SOL';
-
-                    final waitingForMlEntry =
-                        bot.engineRunning &&
-                        bot.strategyMode == StrategyMode.sageAi &&
-                        (bot.engineStats?.positionsOpened ?? 0) == 0 &&
-                        (bot.engineStats?.totalScans ?? 0) > 0;
+                        : '${pnl.toStringAsFixed(2)} SOL';
 
                     final lastActivity = bot.lastActivityAt != null
                         ? _relativeTime(bot.lastActivityAt!)
@@ -382,9 +362,8 @@ class AutomateScreen extends ConsumerWidget {
                             name: bot.name,
                             trigger:
                                 'Score ≥ ${bot.entryScoreThreshold.toStringAsFixed(0)}% · ${bot.positionSizeSOL.toStringAsFixed(1)} SOL',
-                            lastAction: waitingForMlEntry
-                                ? '$lastActivity · awaiting ML entry'
-                                : '$lastActivity · ${bot.engineStats?.totalScans ?? 0} scans',
+                            lastAction:
+                                '$lastActivity · ${bot.engineStats?.totalScans ?? 0} scans',
                             pnl: pnlStr,
                             state: state,
                           ),

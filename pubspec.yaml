@@ -90,19 +90,18 @@ dev_dependencies:
 dependency_overrides:
   freezed_annotation: ^2.4.4
 
-# Flutter Launcher Icons — generate app icons from logo.png
+# Flutter Launcher Icons — generate app icons from sage-logo.png
 flutter_launcher_icons:
-  image_path: "assets/images/logo.png"
-  image_path_ios: "assets/images/logo.png"
-  android:
-    notification_icon: "launch_background"
-    notification_icon_color: "#3366FF"
-  ios:
-    image_type: png
+  image_path: "assets/images/sage-logo.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: false
   windows:
-    image_type: png
+    generate: false
   macos:
-    image_type: png
+    generate: false
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
