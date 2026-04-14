@@ -51,7 +51,7 @@ String _base58encode(Uint8List bytes) {
 // ─────────────────────────────────────────────────────────
 
 /// MWA identity URI shown in wallet approval dialogs.
-final _identityUri = Uri.parse('https://sage.scrolls.fun');
+final _identityUri = Uri.parse('https://useaura.wtf');
 
 /// Result of an MWA wallet connection attempt.
 class MwaConnectionResult {

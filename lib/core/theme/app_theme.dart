@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:sage/core/theme/app_colors.dart';
 
-/// Sage Design System — Theme Builder
+/// Aura Design System — Theme Builder
 ///
 /// Font: Manrope (geometric, fintech-grade).
 /// Scale: display → label, each with explicit semantic purpose.

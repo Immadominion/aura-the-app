@@ -9,11 +9,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize Rive before first graphic loads.
   await RiveNative.init();
-  runApp(const ProviderScope(child: SageApp()));
+  runApp(const ProviderScope(child: AuraApp()));
 }
 
-class SageApp extends ConsumerWidget {
-  const SageApp({super.key});
+class AuraApp extends ConsumerWidget {
+  const AuraApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,7 +27,7 @@ class SageApp extends ConsumerWidget {
         final themeState = ref.watch(themeNotifierProvider);
 
         return MaterialApp.router(
-          title: 'Sage',
+          title: 'Aura',
           debugShowCheckedModeBanner: false,
           theme: themeState.lightTheme,
           darkTheme: themeState.darkTheme,

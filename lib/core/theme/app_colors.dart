@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Sage Design System — Color Tokens
+/// Aura Design System — Color Tokens
 ///
-/// Every color in the app flows through [SageColors].
-/// Screens access tokens via `context.sage.<token>`.
+/// Every color in the app flows through [AuraColors].
+/// Screens access tokens via `context.aura.<token>`.
 ///
 /// Themes: dark (default), light, midnight, solana.
 class SageColors extends ThemeExtension<SageColors> {
