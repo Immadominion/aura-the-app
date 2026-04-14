@@ -5,10 +5,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:rive/rive.dart';
 
-import 'package:sage/core/repositories/wallet_repository.dart';
-import 'package:sage/core/services/auth_service.dart';
-import 'package:sage/core/services/domain_resolver.dart';
-import 'package:sage/core/theme/app_colors.dart';
+import 'package:aura/core/repositories/wallet_repository.dart';
+import 'package:aura/core/services/auth_service.dart';
+import 'package:aura/core/services/domain_resolver.dart';
+import 'package:aura/core/theme/app_colors.dart';
 
 /// Withdraw SOL from Sage bot wallets back to user's wallet.
 ///

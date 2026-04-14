@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:sage/core/providers/connectivity_provider.dart';
+import 'package:aura/core/providers/connectivity_provider.dart';
 
 /// A slim banner that slides in from the top when the device loses
 /// network connectivity, and slides out when it reconnects.

@@ -6,12 +6,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/config/simulation_defaults.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/features/setup/models/risk_profile.dart';
-import 'package:sage/features/setup/presentation/widgets/step_indicator.dart';
-import 'package:sage/shared/widgets/sage_bottom_sheet.dart';
-import 'package:sage/shared/widgets/sage_button.dart';
+import 'package:aura/core/config/simulation_defaults.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/features/setup/models/risk_profile.dart';
+import 'package:aura/features/setup/presentation/widgets/step_indicator.dart';
+import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
+import 'package:aura/shared/widgets/sage_button.dart';
 
 /// Step 3 — Review configuration, fund wallet (live), accept disclaimers,
 /// and activate.

@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:sage/core/config/live_trading_flags.dart';
-import 'package:sage/core/config/simulation_defaults.dart';
-import 'package:sage/core/models/bot.dart';
-import 'package:sage/core/models/strategy.dart';
-import 'package:sage/core/repositories/bot_repository.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
-import 'package:sage/core/utils/bot_validators.dart';
-import 'package:sage/features/setup/models/risk_profile.dart';
-import 'package:sage/shared/widgets/deposit_sheet.dart';
-import 'package:sage/shared/widgets/sage_bottom_sheet.dart';
+import 'package:aura/core/config/live_trading_flags.dart';
+import 'package:aura/core/config/simulation_defaults.dart';
+import 'package:aura/core/models/bot.dart';
+import 'package:aura/core/models/strategy.dart';
+import 'package:aura/core/repositories/bot_repository.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
+import 'package:aura/core/utils/bot_validators.dart';
+import 'package:aura/features/setup/models/risk_profile.dart';
+import 'package:aura/shared/widgets/deposit_sheet.dart';
+import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
 
-import 'package:sage/features/automate/presentation/widgets/bot_form_fields.dart';
-import 'package:sage/features/automate/presentation/widgets/strategy_preset_selector.dart';
+import 'package:aura/features/automate/presentation/widgets/bot_form_fields.dart';
+import 'package:aura/features/automate/presentation/widgets/strategy_preset_selector.dart';
 
 /// Bot creation bottom sheet — "Single Setup Sheet" design.
 ///

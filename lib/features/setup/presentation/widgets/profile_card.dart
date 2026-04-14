@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/features/setup/models/risk_profile.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/features/setup/models/risk_profile.dart';
 
 /// Profile card — feature list for the selected risk plan.
 ///

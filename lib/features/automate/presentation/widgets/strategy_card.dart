@@ -3,10 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
-import 'package:sage/features/automate/models/strategy_state.dart';
-import 'package:sage/features/automate/presentation/widgets/pulsing_dot.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
+import 'package:aura/features/automate/models/strategy_state.dart';
+import 'package:aura/features/automate/presentation/widgets/pulsing_dot.dart';
 
 /// Strategy card — clean minimal row on dark canvas.
 /// No heavy containers. State communicated via dot + label inline.

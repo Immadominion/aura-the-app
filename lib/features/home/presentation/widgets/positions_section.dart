@@ -4,9 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/repositories/position_repository.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
+import 'package:aura/core/repositories/position_repository.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
 
 /// Active positions section — fetched from /position/active endpoint.
 class PositionsSection extends ConsumerWidget {

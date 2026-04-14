@@ -4,12 +4,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/config/live_trading_flags.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/features/setup/models/risk_profile.dart';
-import 'package:sage/features/setup/presentation/widgets/path_card.dart';
-import 'package:sage/features/setup/presentation/widgets/step_indicator.dart';
-import 'package:sage/shared/widgets/sage_button.dart';
+import 'package:aura/core/config/live_trading_flags.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/features/setup/models/risk_profile.dart';
+import 'package:aura/features/setup/presentation/widgets/path_card.dart';
+import 'package:aura/features/setup/presentation/widgets/step_indicator.dart';
+import 'package:aura/shared/widgets/sage_button.dart';
 
 /// Step 1 — Choose path (Sage AI / Custom) + execution mode radio.
 class PathStep extends StatelessWidget {

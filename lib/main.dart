@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:rive/rive.dart';
-import 'package:sage/core/router/app_router.dart';
-import 'package:sage/core/theme/theme_provider.dart';
+import 'package:aura/core/router/app_router.dart';
+import 'package:aura/core/theme/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

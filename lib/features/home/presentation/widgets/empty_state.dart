@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_colors.dart';
 
 /// Empty state shown when no bots are configured.
 class EmptyState extends StatelessWidget {

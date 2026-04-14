@@ -3,13 +3,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/features/setup/models/risk_profile.dart';
-import 'package:sage/features/setup/presentation/widgets/profile_card.dart';
-import 'package:sage/features/setup/presentation/widgets/risk_slider.dart';
-import 'package:sage/features/setup/presentation/widgets/step_indicator.dart';
-import 'package:sage/features/setup/presentation/widgets/tune_slider.dart';
-import 'package:sage/shared/widgets/sage_button.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/features/setup/models/risk_profile.dart';
+import 'package:aura/features/setup/presentation/widgets/profile_card.dart';
+import 'package:aura/features/setup/presentation/widgets/risk_slider.dart';
+import 'package:aura/features/setup/presentation/widgets/step_indicator.dart';
+import 'package:aura/features/setup/presentation/widgets/tune_slider.dart';
+import 'package:aura/shared/widgets/sage_button.dart';
 
 /// Step 2 (Sage AI path) — risk slider + fine-tune + continue.
 class GuardrailsStep extends StatelessWidget {

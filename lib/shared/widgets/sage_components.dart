@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
 
 // ─────────────────────────────────────────────────────────
 // Sage 6.0 — Execution Engine Components

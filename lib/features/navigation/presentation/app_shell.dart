@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/shared/widgets/offline_banner.dart';
-import 'package:sage/features/navigation/presentation/widgets/bottom_context_action.dart';
-import 'package:sage/features/navigation/presentation/widgets/mode_selector.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/shared/widgets/offline_banner.dart';
+import 'package:aura/features/navigation/presentation/widgets/bottom_context_action.dart';
+import 'package:aura/features/navigation/presentation/widgets/mode_selector.dart';
 
 /// App Shell — Mode selector at top, voice button at bottom.
 ///

@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:rive/rive.dart';
 
-import 'package:sage/features/onboarding/presentation/widgets/gamepad_clipper.dart';
+import 'package:aura/features/onboarding/presentation/widgets/gamepad_clipper.dart';
 
 /// Rive interactive illustration — onboarding page 3.
 ///

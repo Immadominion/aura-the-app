@@ -3,18 +3,18 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:sage/core/models/bot.dart';
-import 'package:sage/core/models/bot_event.dart';
-import 'package:sage/core/repositories/bot_repository.dart';
-import 'package:sage/core/repositories/position_repository.dart';
-import 'package:sage/core/services/event_service.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
-import 'package:sage/shared/widgets/sage_components.dart';
+import 'package:aura/core/models/bot.dart';
+import 'package:aura/core/models/bot_event.dart';
+import 'package:aura/core/repositories/bot_repository.dart';
+import 'package:aura/core/repositories/position_repository.dart';
+import 'package:aura/core/services/event_service.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
+import 'package:aura/shared/widgets/sage_components.dart';
 
-import 'package:sage/features/home/presentation/widgets/empty_state.dart';
-import 'package:sage/features/home/presentation/widgets/bot_row.dart';
-import 'package:sage/features/home/presentation/widgets/positions_section.dart';
+import 'package:aura/features/home/presentation/widgets/empty_state.dart';
+import 'package:aura/features/home/presentation/widgets/bot_row.dart';
+import 'package:aura/features/home/presentation/widgets/positions_section.dart';
 
 /// Status Mode — Deployed capital across Meteora DLMM pools.
 ///

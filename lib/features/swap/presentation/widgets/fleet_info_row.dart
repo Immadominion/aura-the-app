@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:sage/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_colors.dart';
 
 /// Data class holding a label/value pair for the fleet overview.
 class FleetInfo {

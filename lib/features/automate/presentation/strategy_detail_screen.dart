@@ -8,24 +8,24 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:sage/core/models/bot.dart';
-import 'package:sage/core/config/live_trading_flags.dart';
-import 'package:sage/core/models/bot_event.dart';
-import 'package:sage/core/repositories/bot_repository.dart';
-import 'package:sage/core/repositories/wallet_repository.dart';
-import 'package:sage/core/services/event_service.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
+import 'package:aura/core/models/bot.dart';
+import 'package:aura/core/config/live_trading_flags.dart';
+import 'package:aura/core/models/bot_event.dart';
+import 'package:aura/core/repositories/bot_repository.dart';
+import 'package:aura/core/repositories/wallet_repository.dart';
+import 'package:aura/core/services/event_service.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
 
-import 'package:sage/features/automate/presentation/widgets/stat_chip.dart';
-import 'package:sage/features/automate/presentation/widgets/live_position_card.dart';
-import 'package:sage/features/automate/presentation/widgets/param_row.dart';
-import 'package:sage/features/automate/presentation/widgets/pulsing_dot.dart';
-import 'package:sage/features/automate/presentation/widgets/edit_config_sheet.dart';
-import 'package:sage/shared/widgets/mwa_button_tap_effect.dart';
-import 'package:sage/shared/widgets/sage_bottom_sheet.dart';
-import 'package:sage/shared/widgets/withdraw_sheet.dart';
-import 'package:sage/shared/widgets/deposit_sheet.dart';
+import 'package:aura/features/automate/presentation/widgets/stat_chip.dart';
+import 'package:aura/features/automate/presentation/widgets/live_position_card.dart';
+import 'package:aura/features/automate/presentation/widgets/param_row.dart';
+import 'package:aura/features/automate/presentation/widgets/pulsing_dot.dart';
+import 'package:aura/features/automate/presentation/widgets/edit_config_sheet.dart';
+import 'package:aura/shared/widgets/mwa_button_tap_effect.dart';
+import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
+import 'package:aura/shared/widgets/withdraw_sheet.dart';
+import 'package:aura/shared/widgets/deposit_sheet.dart';
 
 /// Bot Detail — Layer 2 of Automate mode.
 ///

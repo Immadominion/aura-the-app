@@ -7,12 +7,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/config/env_config.dart';
-import 'package:sage/core/repositories/wallet_repository.dart';
-import 'package:sage/core/services/auth_service.dart';
-import 'package:sage/core/services/mwa_wallet_service.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/shared/widgets/sage_bottom_sheet.dart';
+import 'package:aura/core/config/env_config.dart';
+import 'package:aura/core/repositories/wallet_repository.dart';
+import 'package:aura/core/services/auth_service.dart';
+import 'package:aura/core/services/mwa_wallet_service.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
 
 /// Deposit SOL into a bot's wallet from the user's connected wallet.
 ///

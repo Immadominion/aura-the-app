@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/features/setup/presentation/widgets/arrow_thumb_shape.dart';
-import 'package:sage/features/setup/presentation/widgets/tick_marks.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/features/setup/presentation/widgets/arrow_thumb_shape.dart';
+import 'package:aura/features/setup/presentation/widgets/tick_marks.dart';
 
 /// Tune slider — custom arrow-thumb slider for fine-tuning
 /// bot parameters. Matches the screenshot style: rounded track,

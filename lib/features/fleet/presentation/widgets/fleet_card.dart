@@ -4,8 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/features/fleet/models/fleet_models.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/features/fleet/models/fleet_models.dart';
 
 /// Fleet leaderboard card — minimal row matching Automate's StrategyCard.
 /// State dot + rank + name on left, PnL on right.

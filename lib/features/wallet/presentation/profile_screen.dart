@@ -8,29 +8,29 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:sage/core/config/env_config.dart';
-import 'package:sage/core/config/live_trading_flags.dart';
-import 'package:sage/core/repositories/bot_repository.dart';
-import 'package:sage/core/services/auth_service.dart';
-import 'package:sage/core/services/domain_resolver.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
+import 'package:aura/core/config/env_config.dart';
+import 'package:aura/core/config/live_trading_flags.dart';
+import 'package:aura/core/repositories/bot_repository.dart';
+import 'package:aura/core/services/auth_service.dart';
+import 'package:aura/core/services/domain_resolver.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
 
-import 'package:sage/core/models/bot.dart';
-import 'package:sage/core/models/bot_event.dart';
-import 'package:sage/core/services/notification_service.dart';
-import 'package:sage/core/services/event_service.dart';
+import 'package:aura/core/models/bot.dart';
+import 'package:aura/core/models/bot_event.dart';
+import 'package:aura/core/services/notification_service.dart';
+import 'package:aura/core/services/event_service.dart';
 
-import 'package:sage/features/wallet/presentation/widgets/settings_info_row.dart';
-import 'package:sage/features/wallet/presentation/widgets/support_link.dart';
-import 'package:sage/features/wallet/presentation/widgets/stat_item.dart';
-import 'package:sage/features/wallet/presentation/widgets/setting_tile.dart';
-import 'package:sage/shared/widgets/mwa_button_tap_effect.dart';
-import 'package:sage/shared/widgets/sage_bottom_sheet.dart';
-import 'package:sage/shared/widgets/deposit_sheet.dart';
-import 'package:sage/shared/widgets/withdraw_sheet.dart';
-import 'package:sage/shared/widgets/smart_withdraw_sheet.dart';
-import 'package:sage/core/repositories/wallet_repository.dart';
+import 'package:aura/features/wallet/presentation/widgets/settings_info_row.dart';
+import 'package:aura/features/wallet/presentation/widgets/support_link.dart';
+import 'package:aura/features/wallet/presentation/widgets/stat_item.dart';
+import 'package:aura/features/wallet/presentation/widgets/setting_tile.dart';
+import 'package:aura/shared/widgets/mwa_button_tap_effect.dart';
+import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
+import 'package:aura/shared/widgets/deposit_sheet.dart';
+import 'package:aura/shared/widgets/withdraw_sheet.dart';
+import 'package:aura/shared/widgets/smart_withdraw_sheet.dart';
+import 'package:aura/core/repositories/wallet_repository.dart';
 
 /// Profile — wallet identity, portfolio summary, settings entry.
 ///

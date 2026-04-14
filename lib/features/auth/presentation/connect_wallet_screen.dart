@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
-import 'package:sage/core/services/auth_service.dart';
-import 'package:sage/shared/widgets/sage_button.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
+import 'package:aura/core/services/auth_service.dart';
+import 'package:aura/shared/widgets/sage_button.dart';
 
 /// Connect Wallet — full-screen dark gate with Rive hero animation.
 ///

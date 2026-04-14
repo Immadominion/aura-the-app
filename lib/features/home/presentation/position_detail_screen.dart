@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:sage/core/models/position.dart';
-import 'package:sage/core/repositories/position_repository.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
+import 'package:aura/core/models/position.dart';
+import 'package:aura/core/repositories/position_repository.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
 
 /// Position Detail — Layer 2 of Delegate (Home) mode.
 ///

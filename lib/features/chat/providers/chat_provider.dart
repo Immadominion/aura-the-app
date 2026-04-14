@@ -5,10 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
-import 'package:sage/core/services/chat_persistence.dart';
-import 'package:sage/core/theme/theme_provider.dart';
-import 'package:sage/features/chat/data/chat_repository.dart';
-import 'package:sage/features/chat/models/chat_models.dart';
+import 'package:aura/core/services/chat_persistence.dart';
+import 'package:aura/core/theme/theme_provider.dart';
+import 'package:aura/features/chat/data/chat_repository.dart';
+import 'package:aura/features/chat/models/chat_models.dart';
 
 String _friendlyError(Object e) {
   if (e is DioException) {

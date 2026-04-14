@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:sage/core/models/bot.dart';
-import 'package:sage/core/theme/app_colors.dart';
+import 'package:aura/core/models/bot.dart';
+import 'package:aura/core/theme/app_colors.dart';
 
 /// Card showing a single live position with PnL and hold time.
 class LivePositionCard extends StatelessWidget {

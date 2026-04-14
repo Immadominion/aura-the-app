@@ -5,13 +5,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
-import 'package:sage/features/fleet/data/fleet_repository.dart';
-import 'package:sage/features/fleet/models/fleet_models.dart';
-import 'package:sage/features/fleet/presentation/widgets/fleet_card.dart';
-import 'package:sage/shared/widgets/sage_components.dart';
-import 'package:sage/features/automate/presentation/widgets/stat_chip.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
+import 'package:aura/features/fleet/data/fleet_repository.dart';
+import 'package:aura/features/fleet/models/fleet_models.dart';
+import 'package:aura/features/fleet/presentation/widgets/fleet_card.dart';
+import 'package:aura/shared/widgets/sage_components.dart';
+import 'package:aura/features/automate/presentation/widgets/stat_chip.dart';
 
 /// Fleet — pushed over app shell from Automate CTA.
 ///

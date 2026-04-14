@@ -5,9 +5,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:rive/rive.dart';
 
-import 'package:sage/core/models/wallet.dart';
-import 'package:sage/core/repositories/wallet_repository.dart';
-import 'package:sage/core/theme/app_colors.dart';
+import 'package:aura/core/models/wallet.dart';
+import 'package:aura/core/repositories/wallet_repository.dart';
+import 'package:aura/core/theme/app_colors.dart';
 
 /// Smart multi-wallet withdraw sheet.
 ///

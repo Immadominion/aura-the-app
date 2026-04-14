@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:sage/core/models/bot.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
-import 'package:sage/core/utils/bot_validators.dart';
+import 'package:aura/core/models/bot.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
+import 'package:aura/core/utils/bot_validators.dart';
 
 /// Bottom sheet for editing a bot's configuration parameters.
 class EditConfigSheet extends StatefulWidget {

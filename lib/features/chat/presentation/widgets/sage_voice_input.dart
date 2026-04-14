@@ -1,4 +1,4 @@
-import 'package:sage/shared/widgets/sage_components.dart';
+import 'package:aura/shared/widgets/sage_components.dart';
 
 import 'dart:async';
 
@@ -8,7 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_colors.dart';
 
 /// Voice-first input widget for Sage chat.
 ///

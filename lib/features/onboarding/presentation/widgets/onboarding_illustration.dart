@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
 
-import 'package:sage/features/onboarding/presentation/widgets/rive_illustration.dart';
+import 'package:aura/features/onboarding/presentation/widgets/rive_illustration.dart';
 
 /// Illustration widget that switches between Lottie assets
 /// and the Rive gamepad illustration based on page index.

@@ -8,14 +8,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
-import 'package:sage/shared/widgets/sage_components.dart';
-import 'package:sage/features/chat/models/chat_models.dart';
-import 'package:sage/features/chat/providers/chat_provider.dart';
-import 'package:sage/features/chat/presentation/widgets/chat_bubble.dart';
-import 'package:sage/features/chat/presentation/widgets/sage_voice_input.dart';
-import 'package:sage/features/chat/presentation/widgets/strategy_params_card.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
+import 'package:aura/shared/widgets/sage_components.dart';
+import 'package:aura/features/chat/models/chat_models.dart';
+import 'package:aura/features/chat/providers/chat_provider.dart';
+import 'package:aura/features/chat/presentation/widgets/chat_bubble.dart';
+import 'package:aura/features/chat/presentation/widgets/sage_voice_input.dart';
+import 'package:aura/features/chat/presentation/widgets/strategy_params_card.dart';
 
 /// Intelligence Mode — Sage AI Chat.
 ///

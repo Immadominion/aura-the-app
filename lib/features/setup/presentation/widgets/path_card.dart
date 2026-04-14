@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_colors.dart';
 
 /// Path card — step 1 selection card for choosing
 /// Sage AI vs Custom Strategy.

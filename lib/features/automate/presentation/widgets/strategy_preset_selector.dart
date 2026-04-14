@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:sage/core/models/strategy.dart';
-import 'package:sage/core/repositories/strategy_repository.dart';
-import 'package:sage/core/theme/app_colors.dart';
+import 'package:aura/core/models/strategy.dart';
+import 'package:aura/core/repositories/strategy_repository.dart';
+import 'package:aura/core/theme/app_colors.dart';
 
 /// Preset selector that fetches strategies from the backend
 /// and displays them as selectable chips.

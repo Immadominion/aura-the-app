@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solana/solana.dart';
 import 'package:tld_parser/tld_parser.dart';
 
-import 'package:sage/core/config/env_config.dart';
+import 'package:aura/core/config/env_config.dart';
 
 /// Resolves Solana wallet addresses ↔ AllDomains ANS names.
 ///

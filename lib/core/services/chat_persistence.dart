@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:sage/core/services/api_client.dart';
-import 'package:sage/features/chat/models/chat_models.dart';
+import 'package:aura/core/services/api_client.dart';
+import 'package:aura/features/chat/models/chat_models.dart';
 
 /// Cloud-first persistence for chat state and setup wizard progress.
 ///

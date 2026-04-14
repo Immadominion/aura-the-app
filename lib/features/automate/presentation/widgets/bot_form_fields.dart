@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_colors.dart';
 
 /// Section header label (uppercase, spaced).
 class SectionLabel extends StatelessWidget {

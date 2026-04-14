@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sage/core/services/api_client.dart';
-import 'package:sage/features/chat/models/chat_models.dart';
+import 'package:aura/core/services/api_client.dart';
+import 'package:aura/features/chat/models/chat_models.dart';
 
 /// Repository for AI chat API calls.
 class ChatRepository {

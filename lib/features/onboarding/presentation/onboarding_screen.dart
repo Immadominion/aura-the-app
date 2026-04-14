@@ -4,12 +4,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
-import 'package:sage/shared/widgets/sage_button.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
+import 'package:aura/shared/widgets/sage_button.dart';
 
-import 'package:sage/features/onboarding/models/onboarding_page.dart';
-import 'package:sage/features/onboarding/presentation/widgets/onboarding_illustration.dart';
+import 'package:aura/features/onboarding/models/onboarding_page.dart';
+import 'package:aura/features/onboarding/presentation/widgets/onboarding_illustration.dart';
 
 /// Onboarding — 3 pages, NO PageView.
 ///

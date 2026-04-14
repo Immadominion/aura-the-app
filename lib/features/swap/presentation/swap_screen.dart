@@ -3,15 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:sage/core/models/bot.dart';
-import 'package:sage/core/repositories/bot_repository.dart';
-import 'package:sage/core/repositories/ml_repository.dart';
-import 'package:sage/core/theme/app_colors.dart';
-import 'package:sage/core/theme/app_theme.dart';
-import 'package:sage/shared/widgets/sage_components.dart';
-import 'package:sage/features/swap/presentation/widgets/model_card.dart';
-import 'package:sage/features/swap/presentation/widgets/metric_box.dart';
-import 'package:sage/features/swap/presentation/widgets/fleet_info_row.dart';
+import 'package:aura/core/models/bot.dart';
+import 'package:aura/core/repositories/bot_repository.dart';
+import 'package:aura/core/repositories/ml_repository.dart';
+import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_theme.dart';
+import 'package:aura/shared/widgets/sage_components.dart';
+import 'package:aura/features/swap/presentation/widgets/model_card.dart';
+import 'package:aura/features/swap/presentation/widgets/metric_box.dart';
+import 'package:aura/features/swap/presentation/widgets/fleet_info_row.dart';
 
 /// Intelligence Mode — AI brain overview + ML model status.
 ///

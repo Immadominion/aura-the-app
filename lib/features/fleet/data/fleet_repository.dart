@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sage/core/services/api_client.dart';
-import 'package:sage/features/fleet/models/fleet_models.dart';
+import 'package:aura/core/services/api_client.dart';
+import 'package:aura/features/fleet/models/fleet_models.dart';
 
 /// Repository for Fleet leaderboard API calls.
 class FleetRepository {
