@@ -1,17 +1,27 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
 import 'package:aura/core/theme/app_theme.dart';
 import 'package:aura/core/services/auth_service.dart';
-import 'package:aura/shared/widgets/sage_button.dart';
+import 'package:aura/shared/widgets/aura_button.dart';
 
-/// Connect Wallet — full-screen dark gate with Rive hero animation.
+/// Connect Wallet — full-screen dark gate.
 ///
-/// Completely theme-aware. No hardcoded colors.
+/// Primary: "Connect Wallet" opens the user's installed Solana wallet
+/// via MWA (Mobile Wallet Adapter) for the standard SIWS flow.
+///
+/// Secondary: Google / Apple buttons create a Phantom embedded wallet
+/// for users who don't have an external wallet installed.
+///
+/// On iOS (where MWA is unavailable) the embedded-wallet buttons are
+/// promoted to primary.
 class ConnectWalletScreen extends ConsumerStatefulWidget {
   const ConnectWalletScreen({super.key});
 
@@ -22,30 +32,51 @@ class ConnectWalletScreen extends ConsumerStatefulWidget {
 
 class _ConnectWalletScreenState extends ConsumerState<ConnectWalletScreen> {
   bool _connecting = false;
+  String? _activeProvider; // 'google', 'apple', or 'mwa'
   String? _error;
 
-  Future<void> _connectWallet() async {
+  Future<void> _signInWithPhantom(String provider) async {
     setState(() {
       _connecting = true;
+      _activeProvider = provider;
       _error = null;
     });
     HapticFeedback.mediumImpact();
 
     try {
-      // Full SIWS flow in a single MWA session.
-      // Wallet opens once → user authorizes + signs → returns to Sage.
-      await ref.read(authStateProvider.notifier).signIn();
-
+      await ref.read(authStateProvider.notifier).signInWithPhantom(provider);
       if (!mounted) return;
       HapticFeedback.heavyImpact();
-      // Router redirect handles navigation automatically when
-      // authStateProvider transitions to authenticated. No need
-      // for context.go('/') which caused a splash flash.
+    } catch (e, st) {
+      debugPrint('[ConnectWallet] signIn error: $e\n$st');
+      if (!mounted) return;
+      HapticFeedback.selectionClick();
+      setState(() {
+        _connecting = false;
+        _activeProvider = null;
+        _error = _friendlyError(e.toString());
+      });
+    }
+  }
+
+  Future<void> _connectMwa() async {
+    setState(() {
+      _connecting = true;
+      _activeProvider = 'mwa';
+      _error = null;
+    });
+    HapticFeedback.mediumImpact();
+
+    try {
+      await ref.read(authStateProvider.notifier).signIn();
+      if (!mounted) return;
+      HapticFeedback.heavyImpact();
     } catch (e) {
       if (!mounted) return;
       HapticFeedback.selectionClick();
       setState(() {
         _connecting = false;
+        _activeProvider = null;
         _error = _friendlyError(e.toString());
       });
     }
@@ -54,7 +85,7 @@ class _ConnectWalletScreenState extends ConsumerState<ConnectWalletScreen> {
   String _friendlyError(String? raw) {
     if (raw == null) return 'Connection failed. Try again.';
     if (raw.contains('cancelled') || raw.contains('cancel')) {
-      return 'Connection cancelled.';
+      return 'Sign-in cancelled.';
     }
     if (raw.contains('No wallet') || raw.contains('no wallet')) {
       return 'No compatible wallet found.\nInstall one from the store.';
@@ -62,7 +93,6 @@ class _ConnectWalletScreenState extends ConsumerState<ConnectWalletScreen> {
     if (raw.contains('Signing failed')) {
       return 'Message signing failed. Try again.';
     }
-    // Network errors from Dio (backend unreachable, wrong IP, etc.)
     if (raw.contains('Backend unreachable') ||
         raw.contains('SocketException') ||
         raw.contains('connection timeout') ||
@@ -77,8 +107,28 @@ class _ConnectWalletScreenState extends ConsumerState<ConnectWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
+    final providerButtons = Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 16.w,
+      children: [
+        _ProviderCircleButton(
+          icon: PhosphorIconsDuotone.googleLogo,
+          tooltip: 'Continue with Google',
+          onPressed: () => _signInWithPhantom('google'),
+          isLoading: _connecting && _activeProvider == 'google',
+          enabled: !_connecting,
+        ),
+        _ProviderCircleButton(
+          icon: PhosphorIconsDuotone.appleLogo,
+          tooltip: 'Continue with Apple',
+          onPressed: () => _signInWithPhantom('apple'),
+          isLoading: _connecting && _activeProvider == 'apple',
+          enabled: !_connecting,
+        ),
+      ],
+    );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
@@ -87,91 +137,169 @@ class _ConnectWalletScreenState extends ConsumerState<ConnectWalletScreen> {
       ),
       child: Scaffold(
         backgroundColor: c.background,
-        body: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 28.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Spacer(flex: 1),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Opacity(
+                  opacity: 0.16,
+                  child: Image.asset(
+                    'assets/images/bg-texture.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                    filterQuality: FilterQuality.medium,
+                  ),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 28.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Spacer(flex: 3),
 
-                // ── Rive hero animation ──────────────────
-                Center(
-                  child: RepaintBoundary(
-                    child: SizedBox(
-                      width: 280.w,
-                      height: 280.w,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(28.r),
-                        child: Image.asset(
-                          'assets/images/onboarding1.png',
-                          fit: BoxFit.cover,
+                    // ── Headline ─────────────────────────────
+                    Text('Welcome to\nAura.', style: text.headlineLarge)
+                        .animate()
+                        .fadeIn(duration: 500.ms, delay: 150.ms)
+                        .slideY(begin: 0.05, end: 0),
+
+                    SizedBox(height: 12.h),
+
+                    // ── Subtitle ─────────────────────────────
+                    Text(
+                      Platform.isAndroid
+                          ? 'Connect your Solana wallet to start trading.'
+                          : 'Sign in to start trading. A secure Solana wallet '
+                            'is created for you automatically.',
+                      style: text.bodyMedium,
+                    ).animate().fadeIn(duration: 500.ms, delay: 250.ms),
+
+                    const Spacer(flex: 2),
+
+                    // ── Error ────────────────────────────────
+                    if (_error != null)
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 12.h),
+                        child: Text(
+                          _error!,
+                          style: text.bodySmall?.copyWith(
+                            color: c.loss,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ).animate().fadeIn(duration: 300.ms).shakeX(hz: 3),
+                      ),
+
+                    // ── Connect Wallet (primary CTA — MWA on Android) ──
+                    if (Platform.isAndroid) ...[
+                      AuraButton(
+                        label: _connecting && _activeProvider == 'mwa'
+                            ? 'Connecting…'
+                            : 'Connect Wallet',
+                        onPressed: _connectMwa,
+                        isLoading: _connecting && _activeProvider == 'mwa',
+                        enabled: !_connecting,
+                      ).animate().fadeIn(duration: 500.ms, delay: 350.ms)
+                          .slideY(begin: 0.08, end: 0),
+
+                      SizedBox(height: 20.h),
+
+                      Center(
+                        child: Text(
+                          'or continue with',
+                          style: text.bodySmall?.copyWith(
+                            color: c.textTertiary,
+                          ),
+                        ),
+                      ).animate().fadeIn(duration: 400.ms, delay: 420.ms),
+
+                      SizedBox(height: 16.h),
+
+                      Center(
+                        child: providerButtons,
+                      ).animate().fadeIn(duration: 500.ms, delay: 480.ms),
+                    ] else ...[
+                      Center(
+                        child: providerButtons,
+                      ).animate().fadeIn(duration: 500.ms, delay: 350.ms)
+                          .slideY(begin: 0.08, end: 0),
+                    ],
+
+                    SizedBox(height: 16.h),
+
+                    // ── Legal ────────────────────────────────
+                    Center(
+                      child: Text(
+                        'By continuing you agree to our Terms\nand Privacy Policy.',
+                        textAlign: TextAlign.center,
+                        style: text.labelSmall?.copyWith(
+                          color: c.textTertiary,
+                          letterSpacing: 0,
                         ),
                       ),
-                    ),
-                  ),
-                ).animate().fadeIn(duration: 500.ms, delay: 100.ms),
+                    ).animate().fadeIn(duration: 400.ms, delay: 580.ms),
 
-                const Spacer(flex: 1),
-
-                // ── Headline ─────────────────────────────
-                Text('Connect your\nwallet', style: text.headlineLarge)
-                    .animate()
-                    .fadeIn(duration: 500.ms, delay: 250.ms)
-                    .slideY(begin: 0.05, end: 0),
-
-                SizedBox(height: 12.h),
-
-                // ── Subtitle ─────────────────────────────
-                Text(
-                  'Make your own rules, or use our Sage Agent.\nLP while you sleep, it\'s never been easier.',
-                  style: text.bodyMedium,
-                ).animate().fadeIn(duration: 500.ms, delay: 350.ms),
-
-                const Spacer(flex: 1),
-
-                // ── Error ────────────────────────────────
-                if (_error != null)
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 12.h),
-                    child: Text(
-                      _error!,
-                      style: text.bodySmall?.copyWith(
-                        color: c.loss,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ).animate().fadeIn(duration: 300.ms).shakeX(hz: 3),
-                  ),
-
-                // ── CTA ──────────────────────────────────
-                SageButton(
-                      label: 'Connect Wallet',
-                      onPressed: _connectWallet,
-                      isLoading: _connecting,
-                    )
-                    .animate()
-                    .fadeIn(duration: 500.ms, delay: 500.ms)
-                    .slideY(begin: 0.08, end: 0),
-
-                SizedBox(height: 20.h),
-
-                // ── Legal ────────────────────────────────
-                Center(
-                  child: Text(
-                    'By connecting you agree to our Terms\nand Privacy Policy.',
-                    textAlign: TextAlign.center,
-                    style: text.labelSmall?.copyWith(
-                      color: c.textTertiary,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ).animate().fadeIn(duration: 400.ms, delay: 600.ms),
-
-                SizedBox(height: 8.h),
-              ],
+                    SizedBox(height: 8.h),
+                  ],
+                ),
+              ),
             ),
-          ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProviderCircleButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+  final bool isLoading;
+  final bool enabled;
+
+  const _ProviderCircleButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.isLoading = false,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.aura;
+
+    return SizedBox(
+      width: 64.w,
+      height: 64.w,
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: (enabled && !isLoading) ? onPressed : null,
+        style: IconButton.styleFrom(
+          backgroundColor: c.panelBackground.withValues(alpha: 0.36),
+          foregroundColor: c.textPrimary,
+          disabledBackgroundColor: c.panelBackground.withValues(alpha: 0.24),
+          disabledForegroundColor: c.textTertiary,
+          side: BorderSide(color: c.border, width: 1),
+          shape: const CircleBorder(),
+          fixedSize: Size.square(64.w),
+          padding: EdgeInsets.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        icon: isLoading
+            ? SizedBox(
+                width: 22.w,
+                height: 22.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.2,
+                  valueColor: AlwaysStoppedAnimation<Color>(c.textPrimary),
+                ),
+              )
+            : Icon(icon, size: 28.sp),
       ),
     );
   }

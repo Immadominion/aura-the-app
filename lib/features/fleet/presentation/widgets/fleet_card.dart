@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/features/fleet/models/fleet_models.dart';
 
 /// Fleet leaderboard card — minimal row matching Automate's StrategyCard.
@@ -12,7 +12,7 @@ import 'package:aura/features/fleet/models/fleet_models.dart';
 /// Tags below as colorful rounded pills (like status badges).
 class FleetCard extends StatelessWidget {
   final FleetEntry entry;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const FleetCard({
@@ -44,7 +44,7 @@ class FleetCard extends StatelessWidget {
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 2),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.md),
             ),
           ),
         );
@@ -144,7 +144,7 @@ class FleetCard extends StatelessWidget {
     switch (mode) {
       case 'rule-based':
         return 'Rule';
-      case 'sage-ai':
+      case 'aura-ai':
         return 'AI';
       case 'both':
         return 'Hybrid';
@@ -153,20 +153,9 @@ class FleetCard extends StatelessWidget {
     }
   }
 
-  IconData _strategyIcon(String mode) {
-    switch (mode) {
-      case 'sage-ai':
-        return PhosphorIconsBold.brain;
-      case 'both':
-        return PhosphorIconsBold.infinity;
-      default:
-        return PhosphorIconsBold.gear;
-    }
-  }
-
   Color _strategyColor(String mode) {
     switch (mode) {
-      case 'sage-ai':
+      case 'aura-ai':
         return const Color(0xFF9B59B6); // purple
       case 'both':
         return const Color(0xFFE67E22); // orange
@@ -188,20 +177,7 @@ class FleetCard extends StatelessWidget {
     }
   }
 
-  IconData _statusIcon(String status) {
-    switch (status) {
-      case 'running':
-        return PhosphorIconsBold.play;
-      case 'stopped':
-        return PhosphorIconsBold.pause;
-      case 'error':
-        return PhosphorIconsBold.warning;
-      default:
-        return PhosphorIconsBold.circleHalf;
-    }
-  }
-
-  Color _statusColor(String status, SageColors c) {
+  Color _statusColor(String status, AuraColors c) {
     switch (status) {
       case 'running':
         return c.profit;
@@ -217,7 +193,7 @@ class FleetCard extends StatelessWidget {
 
 class _RankIndicator extends StatelessWidget {
   final int rank;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const _RankIndicator({

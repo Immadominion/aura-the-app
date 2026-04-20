@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
 import 'package:aura/core/theme/app_theme.dart';
-import 'package:aura/shared/widgets/sage_button.dart';
+import 'package:aura/shared/widgets/aura_button.dart';
 
 import 'package:aura/features/onboarding/models/onboarding_page.dart';
 import 'package:aura/features/onboarding/presentation/widgets/onboarding_illustration.dart';
@@ -34,26 +34,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // ── Page data ──
+  // Copy per audit §5.2 (rev 2 — web2 voice, technical proof in sub-copy).
   static const _pages = [
     OnboardingPage(
-      headline: 'Your capital,\nalways working',
+      headline: 'Put your crypto\nto work.',
       body:
-          'Sage deploys SOL into Meteora LP positions '
-          'using ML to find high-yield opportunities. '
-          'Earn fees while you sleep.',
+          'Aura deposits your SOL into top liquidity pools on Solana '
+          'and earns trading fees for you — automatically, 24/7. '
+          'Powered by Meteora.',
     ),
     OnboardingPage(
-      headline: 'Automate your \ntrading strategy',
+      headline: 'Backed by an AI\nthat\u2019s actually trained.',
       body:
-          'Define your rules, triggers, and conditions.'
-          'Deploy your personal strategy that executes 24/7, '
-          'No code.',
+          'We\u2019ve studied tens of millions of real Solana trades '
+          'to figure out which pools are worth entering — and when to '
+          'leave. No guessing, no vibes.',
     ),
     OnboardingPage(
-      headline: 'Controlled power, \nin your hands.',
+      headline: 'You\u2019re in control.\nAlways.',
       body:
-          'Define strict risk and spending limits. '
-          'Sage operates within your exact parameters',
+          'Set your spending limit, your risk level, and your stop-loss. '
+          'Aura plays inside your rules — and you can pause everything '
+          'with one tap.',
     ),
   ];
 
@@ -83,8 +85,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final bottomPad = MediaQuery.of(context).padding.bottom;
     final page = _pages[_current];
 
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     final navy = c.onboardingNavy;
     final accentBlue = c.onboardingAccent;
 
@@ -181,7 +183,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: _current == _totalPages - 1
                       ? Align(
                           alignment: Alignment.topCenter,
-                          child: SageButton(
+                          child: AuraButton(
                             onPressed: _finish,
                             label: 'Get Started',
                             color: accentBlue,

@@ -8,10 +8,11 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/config/simulation_defaults.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/features/setup/models/risk_profile.dart';
 import 'package:aura/features/setup/presentation/widgets/step_indicator.dart';
-import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
-import 'package:aura/shared/widgets/sage_button.dart';
+import 'package:aura/shared/widgets/aura_bottom_sheet.dart';
+import 'package:aura/shared/widgets/aura_button.dart';
 
 /// Step 3 — Review configuration, fund wallet (live), accept disclaimers,
 /// and activate.
@@ -48,7 +49,7 @@ class ReviewFundStep extends StatefulWidget {
   /// Override the activate button label.
   final String? activateLabel;
 
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const ReviewFundStep({
@@ -178,7 +179,7 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
                 Row(
                   children: [
                     Icon(
-                      widget.path == SetupPath.sageAi
+                      widget.path == SetupPath.auraAi
                           ? PhosphorIconsBold.sparkle
                           : PhosphorIconsBold.folderSimpleUser,
                       size: 14.sp,
@@ -186,8 +187,8 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
                     ),
                     SizedBox(width: 6.w),
                     Text(
-                      widget.path == SetupPath.sageAi
-                          ? 'Sage AI'
+                      widget.path == SetupPath.auraAi
+                          ? 'Aura AI'
                           : 'Custom Strategy',
                       style: widget.text.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
@@ -379,7 +380,7 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
                 SizedBox(height: 28.h),
 
                 // ── Activate ──
-                SageButton(
+                AuraButton(
                   label:
                       widget.activateLabel ??
                       (_isLive ? 'Deploy & Fund Bot' : 'Activate'),
@@ -515,7 +516,7 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(100.r),
+        borderRadius: BorderRadius.circular(context.auraRadii.pill),
         border: Border.all(color: border),
       ),
       child: Text(
@@ -530,13 +531,13 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
   }
 
   // ────────────────────────────────────────────────────────────
-  // Deposit amount editor — opens SageBottomSheet with slider
+  // Deposit amount editor — opens AuraBottomSheet with slider
   // ────────────────────────────────────────────────────────────
 
   void _openDepositEditor() {
     HapticFeedback.selectionClick();
 
-    SageBottomSheet.show<double>(
+    AuraBottomSheet.show<double>(
       context: context,
       title: 'Deposit Amount',
       builder: (c, text) => _AmountEditorContent(
@@ -557,7 +558,7 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
   void _openSimulationBalanceEditor() {
     HapticFeedback.selectionClick();
 
-    SageBottomSheet.show<double>(
+    AuraBottomSheet.show<double>(
       context: context,
       title: 'Simulation Capital',
       builder: (c, text) => _AmountEditorContent(
@@ -607,7 +608,7 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
                   color: _disclaimerAccepted
                       ? widget.c.accent
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(6.r),
+                  borderRadius: BorderRadius.circular(context.auraRadii.xs),
                   border: Border.all(
                     color: _disclaimerAccepted
                         ? widget.c.accent
@@ -653,7 +654,7 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _bullet(
-                  'Sage does not guarantee returns. '
+                  'Aura does not guarantee returns. '
                   'Software is provided as-is.',
                 ),
                 SizedBox(height: 6.h),
@@ -722,7 +723,7 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Deposit Editor — slider inside SageBottomSheet (matches param editor)
+// Deposit Editor — slider inside AuraBottomSheet (matches param editor)
 // ═══════════════════════════════════════════════════════════════
 
 class _AmountEditorContent extends StatefulWidget {
@@ -732,7 +733,7 @@ class _AmountEditorContent extends StatefulWidget {
   final double recommended;
   final String confirmLabel;
   final String recommendedLabel;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const _AmountEditorContent({
@@ -847,7 +848,7 @@ class _AmountEditorContentState extends State<_AmountEditorContent> {
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               color: c.accent,
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.md),
               boxShadow: [
                 BoxShadow(
                   color: c.accent.withValues(alpha: 0.25),

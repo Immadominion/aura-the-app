@@ -1,19 +1,19 @@
-# Sage — AI-Powered LP Trading for Solana
+# Aura — AI-Powered LP Trading for Solana
 
-Mobile-first autonomous liquidity provision on Meteora DLMM, powered by ML signals and secured by the Seal on-chain wallet.
+Mobile-first autonomous liquidity provision on Meteora DLMM, powered by ML signals and secured by encrypted bot keypairs.
 
 Built for the **Solana Mobile Hackathon 2025**.
 
 ## Download
 
-[**Download Sage v1.0.0 APK**](https://github.com/Immadominion/sage/releases/download/v1.0.0/sage-v1.0.0.apk) — Android 7.0+ (API 24)
+[**Download aura v1.0.0 APK**](https://github.com/Immadominion/aura/releases/download/v1.0.0/aura-v1.0.0.apk) — Android 7.0+ (API 24)
 
 > Requires a Solana wallet app (Phantom, Solflare, etc.) installed on your device.
 
 ## Features
 
 - **Wallet Connect** — Sign-In With Solana via Mobile Wallet Adapter (Phantom, Solflare)
-- **Seal Wallet** — On-chain smart wallet with session keys, spending limits, and guardian recovery
+- **Bot Wallet** — Per-bot encrypted keypair with spending limits and safety controls
 - **Automate** — Create and manage autonomous LP trading bots
 - **ML Signals** — XGBoost model trained on historical Meteora data predicts profitable entry points
 - **Fleet Management** — Run multiple bots with different strategies simultaneously
@@ -29,7 +29,7 @@ Built for the **Solana Mobile Hackathon 2025**.
 | State | Riverpod + code generation |
 | Routing | GoRouter |
 | Wallet | MWA via `solana_mobile_client` |
-| On-chain | Seal smart wallet (`seal_dart` SDK) |
+| On-chain | Encrypted bot keypair |
 | HTTP | Dio |
 | SSE | `flutter_client_sse` |
 | Charts | fl_chart |
@@ -51,7 +51,7 @@ lib/
 │   ├── fleet/         # Multi-bot dashboard
 │   ├── home/          # Main dashboard
 │   ├── onboarding/    # First-run experience
-│   ├── setup/         # Seal wallet setup
+│   ├── setup/         # Bot wallet setup
 │   ├── splash/        # App splash screen
 │   ├── swap/          # Token swap
 │   └── wallet/        # Wallet & balance views
@@ -66,7 +66,7 @@ lib/
 - Flutter SDK `^3.11.0`
 - Android Studio / Xcode
 - A Solana wallet app (Phantom or Solflare) installed on your device/emulator
-- The sage-backend running locally or deployed
+- The aura-backend running locally or deployed
 
 ### Run in Development
 
@@ -99,7 +99,7 @@ flutter build apk --release \
 2. On your Android device, go to **Settings → Security → Install unknown apps**
 3. Enable installation from your browser/file manager
 4. Open the APK file to install
-5. Launch Sage and connect your Solana wallet
+5. Launch Aura and connect your Solana wallet
 
 ### Environment Configuration
 
@@ -114,11 +114,11 @@ The app is configured via `--dart-define` flags at build time:
 
 ## Backend
 
-See [sage-backend/](../sage-backend/) for the REST API that powers the app.
+See [aura-backend/](../aura-backend/) for the REST API that powers the app.
 
 ## On-Chain Wallet
 
-See [seal/](../seal/) for the Seal smart wallet program deployed on Solana.
+The wallet architecture uses per-bot AES-256-GCM encrypted keypairs managed by the backend.
 
 ## License
 

@@ -1,13 +1,13 @@
-# Sage — Interface Architecture
+# Aura — Interface Architecture
 
-> This document defines how Sage is structured as an experience,
+> This document defines how Aura is structured as an experience,
 > not as a collection of screens.
 
 ---
 
 ## Core Principle
 
-Sage has **three modes**, not four tabs.
+Aura has **three modes**, not four tabs.
 
 The user is always in one of three cognitive states:
 
@@ -205,7 +205,7 @@ Tapping a strategy opens its detail/control view.
 │  5.0 SOL                        │  ← dominant metric
 │                                 │
 │  Model Confidence: 71%          │  ← intelligence line
-│  Regime: Volatile Expansion     │
+│  Net PnL: +0.34 SOL             │
 │                                 │
 │    [ Deposit ]  [ Withdraw ]    │  ← two actions
 │                                 │
@@ -268,7 +268,7 @@ This is not a "tab" — it's infrastructure. The user accesses it occasionally, 
 The default experience is dark. Light mode exists but is secondary.
 
 Reasoning: Dark mode conveys control, precision, technical authority.
-Light mode fintech feels "lifestyle." Sage is infrastructure.
+Light mode fintech feels "lifestyle." Aura is infrastructure.
 
 ### Typography
 

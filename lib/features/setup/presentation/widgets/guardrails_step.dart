@@ -9,9 +9,9 @@ import 'package:aura/features/setup/presentation/widgets/profile_card.dart';
 import 'package:aura/features/setup/presentation/widgets/risk_slider.dart';
 import 'package:aura/features/setup/presentation/widgets/step_indicator.dart';
 import 'package:aura/features/setup/presentation/widgets/tune_slider.dart';
-import 'package:aura/shared/widgets/sage_button.dart';
+import 'package:aura/shared/widgets/aura_button.dart';
 
-/// Step 2 (Sage AI path) — risk slider + fine-tune + continue.
+/// Step 2 (Aura AI path) — risk slider + fine-tune + continue.
 class GuardrailsStep extends StatelessWidget {
   final RiskProfile risk;
   final ValueChanged<RiskProfile> onSelectRisk;
@@ -27,7 +27,7 @@ class GuardrailsStep extends StatelessWidget {
   final ValueChanged<double> onStopLossChanged;
   final VoidCallback onNext;
   final VoidCallback onBack;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const GuardrailsStep({
@@ -210,7 +210,7 @@ class GuardrailsStep extends StatelessWidget {
           SizedBox(height: 28.h),
 
           // ── Continue ──
-          SageButton(
+          AuraButton(
             label: 'Continue',
             onPressed: onNext,
           ).animate().fadeIn(duration: 400.ms, delay: 400.ms),

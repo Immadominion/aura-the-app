@@ -1,7 +1,7 @@
 /// Centralized validation constants and helpers for bot financial parameters.
 ///
 /// These constraints MUST mirror the backend Zod schema in
-/// `sage-backend/src/routes/bot.ts` (`createBotSchema`).
+/// `aura-backend/src/routes/bot.ts` (`createBotSchema`).
 ///
 /// ⚠️ FINANCIAL SYSTEM: Any change here must be synchronized with the backend.
 library;

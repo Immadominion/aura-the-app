@@ -6,9 +6,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/features/setup/presentation/widgets/step_indicator.dart';
 import 'package:aura/features/setup/presentation/widgets/tune_slider.dart';
-import 'package:aura/shared/widgets/sage_button.dart';
+import 'package:aura/shared/widgets/aura_button.dart';
 
 /// Step 2 (Custom path) — Full strategy builder.
 ///
@@ -17,7 +18,7 @@ import 'package:aura/shared/widgets/sage_button.dart';
 class CustomStrategyStep extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onNext;
-  final VoidCallback? onTalkToSage;
+  final VoidCallback? onTalkToAura;
 
   // ── Values ──
   final double entryScoreThreshold;
@@ -48,14 +49,14 @@ class CustomStrategyStep extends StatefulWidget {
   final ValueChanged<int> onCooldownChanged;
 
   // ── Theme ──
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const CustomStrategyStep({
     super.key,
     required this.onBack,
     required this.onNext,
-    this.onTalkToSage,
+    this.onTalkToAura,
     required this.entryScoreThreshold,
     required this.minVolume24h,
     required this.minLiquidity,
@@ -124,12 +125,12 @@ class _CustomStrategyStepState extends State<CustomStrategyStep> {
             ),
           ).animate().fadeIn(duration: 500.ms, delay: 100.ms),
 
-          // ── "Talk to Sage" banner ──
-          if (widget.onTalkToSage != null) ...[
+          // ── "Talk to Aura" banner ──
+          if (widget.onTalkToAura != null) ...[
             SizedBox(height: 20.h),
             GestureDetector(
-                  onTap: widget.onTalkToSage,
-                  child: _TalkToSageBanner(c: widget.c, text: widget.text),
+                  onTap: widget.onTalkToAura,
+                  child: _TalkToAuraBanner(c: widget.c, text: widget.text),
                 )
                 .animate()
                 .fadeIn(duration: 500.ms, delay: 150.ms)
@@ -399,7 +400,7 @@ class _CustomStrategyStepState extends State<CustomStrategyStep> {
           SizedBox(height: 32.h),
 
           // ── Continue ──
-          SageButton(
+          AuraButton(
             label: 'Continue',
             onPressed: widget.onNext,
           ).animate().fadeIn(duration: 400.ms, delay: 400.ms),
@@ -417,7 +418,7 @@ class _SectionDivider extends StatelessWidget {
   final String title;
   final bool isExpanded;
   final VoidCallback onTap;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const _SectionDivider({
@@ -476,14 +477,14 @@ class _SectionDivider extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Talk to Sage — gradient banner
+// Talk to Aura — gradient banner
 // ─────────────────────────────────────────────────────────────
 
-class _TalkToSageBanner extends StatelessWidget {
-  final SageColors c;
+class _TalkToAuraBanner extends StatelessWidget {
+  final AuraColors c;
   final TextTheme text;
 
-  const _TalkToSageBanner({required this.c, required this.text});
+  const _TalkToAuraBanner({required this.c, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -491,10 +492,10 @@ class _TalkToSageBanner extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: c.accent,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(context.auraRadii.lg),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(context.auraRadii.lg),
         child: Stack(
           children: [
             // ── Decorative circles ──
@@ -543,7 +544,7 @@ class _TalkToSageBanner extends StatelessWidget {
                       SizedBox(height: 8.h),
 
                       Text(
-                        'Describe how you trade and Sage\nsets every parameter for you.',
+                        'Describe how you trade and Aura\nsets every parameter for you.',
                         style: text.bodySmall?.copyWith(
                           color: Colors.white.withValues(alpha: 0.72),
                           height: 1.5,

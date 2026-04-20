@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 
 /// Compact stat pill used in the strategy detail header.
 class StatPill extends StatelessWidget {
   final String label;
   final String value;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const StatPill({
@@ -25,7 +26,7 @@ class StatPill extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 10.h),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.sm),
           border: Border.all(color: c.borderSubtle),
         ),
         child: Column(

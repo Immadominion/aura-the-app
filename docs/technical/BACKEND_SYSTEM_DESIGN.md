@@ -1,9 +1,9 @@
-# Sage Backend — System Design
+# Aura Backend — System Design
 
-> **Author**: Sage Engineering  
-> **Date**: February 26, 2026  
-> **Status**: Design Document — Pre-Implementation  
-> **Target**: MONOLITH Hackathon (March 9, 2026)
+> **Date**: February 26, 2026 (revised April 2026)  
+> **Status**: Partially implemented. Wallet architecture migrated from legacy Seal program to encrypted keypairs.
+
+> **Note**: This document originally referenced "Seal" (the former on-chain smart wallet program). As of March 2026, the wallet architecture was migrated to per-bot encrypted keypairs (AES-256-GCM). All legacy references below have been updated to reflect the current keypair-based system. The core architecture (Hono API, PostgreSQL, bot orchestrator, ML service, SSE) remains accurate.
 
 ---
 
@@ -11,12 +11,12 @@
 
 ### What We Have Today
 
-The current `seal/backend/` is a **thin API layer** — 13 REST endpoints that prepare unsigned Seal wallet transactions and read on-chain account state. It does NOT handle:
+The current `aura-backend/` is a **thin API layer** — 13 REST endpoints that prepare unsigned wallet transactions and read on-chain account state. It does NOT handle:
 
 - User sessions / authentication
 - Bot lifecycle (create, configure, start, stop, monitor)
 - Rule-based strategy storage
-- ML inference (Sage AI)
+- ML inference (Aura AI)
 - Real-time market data streaming
 - Trade execution on Meteora DLMM
 - Position tracking and PnL reporting
@@ -27,7 +27,7 @@ A **full backend platform** that:
 
 1. Authenticates users via wallet signature (Sign-In With Solana)
 2. Manages bot instances per user — each with their own config
-3. Executes trades on Meteora DLMM on behalf of users (via Seal session keys)
+3. Executes trades on Meteora DLMM on behalf of users (via encrypted bot keypairs)
 4. Serves ML predictions from the trained XGBoost model
 5. Streams real-time updates to the mobile app
 6. Persists user strategies, trade history, and performance data
@@ -36,7 +36,7 @@ A **full backend platform** that:
 
 | Principle | Rationale |
 |-----------|-----------|
-| **Non-custodial execution** | Users fund their Seal wallet, backend uses session keys — never holds user private keys |
+| **Non-custodial execution** | Users fund their bot wallet, backend uses encrypted keypairs — never holds user private keys |
 | **Modular engine** | lp-bot's TradingEngine is already proven — wrap it, don't rewrite it |
 | **Event-driven architecture** | Bot events (open/close/error) push to clients via WebSockets |
 | **Database-backed state** | User configs, strategies, trade logs stored in PostgreSQL (not JSON files like lp-bot) |
@@ -48,7 +48,7 @@ A **full backend platform** that:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        SAGE MOBILE APP                          │
+│                         MOBILE APP                          │
 │                    (Flutter / MWA Signing)                       │
 │                                                                  │
 │   Signs: wallet creation, agent registration, fund transfers     │
@@ -59,7 +59,7 @@ A **full backend platform** that:
                REST API + WebSocket (wss://)
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│                     SAGE API GATEWAY                             │
+│                      API GATEWAY                             │
 │                  (Hono on Node.js / Bun)                         │
 │                                                                  │
 │   Auth:    SIWS (Sign-In With Solana) → JWT                     │
@@ -68,12 +68,12 @@ A **full backend platform** that:
 └──────────┬────────────┬────────────┬───────────────────────────┘
            │            │            │
      ┌─────▼────┐ ┌─────▼─────┐ ┌───▼──────────┐
-     │ Seal │ │ Bot       │ │ ML Service   │
+     │ Wallet │ │ Bot       │ │ ML Service   │
      │ Service  │ │ Orchestr. │ │ (Inference)  │
      │          │ │           │ │              │
      │ Wallet   │ │ Per-user  │ │ XGBoost      │
-     │ Agent    │ │ engines   │ │ predictions  │
-     │ Session  │ │ lifecycle │ │ + confidence │
+     │ Keypair  │ │ engines   │ │ predictions  │
+     │ Mgmt     │ │ lifecycle │ │ + confidence │
      └─────┬────┘ └─────┬─────┘ └───┬──────────┘
            │            │            │
      ┌─────▼────────────▼────────────▼──────────────┐
@@ -90,7 +90,7 @@ A **full backend platform** that:
 
 ## 3. Why Not Express? Technology Decision
 
-The current seal backend uses Express 5. For the full Sage backend, we should evaluate:
+The current aura-backend uses Express 5. For the full Aura backend, we should evaluate:
 
 | Factor | Express 5 | Hono | Fastify |
 |--------|-----------|------|---------|
@@ -125,12 +125,12 @@ Mobile App                    Backend                         Solana
     │─── GET /auth/nonce ───────>│                              │
     │<── { nonce, domain } ──────│                              │
     │                            │                              │
-    │── Sign message via MWA ──> │ (Phantom/Solflare)           │
+    │── Sign mes via MWA ──> │ (Phantom/Solflare)           │
     │<── signature ──────────────│                              │
     │                            │                              │
     │── POST /auth/verify ──────>│                              │
     │   { pubkey, signature,     │── Verify Ed25519 sig ──────> │
-    │     message }              │<── Valid ────────────────── │
+    │     mes }              │<── Valid ────────────────── │
     │<── { jwt, refreshToken } ──│                              │
     │                            │── Upsert user in DB          │
 ```
@@ -140,19 +140,18 @@ Mobile App                    Backend                         Solana
 ```typescript
 // Message format (SIWS standard)
 const message = [
-  `sage.scrolls.fun wants you to sign in with your Solana account:`,
+  `useaura.wtf wants you to sign in with your Solana account:`,
   publicKey.toBase58(),
   ``,
-  `Sign in to Sage`,
+  `Sign in to Aura`,
   ``,
-  `URI: https://sage.scrolls.fun`,
+  `URI: https://useaura.wtf`,
   `Version: 1`,
   `Chain ID: mainnet`,
   `Nonce: ${nonce}`,
   `Issued At: ${new Date().toISOString()}`,
 ].join('\n');
 ```
-
 - **No password, no email** — wallet IS the identity
 - JWT expires in 24h, refresh token in 30d
 - Nonce stored in Redis with 5-minute TTL to prevent replay
@@ -169,15 +168,14 @@ Instead of 5 sequential screens, we use a **single scrollable setup sheet** with
 
 ```
 ┌──────────────────────────────────────┐
-│  Welcome to Sage                     │
-│  Let's set up your trading agent.    │
+│  Welcome to Aura                    ││  Let's set up your trading agent.    │
 │                                      │
 │  ┌─ STEP 1: Choose Your Mode ──────┐│
 │  │                                  ││
 │  │  ◉ Rule-Based Bot               ││
 │  │    "I define the rules"          ││
 │  │                                  ││
-│  │  ○ Sage AI                       ││
+│  │  ○ Aura AI                       ││
 │  │    "ML-powered, I set risk"      ││
 │  │                                  ││
 │  │  ○ Both                          ││
@@ -212,16 +210,16 @@ Instead of 5 sequential screens, we use a **single scrollable setup sheet** with
 
 ### What "Start Trading" Does (Backend)
 
-1. Creates Seal smart wallet (if not exists) → user signs via MWA
+1. Creates encrypted bot keypair (if not exists) → user signs via MWA
 2. Registers backend as an agent on the wallet → user signs via MWA
-3. Creates session key for the backend agent → user signs via MWA
+3. Creates bot keypair for the backend agent → user signs via MWA
 4. Saves strategy config to database
 5. Spawns a bot worker for this user
 6. Redirects to Home (Mode 1 or 3 depending on choice)
 
 ### What "Skip for Now" Does
 
-1. Creates Seal wallet only (one MWA signature)
+1. Creates bot wallet only (one MWA signature)
 2. Shows the app in "explore" mode — all data is mock/demo
 3. Setup sheet accessible anytime from Settings
 
@@ -246,7 +244,7 @@ The existing `lp-bot` has exactly the right architecture. It already has:
 │                                                      │
 │  ┌── User A ──────────────────────┐                  │
 │  │  TradingEngine (config A)      │                  │
-│  │  ├─ LiveExecutorV2 (session A) │  ← Seal      │
+│  │  ├─ LiveExecutorV2 (session A) │  ← Bot keypair   │
 │  │  ├─ MarketDataProvider (shared)│  ← Shared cache  │
 │  │  └─ StatePersistence (DB)      │  ← PostgreSQL    │
 │  └────────────────────────────────┘                  │
@@ -272,29 +270,29 @@ interface BotInstance {
   userId: string;
   botId: string;
   status: 'starting' | 'running' | 'paused' | 'stopped' | 'error';
-  mode: 'rule-based' | 'sage-ai' | 'hybrid';
+  mode: 'rule-based' | 'aura-ai' | 'hybrid';
   config: UserBotConfig;
   engine: TradingEngine;
   executor: LiveExecutorV2;
-  sessionKey: PublicKey; // Seal session key for this bot
+  sessionKey: PublicKey; // Bot keypair for this bot
   startedAt: Date;
   lastActivity: Date;
 }
 ```
 
-### Seal Integration for Execution
+### Bot Keypair Integration for Execution
 
 Traditional bot: bot holds the wallet private key.
-Sage: bot uses a **Seal session key** with on-chain spending limits.
+Aura: bot uses an **encrypted bot keypair** with spending limits.
 
 ```
-User's Seal Wallet (PDA on-chain)
+User's Bot Wallet (encrypted keypair)
   └─ Backend Agent (registered with allowlists)
-       └─ Session Key (time-bounded, amount-capped)
-            └─ Bot executes via session → CPI to Meteora DLMM
+       └─ Bot Keypair (time-bounded, amount-capped)
+            └─ Bot executes via keypair → Meteora DLMM
 ```
 
-**This is our competitive advantage.** The user never gives us their private key. The session key enforces limits on-chain. If our server is compromised, the attacker can only spend up to the session's remaining limit, and the user can revoke instantly from a different device.
+**This is our competitive advantage.** The user never gives us their private key. The encrypted keypair enforces limits. If our server is compromised, the attacker can only spend up to the bot's remaining limit, and the user can revoke instantly from a different device.
 
 ---
 
@@ -351,7 +349,7 @@ This is genuinely new. LP automation exists only as scripts (our lp-bot) and cen
 
 ---
 
-## 8. Sage AI Mode — ML Integration
+## 8. Aura AI Mode — ML Integration
 
 ### Current State
 
@@ -362,10 +360,10 @@ This is genuinely new. LP automation exists only as scripts (our lp-bot) and cen
 ### Integration
 
 ```
-Mobile App → "Activate Sage AI"
+Mobile App → "Activate Aura AI"
     │
     ▼
-Backend creates bot with mode='sage-ai'
+Backend creates bot with mode='aura-ai'
     │
     ▼
 TradingEngine.scanMarkets()
@@ -388,7 +386,7 @@ TradingEngine.scanMarkets()
 - **The risk**: Feedback loops. If the model avoids pools because it lost there, it might miss regime changes. Mitigation: always include fresh Meteora API data, not just historical.
 - **For MONOLITH**: We DON'T implement online learning. We ship with the pre-trained model. Trade logging is stored for future retraining offline.
 
-### User Config for Sage AI
+### User Config for Aura AI
 
 | Setting | Options | Default |
 |---------|---------|---------|
@@ -407,7 +405,7 @@ TradingEngine.scanMarkets()
 CREATE TABLE users (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wallet_pubkey VARCHAR(50) UNIQUE NOT NULL,
-  seal_wallet VARCHAR(50),  -- Seal PDA address
+  seal_wallet VARCHAR(50),  -- Bot wallet address
   created_at    TIMESTAMPTZ DEFAULT NOW(),
   last_login    TIMESTAMPTZ,
   settings      JSONB DEFAULT '{}'
@@ -418,10 +416,10 @@ CREATE TABLE bots (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id       UUID REFERENCES users(id) ON DELETE CASCADE,
   name          VARCHAR(100) NOT NULL,
-  mode          VARCHAR(20) NOT NULL CHECK (mode IN ('rule-based', 'sage-ai', 'hybrid')),
+  mode          VARCHAR(20) NOT NULL CHECK (mode IN ('rule-based', 'aura-ai', 'hybrid')),
   status        VARCHAR(20) DEFAULT 'stopped',
   config        JSONB NOT NULL,  -- Full BotConfig serialized
-  session_key   VARCHAR(50),     -- Seal session key address
+  session_key   VARCHAR(50),     -- Bot keypair address
   created_at    TIMESTAMPTZ DEFAULT NOW(),
   updated_at    TIMESTAMPTZ DEFAULT NOW(),
   started_at    TIMESTAMPTZ,
@@ -520,10 +518,10 @@ CREATE INDEX idx_trade_log_created ON trade_log(created_at);
   PUT  /user/settings       → Update user settings
 
 /wallet
-  POST /wallet/create       → Prepare Seal wallet creation tx
-  GET  /wallet/state        → Get user's Seal wallet state
+  POST /wallet/create       → Prepare bot wallet creation tx
+  GET  /wallet/state        → Get user's bot wallet state
   GET  /wallet/balance      → Get wallet SOL balance
-  POST /wallet/fund         → Prepare SOL transfer to Seal wallet
+  POST /wallet/fund         → Prepare SOL transfer to bot wallet
 
 /bot
   POST /bot/create          → Create bot with config
@@ -569,10 +567,10 @@ CREATE INDEX idx_trade_log_created ON trade_log(created_at);
 ### Connection
 
 ```
-wss://api.sage.scrolls.fun/ws?token=<jwt>
+wss://api.useaura.wtf/ws?token=<jwt>
 ```
 
-### Message Types (Server → Client)
+### Mes Types (Server → Client)
 
 ```typescript
 type WSMessage =
@@ -585,7 +583,7 @@ type WSMessage =
   | { type: 'stats:update';  stats: BotStats; }
 ```
 
-### Message Types (Client → Server)
+### Mes Types (Client → Server)
 
 ```typescript
 type WSClientMessage =
@@ -603,7 +601,7 @@ You paid for Helius ($49/mo Developer plan). Here's what we use it for:
 |---------|----------|----------|
 | **RPC Node** | All Solana reads (getAccountInfo, getBalance) | P0 — replace public RPC |
 | **Enhanced Transactions** | Parse tx details for position tracking | P1 |
-| **Webhooks** | Watch Seal wallet for deposits/withdrawals | P2 |
+| **Webhooks** | Watch bot wallet for deposits/withdrawals | P2 |
 | **DAS API** | Token metadata, ownership verification | P2 |
 | **gRPC (Yellowstone)** | Real-time account changes (requires Business plan) | P3 — future |
 
@@ -623,7 +621,7 @@ This alone fixes rate limiting issues that plagued lp-bot in production.
 
 | Concern | Mitigation |
 |---------|------------|
-| Backend compromise → user funds at risk | Seal session keys cap max exposure. Users can revoke from any device. |
+| Backend compromise → user funds at risk | Encrypted bot keypairs cap max exposure. Users can revoke from any device. |
 | JWT theft | Short expiry (24h), refresh rotation, device binding (future) |
 | Bot goes rogue (bug) | EmergencyStop + CircuitBreaker from lp-bot already handle this |
 | Database leak | No private keys stored. Wallet pubkeys are public anyway. |
@@ -663,12 +661,12 @@ For the hackathon, keep it simple:
 
 ---
 
-## 15. What the Current seal/backend Becomes
+## 15. What the Current aura-backend/ Becomes
 
-The current `seal/backend/` (13 endpoints) gets **absorbed** into the new Sage backend as the `SealService` module. It's not thrown away — it's promoted to a service layer.
+The current `aura-backend/` (13 endpoints) gets **absorbed** into the new Aura backend as the `WalletService` module. It's not thrown away — it's promoted to a service layer.
 
 ```
-sage-backend/
+aura-backend/
 ├── src/
 │   ├── index.ts                 # Hono app entry
 │   ├── config.ts                # Env validation (Zod)
@@ -683,7 +681,7 @@ sage-backend/
 │   ├── routes/
 │   │   ├── auth.ts
 │   │   ├── user.ts
-│   │   ├── wallet.ts            # ← Evolved from seal/backend
+│   │   ├── wallet.ts            # ← Evolved from aura-backend
 │   │   ├── bot.ts               # NEW — bot lifecycle
 │   │   ├── strategy.ts          # NEW — strategy CRUD
 │   │   ├── position.ts          # NEW — position tracking
@@ -691,7 +689,7 @@ sage-backend/
 │   │   ├── ml.ts                # NEW — ML predictions
 │   │   └── ws.ts                # NEW — WebSocket
 │   ├── services/
-│   │   ├── seal.ts          # ← Evolved from seal/backend
+│   │   ├── solana.ts          # ← Evolved from aura-backend
 │   │   ├── bot-orchestrator.ts  # NEW — wraps lp-bot engine
 │   │   ├── market-data.ts       # ← From lp-bot providers
 │   │   ├── ml-service.ts        # NEW — XGBoost inference
@@ -701,7 +699,7 @@ sage-backend/
 │   │   ├── bot-instance.ts
 │   │   └── shared-cache.ts
 │   ├── executors/               # ← Adapted from lp-bot/src/executors
-│   │   ├── seal-executor.ts # NEW — executes via Seal session
+│   │   ├── bot-keypair-executor.ts # NEW — executes via encrypted bot keypair
 │   │   └── simulation.ts       # ← From lp-bot (for demo mode)
 │   └── middleware/
 │       ├── auth-guard.ts
@@ -713,21 +711,20 @@ sage-backend/
 └── README.md
 ```
 
-### The Key New Class: SealExecutor
+### The Key New Class: BotKeypairExecutor
 
-This replaces `LiveExecutorV2`'s direct wallet signing with Seal session key execution:
+This replaces `LiveExecutorV2`'s direct wallet signing with encrypted bot keypair execution:
 
 ```typescript
-class SealExecutor implements ITradingExecutor {
+class BotKeypairExecutor implements ITradingExecutor {
   // Instead of wallet.signTransaction()
-  // Uses ExecuteViaSession instruction → CPI to Meteora DLMM
+  // Uses encrypted bot keypair to sign transactions to Meteora DLMM
   
   async openPosition(poolAddress, strategy, amountX, amountY) {
     // 1. Build Meteora DLMM instruction (addLiquidity)
-    // 2. Wrap in ExecuteViaSession (CPI)
-    // 3. Sign with session keypair (backend holds this ephemeral key)
-    // 4. Send transaction
-    // 5. Track position in DB
+    // 2. Sign with bot keypair (backend holds this encrypted key)
+    // 3. Send transaction
+    // 4. Track position in DB
   }
 }
 ```
@@ -738,9 +735,9 @@ class SealExecutor implements ITradingExecutor {
 
 | Question | Impact | Notes |
 |----------|--------|-------|
-| Does Meteora DLMM support CPI from Seal's ExecuteViaSession? | Blocking if not | Need to test. If CPI depth is too deep, may need direct signing with delegated authority. |
+| Does Meteora DLMM support CPI from the bot keypair execution path? | Blocking if not | Need to test. If CPI depth is too deep, may need direct signing with delegated authority. |
 | Supabase free tier row limits for trade_log? | Scaling | 50K rows should last months for a few users |
-| Can we ship Sage AI without a hosted ML model? | Scope | For MONOLITH, we can embed the model weights in the backend (XGBoost exports to JSON) |
+| Can we ship Aura AI without a hosted ML model? | Scope | For MONOLITH, we can embed the model weights in the backend (XGBoost exports to JSON) |
 | Should strategy presets be on-chain? | Decentralization | No — too expensive, no benefit for MVP |
 | How do we handle the user closing the app while bot runs? | UX | Bot continues server-side. App reconnects to WebSocket on resume. |
 
@@ -757,13 +754,13 @@ Given 11 days until deadline, here's the realistic MVP:
 - [ ] Bot start/stop/status via API
 - [ ] Simulation mode (demo with real market data, no real trades)
 - [ ] Position tracking with real-time PnL on WebSocket
-- [ ] Sage AI mode with pre-trained model predictions
+- [ ] Aura AI mode with pre-trained model predictions
 - [ ] Home screen showing live bot status + positions
 - [ ] Setup flow in app (choose mode → configure → start)
 
 ### Nice to Have
 
-- [ ] Live trading via Seal session keys
+- [ ] Live trading via encrypted bot keypairs
 - [ ] Custom strategy builder (full parameter editing)
 - [ ] Trade history with export
 - [ ] Helius webhook integration for deposit notifications

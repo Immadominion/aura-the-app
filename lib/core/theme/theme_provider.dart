@@ -9,7 +9,7 @@ import 'package:aura/core/theme/app_theme.dart';
 /// Stores the theme key ('dark', 'light', 'midnight', 'solana', 'system')
 /// in SharedPreferences. Defaults to 'system' which follows platform brightness.
 class ThemeNotifier extends Notifier<ThemeState> {
-  static const _prefKey = 'sage_theme';
+  static const _prefKey = 'aura_theme';
 
   @override
   ThemeState build() {
@@ -44,7 +44,7 @@ class ThemeState {
           ? AppTheme.darkTheme
           : AppTheme.lightTheme;
     }
-    final colors = SageColors.themes[mode] ?? SageColors.dark;
+    final colors = AuraColors.themes[mode] ?? AuraColors.dark;
     return AppTheme.fromColors(colors);
   }
 
@@ -52,7 +52,7 @@ class ThemeState {
   /// When explicit, we only set theme.
   ThemeMode get themeMode {
     if (isSystem) return ThemeMode.system;
-    final colors = SageColors.themes[mode];
+    final colors = AuraColors.themes[mode];
     if (colors == null) return ThemeMode.dark;
     return colors.brightness == Brightness.dark
         ? ThemeMode.dark
@@ -62,13 +62,13 @@ class ThemeState {
   ThemeData get lightTheme => AppTheme.lightTheme;
   ThemeData get darkTheme {
     if (isSystem) return AppTheme.darkTheme;
-    final colors = SageColors.themes[mode] ?? SageColors.dark;
+    final colors = AuraColors.themes[mode] ?? AuraColors.dark;
     return AppTheme.fromColors(colors);
   }
 
   /// The explicit theme (used when not 'system').
   ThemeData get explicitTheme {
-    final colors = SageColors.themes[mode] ?? SageColors.dark;
+    final colors = AuraColors.themes[mode] ?? AuraColors.dark;
     return AppTheme.fromColors(colors);
   }
 }

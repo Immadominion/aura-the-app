@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/core/theme/app_theme.dart';
 
 /// Standard control button (surface background, border).
@@ -19,15 +20,15 @@ class ControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 16.h),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.lg),
           border: Border.all(color: c.borderSubtle),
         ),
         child: Row(
@@ -65,15 +66,15 @@ class DangerControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 16.h),
         decoration: BoxDecoration(
           color: c.loss.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.lg),
           border: Border.all(color: c.loss.withValues(alpha: 0.4)),
         ),
         child: Row(

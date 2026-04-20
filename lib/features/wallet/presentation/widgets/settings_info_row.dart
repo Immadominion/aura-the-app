@@ -7,7 +7,7 @@ import 'package:aura/core/theme/app_colors.dart';
 class SettingsInfoRow extends StatelessWidget {
   final String label;
   final String value;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const SettingsInfoRow({

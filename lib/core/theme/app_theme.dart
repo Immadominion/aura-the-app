@@ -3,12 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 
 /// Aura Design System — Theme Builder
 ///
 /// Font: Manrope (geometric, fintech-grade).
 /// Scale: display → label, each with explicit semantic purpose.
-/// Access via Material `Theme.of(context).textTheme` or `context.sageText`.
+/// Access via Material `Theme.of(context).textTheme` or `context.auraText`.
 class AppTheme {
   AppTheme._();
 
@@ -16,7 +17,7 @@ class AppTheme {
   // Typography scale
   // ─────────────────────────────────────────────────────
 
-  static TextTheme _textTheme(SageColors c) {
+  static TextTheme _textTheme(AuraColors c) {
     return TextTheme(
       // Hero metric — portfolio total
       displayLarge: GoogleFonts.manrope(
@@ -134,7 +135,7 @@ class AppTheme {
   // ThemeData builder
   // ─────────────────────────────────────────────────────
 
-  static ThemeData _build(SageColors c) {
+  static ThemeData _build(AuraColors c) {
     final textTheme = _textTheme(c);
     return ThemeData(
       useMaterial3: true,
@@ -170,20 +171,20 @@ class AppTheme {
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
       splashFactory: NoSplash.splashFactory,
-      extensions: [c],
+      extensions: [c, AuraRadii.responsive()],
     );
   }
 
-  static ThemeData get darkTheme => _build(SageColors.dark);
-  static ThemeData get lightTheme => _build(SageColors.light);
-  static ThemeData get midnightTheme => _build(SageColors.midnight);
-  static ThemeData get solanaTheme => _build(SageColors.solana);
+  static ThemeData get darkTheme => _build(AuraColors.dark);
+  static ThemeData get lightTheme => _build(AuraColors.light);
+  static ThemeData get midnightTheme => _build(AuraColors.midnight);
+  static ThemeData get solanaTheme => _build(AuraColors.solana);
 
-  /// Build theme from any [SageColors] instance.
-  static ThemeData fromColors(SageColors c) => _build(c);
+  /// Build theme from any [AuraColors] instance.
+  static ThemeData fromColors(AuraColors c) => _build(c);
 }
 
-/// Quick text-theme access: `context.sageText.headlineLarge`
-extension SageTextX on BuildContext {
-  TextTheme get sageText => Theme.of(this).textTheme;
+/// Quick text-theme access: `context.auraText.headlineLarge`
+extension AuraTextX on BuildContext {
+  TextTheme get auraText => Theme.of(this).textTheme;
 }

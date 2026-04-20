@@ -79,7 +79,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final bg = context.sage.onboardingNavy;
+    final bg = context.aura.onboardingNavy;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final screenHeight = MediaQuery.sizeOf(context).height;
 
@@ -87,7 +87,7 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: bg,
       body: Stack(
         children: [
-          // ── "SAGE" text — starts centered, then drops down ──
+          // ── "AURA" text — starts centered, then drops down ──
           Column(
             children: [
               AnimatedContainer(
@@ -101,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child: AnimatedBuilder(
                   animation: _titleFontSize,
                   builder: (context, _) => Text(
-                    'SAGE',
+                    'AURA',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -127,7 +127,7 @@ class _SplashScreenState extends State<SplashScreen>
                 width: screenWidth / _logoScale,
                 alignment: Alignment.center,
                 child: Image.asset(
-                  'assets/images/sage-logo.png',
+                  'assets/images/aura-logo.png',
                   fit: BoxFit.contain,
                 ),
               ),

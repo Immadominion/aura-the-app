@@ -7,9 +7,11 @@ import 'package:aura/features/navigation/presentation/app_shell.dart';
 import 'package:aura/features/home/presentation/home_screen.dart';
 import 'package:aura/features/home/presentation/position_detail_screen.dart';
 import 'package:aura/features/home/presentation/position_history_screen.dart';
-import 'package:aura/features/chat/presentation/sage_chat_screen.dart';
+import 'package:aura/features/chat/presentation/aura_chat_screen.dart';
 import 'package:aura/features/automate/presentation/automate_screen.dart';
 import 'package:aura/features/automate/presentation/strategy_detail_screen.dart';
+import 'package:aura/features/pools/presentation/pool_browser_screen.dart';
+import 'package:aura/features/decisions/presentation/decision_log_screen.dart';
 import 'package:aura/features/automate/presentation/create_strategy_screen.dart';
 import 'package:aura/features/fleet/presentation/fleet_screen.dart';
 import 'package:aura/features/onboarding/presentation/onboarding_screen.dart';
@@ -59,10 +61,23 @@ final _localSetupCompletedProvider = FutureProvider<bool>((ref) async {
   return prefs.getBool('setup_completed') ?? false;
 });
 
-/// Minimum splash duration — guarantees the splash shows for at least 4 s
-/// so the full animation (text → logo → tagline) plays to completion.
+/// Tracks whether the splash sequence has completed at least once during
+/// this Dart isolate's lifetime. Reset only by a true cold start (process
+/// killed by the OS). On warm starts within the same process — typically
+/// any resume within ~5 min on iOS — this stays true and lets the splash
+/// gate resolve immediately.
+///
+/// Per audit §5.1: "Cold start only: full sequence. Warm start: bypass
+/// /splash entirely; router redirects straight to the resolved destination."
+bool _splashShownThisSession = false;
+
+/// Minimum splash duration — full animation only on cold start. Warm starts
+/// (process still alive) skip the hold so the daily-driver experience isn't
+/// gated on a 3.8 s replay.
 final splashMinDelayProvider = FutureProvider<void>((ref) async {
+  if (_splashShownThisSession) return;
   await Future.delayed(const Duration(milliseconds: 3800));
+  _splashShownThisSession = true;
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -77,11 +92,11 @@ final splashMinDelayProvider = FutureProvider<void>((ref) async {
 class _RouterRefresh extends ChangeNotifier {
   _RouterRefresh(Ref ref) {
     // Listen (don't watch) — we only need to trigger a refresh, not rebuild.
-    ref.listen(authStateProvider, (_, __) => notifyListeners());
-    ref.listen(onboardingSeenProvider, (_, __) => notifyListeners());
-    ref.listen(splashMinDelayProvider, (_, __) => notifyListeners());
-    ref.listen(_localSetupCompletedProvider, (_, __) => notifyListeners());
-    ref.listen(botListProvider, (_, __) => notifyListeners());
+    ref.listen(authStateProvider, (_, _) => notifyListeners());
+    ref.listen(onboardingSeenProvider, (_, _) => notifyListeners());
+    ref.listen(splashMinDelayProvider, (_, _) => notifyListeners());
+    ref.listen(_localSetupCompletedProvider, (_, _) => notifyListeners());
+    ref.listen(botListProvider, (_, _) => notifyListeners());
     // setupCompletedProvider is derived from authState, so it auto-updates.
   }
 }
@@ -243,6 +258,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             _fadePage(state: state, child: const CreateStrategyScreen()),
       ),
 
+      // ── Pool Browser (Phase 15, audit §6.1) ──
+      // Drill-in from Home, also callable from Chat ("What pools are
+      // trending?"). Read-only candidate list.
+      GoRoute(
+        path: '/pools',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) =>
+            _fadePage(state: state, child: const PoolBrowserScreen()),
+      ),
+
+      // ── Decision Log (Phase 16, audit §6.2) ──
+      GoRoute(
+        path: '/decisions/:botId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final botId = state.pathParameters['botId'] ?? '';
+          return DecisionLogScreen(botId: botId);
+        },
+      ),
+
       // ── Main app shell (3 modes) ──
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -260,12 +295,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Mode 2: Intelligence — Sage AI Chat
+          // Mode 2: Intelligence — Aura AI Chat
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/intelligence',
-                builder: (context, state) => const SageChatScreen(),
+                builder: (context, state) => const AuraChatScreen(),
               ),
             ],
           ),

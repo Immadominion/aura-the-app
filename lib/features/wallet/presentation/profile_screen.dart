@@ -15,6 +15,7 @@ import 'package:aura/core/services/auth_service.dart';
 import 'package:aura/core/services/domain_resolver.dart';
 import 'package:aura/core/theme/app_colors.dart';
 import 'package:aura/core/theme/app_theme.dart';
+import 'package:aura/core/theme/app_radii.dart';
 
 import 'package:aura/core/models/bot.dart';
 import 'package:aura/core/models/bot_event.dart';
@@ -23,10 +24,9 @@ import 'package:aura/core/services/event_service.dart';
 
 import 'package:aura/features/wallet/presentation/widgets/settings_info_row.dart';
 import 'package:aura/features/wallet/presentation/widgets/support_link.dart';
-import 'package:aura/features/wallet/presentation/widgets/stat_item.dart';
 import 'package:aura/features/wallet/presentation/widgets/setting_tile.dart';
 import 'package:aura/shared/widgets/mwa_button_tap_effect.dart';
-import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
+import 'package:aura/shared/widgets/aura_bottom_sheet.dart';
 import 'package:aura/shared/widgets/deposit_sheet.dart';
 import 'package:aura/shared/widgets/withdraw_sheet.dart';
 import 'package:aura/shared/widgets/smart_withdraw_sheet.dart';
@@ -34,7 +34,7 @@ import 'package:aura/core/repositories/wallet_repository.dart';
 
 /// Profile — wallet identity, portfolio summary, settings entry.
 ///
-/// Refactored to match the "Sage Capital Allocator" aesthetic.
+/// Refactored to match the "Aura Capital Allocator" aesthetic.
 /// Card-based identity, compact portfolio, and setting entry points.
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -75,8 +75,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     final ref = this.ref;
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
 
@@ -101,7 +101,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     final shortAddr = walletAddr.length > 8
         ? '${walletAddr.substring(0, 4)}...${walletAddr.substring(walletAddr.length - 4)}'
         : walletAddr;
-    final avatarSeed = walletAddr == '—' ? 'sage_guest' : walletAddr;
+    final avatarSeed = walletAddr == '—' ? 'aura_guest' : walletAddr;
 
     // Resolve AllDomains ANS name (e.g. miester.abc)
     final domainAsync = walletAddr != '—'
@@ -113,15 +113,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       error: (_, _) => null,
     );
 
-    // Aggregated stats
-    final totalBots = bots.length;
-    final avgWinRate = bots.isEmpty
-        ? 0.0
-        : bots.fold<double>(0, (s, b) => s + b.winRate) / bots.length;
-    final totalTrades = bots.fold<int>(
-      0,
-      (s, b) => s + (b.engineStats?.positionsOpened ?? b.totalTrades),
-    );
+    // Aggregated stats — totalBots/avgWinRate/totalTrades dropped with the
+    // hero identity card; portfolio block now uses totalDeployed/totalPnl.
     final totalDeployed = bots.fold<double>(
       0,
       (s, b) => s + b.currentBalanceSol,
@@ -222,98 +215,81 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     ),
                   ),
 
-                  // ── Identity Card ──
+                  // ── Identity strip (compact, audit §5.x) ──
+                  // Was a hero-sized card with avatar, name, status pill, and
+                  // a triple stats row. Demoted: portfolio is now the hero.
                   Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(24.w),
-                    decoration: BoxDecoration(
-                      // Use surface color with an overlay for slight differentiation
-                      // that works in both light and dark modes
-                      color: c.surfaceElevated,
-                      borderRadius: BorderRadius.circular(32.r),
-                      border: Border.all(color: c.borderSubtle, width: 1),
-                      boxShadow: [
-                        BoxShadow(
-                          color: c.textPrimary.withValues(alpha: 0.05),
-                          blurRadius: 16,
-                          offset: const Offset(0, 8),
+                    padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
+                    decoration: ShapeDecoration(
+                      color: c.surface,
+                      shape: ContinuousRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          context.auraRadii.lg,
                         ),
-                      ],
+                        side: BorderSide(color: c.borderSubtle),
+                      ),
                     ),
-                    child: Column(
+                    child: Row(
                       children: [
-                        // Avatar — DiceBear with loading/error fallback
                         Container(
-                          width: 100.w,
-                          height: 100.w,
+                          width: 40.w,
+                          height: 40.w,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: c.background,
                             border: Border.all(
                               color: c.accent.withValues(alpha: 0.2),
-                              width: 2,
+                              width: 1.5,
                             ),
                           ),
                           child: ClipOval(
                             child: Image.network(
                               'https://api.dicebear.com/9.x/micah/png?seed=$avatarSeed',
-                              width: 100.w,
-                              height: 100.w,
                               fit: BoxFit.cover,
-                              loadingBuilder: (context, child, progress) {
-                                if (progress == null) return child;
-                                return Center(
-                                  child: Icon(
-                                    PhosphorIconsBold.user,
-                                    size: 36.sp,
-                                    color: c.textTertiary,
-                                  ),
-                                );
-                              },
-                              errorBuilder: (context, error, stack) {
-                                return Center(
-                                  child: Icon(
-                                    PhosphorIconsBold.user,
-                                    size: 36.sp,
-                                    color: c.textTertiary,
-                                  ),
-                                );
-                              },
+                              errorBuilder: (_, _, _) => Icon(
+                                PhosphorIconsBold.user,
+                                size: 18.sp,
+                                color: c.textTertiary,
+                              ),
                             ),
                           ),
                         ),
-                        SizedBox(height: 16.h),
-
-                        // Name — domain or address
-                        Text(
-                          domainName ?? shortAddr,
-                          style: text.headlineMedium?.copyWith(
-                            fontSize: 24.sp,
-                            fontWeight: FontWeight.w700,
-                            color: c.textPrimary,
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                domainName ?? shortAddr,
+                                style: text.titleMedium?.copyWith(
+                                  fontSize: 15.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: c.textPrimary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (domainName != null)
+                                Text(
+                                  shortAddr,
+                                  style: text.labelSmall?.copyWith(
+                                    color: c.textTertiary,
+                                    fontSize: 11.sp,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                        if (domainName != null) ...[
-                          SizedBox(height: 2.h),
-                          Text(
-                            shortAddr,
-                            style: text.labelSmall?.copyWith(
-                              color: c.textTertiary,
-                              fontSize: 11.sp,
-                            ),
-                          ),
-                        ],
-                        SizedBox(height: 4.h),
                         Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 10.w,
                             vertical: 4.h,
                           ),
-                          decoration: BoxDecoration(
+                          decoration: ShapeDecoration(
                             color: c.background,
-                            borderRadius: BorderRadius.circular(12.r),
-                            border: Border.all(
-                              color: c.borderSubtle.withValues(alpha: 0.5),
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: c.borderSubtle.withValues(alpha: 0.5),
+                              ),
                             ),
                           ),
                           child: Row(
@@ -344,49 +320,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                             ],
                           ),
                         ),
-
-                        SizedBox(height: 24.h),
-
-                        // Stats Row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            StatItem(
-                              label: 'Bots',
-                              value: '$totalBots',
-                              icon: PhosphorIconsFill.lightning,
-                              color: c.accent,
-                            ),
-                            Container(
-                              width: 1,
-                              height: 32.h,
-                              color: c.borderSubtle,
-                            ),
-                            StatItem(
-                              label: 'Win Rate',
-                              value: '${avgWinRate.toStringAsFixed(0)}%',
-                              icon: PhosphorIconsFill.trendUp,
-                              color: c.profit,
-                            ),
-                            Container(
-                              width: 1,
-                              height: 32.h,
-                              color: c.borderSubtle,
-                            ),
-                            StatItem(
-                              label: 'Trades',
-                              value: '$totalTrades',
-                              icon: PhosphorIconsFill.cpu,
-                              color: Colors.orangeAccent,
-                            ),
-                          ],
-                        ),
                       ],
                     ),
-                  ).animate().scale(
-                    duration: 400.ms,
-                    curve: Curves.easeOutBack,
-                  ),
+                  ).animate().fadeIn(duration: 250.ms),
 
                   SizedBox(height: 32.h),
 
@@ -677,118 +613,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     ),
                   ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1, end: 0),
 
-                  SizedBox(height: 24.h),
-
-                  // ── Live Bot Wallets ──
-                  Builder(
-                    builder: (_) {
-                      final liveBots = bots
-                          .where((b) => b.mode == BotMode.live)
-                          .toList();
-                      if (liveBots.isEmpty) {
-                        return Text(
-                              'No live bots yet. Create a live bot to see wallet details here.',
-                              style: text.bodySmall?.copyWith(
-                                color: c.textSecondary,
-                                fontSize: 12.sp,
-                                height: 1.5,
-                              ),
-                            )
-                            .animate()
-                            .fadeIn(delay: 350.ms)
-                            .slideY(begin: 0.1, end: 0);
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'LIVE WALLETS',
-                            style: text.labelSmall?.copyWith(
-                              letterSpacing: 1.2,
-                              color: c.textTertiary,
-                              fontSize: 10.sp,
-                            ),
-                          ),
-                          SizedBox(height: 8.h),
-                          ...liveBots.map((bot) {
-                            final addr = bot.walletAddress ?? '';
-                            final shortBotAddr = addr.length > 8
-                                ? '${addr.substring(0, 4)}...${addr.substring(addr.length - 4)}'
-                                : addr;
-                            return Padding(
-                              padding: EdgeInsets.only(bottom: 6.h),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    PhosphorIconsBold.wallet,
-                                    size: 18.sp,
-                                    color: c.textTertiary,
-                                  ),
-                                  SizedBox(width: 10.w),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          bot.name,
-                                          style: text.titleSmall?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        if (addr.isNotEmpty)
-                                          GestureDetector(
-                                            onTap: () {
-                                              Clipboard.setData(
-                                                ClipboardData(text: addr),
-                                              );
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Wallet address copied',
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  shortBotAddr,
-                                                  style: text.bodySmall
-                                                      ?.copyWith(
-                                                        color: c.textTertiary,
-                                                        fontSize: 11.sp,
-                                                      ),
-                                                ),
-                                                SizedBox(width: 4.w),
-                                                Icon(
-                                                  PhosphorIconsBold.copy,
-                                                  size: 12.sp,
-                                                  color: c.textTertiary,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                  Text(
-                                    '${bot.currentBalanceSol.toStringAsFixed(4)} SOL',
-                                    style: text.bodySmall?.copyWith(
-                                      color: c.textSecondary,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                        ],
-                      ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.1, end: 0);
-                    },
-                  ),
+                  // ── LIVE WALLETS list removed (audit §5.x) ──
+                  // Per-bot wallets now live on Bot Detail where they belong.
                 ],
               ),
             ),
@@ -816,8 +642,8 @@ class _SettingsOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
 
@@ -883,33 +709,43 @@ class _SettingsOverlay extends ConsumerWidget {
                             ],
                           ),
                           SizedBox(height: 24.h),
-                          SettingTile(
-                            icon: PhosphorIconsBold.shieldCheck,
-                            title: 'Security & Privacy',
-                            subtitle: 'Biometrics, auto-lock',
-                            onTap: () => _showSecuritySheet(context, c, text),
+                          // Scrollable body prevents overflow on
+                          // shorter screens.
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Audit §5.x — collapsed from 9 rows to 3 sections.
+                                  SettingTile(
+                                    icon: PhosphorIconsBold.slidersHorizontal,
+                                    title: 'Risk preferences',
+                                    subtitle: 'Defaults for new bots',
+                                    onTap: () =>
+                                        _showRiskPreferencesSheet(context, ref, c, text),
+                                  ),
+                                  SettingTile(
+                                    icon: PhosphorIconsBold.bell,
+                                    title: 'Notifications',
+                                    subtitle: 'Execution alerts, price moves',
+                                    onTap: () =>
+                                        _showNotificationsSheet(context, c, text),
+                                  ),
+                                  SettingTile(
+                                    icon: PhosphorIconsBold.dotsThreeOutline,
+                                    title: 'Advanced',
+                                    subtitle: 'Security · Network · Support',
+                                    onTap: () => _showAdvancedSheet(context, c, text),
+                                    isLast: true,
+                                  ),
+                                  SizedBox(height: 24.h),
+                                  // ── Global kill switch (audit §5.x) ──
+                                  _KillSwitchButton(c: c, text: text),
+                                ],
+                              ),
+                            ),
                           ),
-                          SettingTile(
-                            icon: PhosphorIconsBold.bell,
-                            title: 'Notifications',
-                            subtitle: 'Execution alerts, price moves',
-                            onTap: () =>
-                                _showNotificationsSheet(context, c, text),
-                          ),
-                          SettingTile(
-                            icon: PhosphorIconsBold.globe,
-                            title: 'Network',
-                            subtitle: 'RPC endpoints, priority fees',
-                            onTap: () => _showNetworkSheet(context, c, text),
-                          ),
-                          SettingTile(
-                            icon: PhosphorIconsBold.question,
-                            title: 'Support',
-                            subtitle: 'Docs, community, help',
-                            onTap: () => _showSupportSheet(context, c, text),
-                            isLast: true,
-                          ),
-                          const Spacer(),
+                          SizedBox(height: 12.h),
                           // Disconnect Wallet
                           Center(
                             child: TextButton(
@@ -952,7 +788,7 @@ class _SettingsOverlay extends ConsumerWidget {
 void _showDepositSheet(
   BuildContext context,
   WidgetRef ref,
-  SageColors c,
+  AuraColors c,
   TextTheme text,
 ) {
   final bots = ref.read(botListProvider).value ?? [];
@@ -973,7 +809,7 @@ void _showDepositSheet(
 void _depositForBot(BuildContext context, WidgetRef ref, Bot bot) async {
   // Include rent+fees overhead per position (~0.07 SOL) in recommendation
   final recommended = (bot.positionSizeSOL + 0.07) * bot.maxConcurrentPositions;
-  final success = await SageBottomSheet.show<bool>(
+  final success = await AuraBottomSheet.show<bool>(
     context: context,
     title: 'Fund Wallet',
     builder: (c, text) => DepositSheet(
@@ -998,7 +834,7 @@ void _showWithdrawSheet(
   BuildContext context,
   WidgetRef ref,
   double balance,
-  SageColors c,
+  AuraColors c,
   TextTheme text,
 ) {
   final bots = ref.read(botListProvider).value ?? [];
@@ -1018,7 +854,7 @@ void _showWithdrawSheet(
 }
 
 void _showSmartWithdraw(BuildContext context, WidgetRef ref) async {
-  final success = await SageBottomSheet.show<bool>(
+  final success = await AuraBottomSheet.show<bool>(
     context: context,
     title: 'Smart Withdraw',
     builder: (c, text) => SmartWithdrawSheet(c: c, text: text),
@@ -1051,7 +887,7 @@ void _withdrawForBot(BuildContext context, WidgetRef ref, Bot bot) async {
     return;
   }
   if (!context.mounted) return;
-  final success = await SageBottomSheet.show<bool>(
+  final success = await AuraBottomSheet.show<bool>(
     context: context,
     title: 'Withdraw',
     builder: (c, text) => WithdrawSheet(
@@ -1073,8 +909,8 @@ void _showBotPicker(
   List<Bot> liveBots, {
   required bool deposit,
 }) {
-  final c = context.sage;
-  final text = context.sageText;
+  final c = context.aura;
+  final text = context.auraText;
   showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
@@ -1144,7 +980,7 @@ void _showBotPicker(
 // Settings Sheet Helpers
 // ─────────────────────────────────────────────────────────
 
-void _showSecuritySheet(BuildContext context, SageColors c, TextTheme text) {
+void _showSecuritySheet(BuildContext context, AuraColors c, TextTheme text) {
   showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
@@ -1179,15 +1015,8 @@ void _showSecuritySheet(BuildContext context, SageColors c, TextTheme text) {
           ),
           SizedBox(height: 20.h),
           SettingsInfoRow(
-            label: 'Wallet Auth',
-            value: 'SIWS (Sign-In With Solana)',
-            c: c,
-            text: text,
-          ),
-          Divider(height: 1, color: c.borderSubtle),
-          SettingsInfoRow(
-            label: 'Session',
-            value: 'JWT (HS256), 7-day expiry',
+            label: 'Authentication',
+            value: 'Sign-In With Solana',
             c: c,
             text: text,
           ),
@@ -1200,8 +1029,8 @@ void _showSecuritySheet(BuildContext context, SageColors c, TextTheme text) {
           ),
           Divider(height: 1, color: c.borderSubtle),
           SettingsInfoRow(
-            label: 'Network',
-            value: 'TLS 1.3 encrypted',
+            label: 'Connection',
+            value: 'Encrypted',
             c: c,
             text: text,
           ),
@@ -1213,7 +1042,7 @@ void _showSecuritySheet(BuildContext context, SageColors c, TextTheme text) {
 
 void _showNotificationsSheet(
   BuildContext context,
-  SageColors c,
+  AuraColors c,
   TextTheme text,
 ) {
   showModalBottomSheet(
@@ -1279,8 +1108,8 @@ class _NotificationsSheetBodyState
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     final eventService = ref.watch(eventServiceProvider);
 
     return Container(
@@ -1447,7 +1276,7 @@ class _NotificationToggleRow extends StatelessWidget {
   final String description;
   final bool enabled;
   final ValueChanged<bool> onChanged;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const _NotificationToggleRow({
@@ -1493,7 +1322,7 @@ class _NotificationToggleRow extends StatelessWidget {
             child: Switch.adaptive(
               value: enabled,
               onChanged: onChanged,
-              activeColor: c.accent,
+              activeThumbColor: c.accent,
               activeTrackColor: c.accent.withValues(alpha: 0.3),
               inactiveThumbColor: c.textTertiary,
               inactiveTrackColor: c.surface,
@@ -1505,7 +1334,7 @@ class _NotificationToggleRow extends StatelessWidget {
   }
 }
 
-void _showNetworkSheet(BuildContext context, SageColors c, TextTheme text) {
+void _showNetworkSheet(BuildContext context, AuraColors c, TextTheme text) {
   showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
@@ -1532,7 +1361,7 @@ void _showNetworkSheet(BuildContext context, SageColors c, TextTheme text) {
           ),
           SizedBox(height: 16.h),
           Text(
-            'Network Configuration',
+            'Network',
             style: text.titleLarge?.copyWith(
               fontWeight: FontWeight.w700,
               color: c.textPrimary,
@@ -1540,29 +1369,8 @@ void _showNetworkSheet(BuildContext context, SageColors c, TextTheme text) {
           ),
           SizedBox(height: 20.h),
           SettingsInfoRow(
-            label: 'Environment',
-            value: EnvConfig.environmentLabel,
-            c: c,
-            text: text,
-          ),
-          Divider(height: 1, color: c.borderSubtle),
-          SettingsInfoRow(
-            label: 'Network',
-            value: EnvConfig.solanaNetwork,
-            c: c,
-            text: text,
-          ),
-          Divider(height: 1, color: c.borderSubtle),
-          SettingsInfoRow(
-            label: 'Backend',
-            value: Uri.parse(EnvConfig.apiBaseUrl).host,
-            c: c,
-            text: text,
-          ),
-          Divider(height: 1, color: c.borderSubtle),
-          SettingsInfoRow(
-            label: 'ML Server',
-            value: Uri.parse(EnvConfig.mlBaseUrl).host,
+            label: 'Solana Network',
+            value: EnvConfig.isProduction ? 'Mainnet' : 'Devnet',
             c: c,
             text: text,
           ),
@@ -1573,20 +1381,13 @@ void _showNetworkSheet(BuildContext context, SageColors c, TextTheme text) {
             c: c,
             text: text,
           ),
-          Divider(height: 1, color: c.borderSubtle),
-          SettingsInfoRow(
-            label: 'Confirmation',
-            value: 'confirmed commitment',
-            c: c,
-            text: text,
-          ),
         ],
       ),
     ),
   );
 }
 
-void _showSupportSheet(BuildContext context, SageColors c, TextTheme text) {
+void _showSupportSheet(BuildContext context, AuraColors c, TextTheme text) {
   showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
@@ -1613,7 +1414,7 @@ void _showSupportSheet(BuildContext context, SageColors c, TextTheme text) {
           ),
           SizedBox(height: 16.h),
           Text(
-            'Support & Docs',
+            'Support & Info',
             style: text.titleLarge?.copyWith(
               fontWeight: FontWeight.w700,
               color: c.textPrimary,
@@ -1621,30 +1422,23 @@ void _showSupportSheet(BuildContext context, SageColors c, TextTheme text) {
           ),
           SizedBox(height: 20.h),
           SupportLink(
-            icon: PhosphorIconsBold.bookOpen,
-            label: 'Meteora DLMM Docs',
-            url: 'https://docs.meteora.ag/dlmm/about-dlmm',
+            icon: PhosphorIconsBold.globe,
+            label: 'Aura Website',
+            url: 'https://useaura.wtf',
             c: c,
             text: text,
           ),
           SupportLink(
             icon: PhosphorIconsBold.githubLogo,
             label: 'Source Code',
-            url: 'https://github.com/niccolosottile/meteora-sage',
+            url: 'https://github.com/Immadominion/aura',
             c: c,
             text: text,
           ),
           SupportLink(
-            icon: PhosphorIconsBold.chatCircle,
-            label: 'Meteora Discord',
-            url: 'https://discord.gg/meteora',
-            c: c,
-            text: text,
-          ),
-          SupportLink(
-            icon: PhosphorIconsBold.twitterLogo,
-            label: 'Meteora on X',
-            url: 'https://x.com/MeteoraAG',
+            icon: PhosphorIconsBold.envelope,
+            label: 'Contact Us',
+            url: 'mailto:hello@useaura.wtf',
             c: c,
             text: text,
           ),
@@ -1652,4 +1446,394 @@ void _showSupportSheet(BuildContext context, SageColors c, TextTheme text) {
       ),
     ),
   );
+}
+
+// ─────────────────────────────────────────────────────────
+// Phase 12 — Risk preferences sheet
+// ─────────────────────────────────────────────────────────
+
+void _showRiskPreferencesSheet(
+  BuildContext context,
+  WidgetRef ref,
+  AuraColors c,
+  TextTheme text,
+) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setSheet) {
+        // Selected stance is local-only for now. When the user-prefs API
+        // lands, persist via a Riverpod notifier.
+        // TODO(phase-12-followup): persist via /user/risk-stance endpoint.
+        return Container(
+          padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 32.h),
+          decoration: ShapeDecoration(
+            color: c.background,
+            shape: ContinuousRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(context.auraRadii.xl),
+              ),
+              side: BorderSide(color: c.borderSubtle),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: c.textTertiary.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Text(
+                'Risk preferences',
+                style: text.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: c.textPrimary,
+                ),
+              ),
+              SizedBox(height: 6.h),
+              Text(
+                "Sets the default stance for new bots. You can override on each bot's setup.",
+                style: text.bodySmall?.copyWith(
+                  color: c.textSecondary,
+                  height: 1.45,
+                ),
+              ),
+              SizedBox(height: 20.h),
+              ...['Conservative', 'Balanced', 'Aggressive'].map(
+                (label) => Padding(
+                  padding: EdgeInsets.only(bottom: 8.h),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Default risk: $label')),
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 14.h,
+                      ),
+                      decoration: ShapeDecoration(
+                        color: c.surface,
+                        shape: ContinuousRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            context.auraRadii.md,
+                          ),
+                          side: BorderSide(color: c.borderSubtle),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            label,
+                            style: text.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: c.textPrimary,
+                            ),
+                          ),
+                          const Spacer(),
+                          Icon(
+                            PhosphorIconsBold.caretRight,
+                            size: 16.sp,
+                            color: c.textTertiary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Phase 12 — Advanced sheet (groups Security / Network / Support)
+// ─────────────────────────────────────────────────────────
+
+void _showAdvancedSheet(BuildContext context, AuraColors c, TextTheme text) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => Container(
+      padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 32.h),
+      decoration: ShapeDecoration(
+        color: c.background,
+        shape: ContinuousRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(context.auraRadii.xl),
+          ),
+          side: BorderSide(color: c.borderSubtle),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: c.textTertiary.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'Advanced',
+            style: text.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: c.textPrimary,
+            ),
+          ),
+          SizedBox(height: 16.h),
+          SettingTile(
+            icon: PhosphorIconsBold.shieldCheck,
+            title: 'Security & Privacy',
+            subtitle: 'Biometrics, auto-lock',
+            onTap: () {
+              Navigator.of(ctx).pop();
+              _showSecuritySheet(context, c, text);
+            },
+          ),
+          SettingTile(
+            icon: PhosphorIconsBold.globe,
+            title: 'Network',
+            subtitle: 'RPC endpoints, priority fees',
+            onTap: () {
+              Navigator.of(ctx).pop();
+              _showNetworkSheet(context, c, text);
+            },
+          ),
+          SettingTile(
+            icon: PhosphorIconsBold.question,
+            title: 'Support',
+            subtitle: 'Docs, community, help',
+            onTap: () {
+              Navigator.of(ctx).pop();
+              _showSupportSheet(context, c, text);
+            },
+            isLast: true,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Phase 12 — Global kill switch
+// ─────────────────────────────────────────────────────────
+
+class _KillSwitchButton extends ConsumerWidget {
+  final AuraColors c;
+  final TextTheme text;
+
+  const _KillSwitchButton({required this.c, required this.text});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bots = ref.watch(botListProvider).value ?? [];
+    final running = bots.where((b) => b.engineRunning).toList();
+    final canFire = running.isNotEmpty;
+
+    return GestureDetector(
+      onTap: canFire ? () => _confirmKillSwitch(context, ref, running) : null,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+        decoration: ShapeDecoration(
+          color: canFire
+              ? c.loss.withValues(alpha: 0.08)
+              : c.surface,
+          shape: ContinuousRectangleBorder(
+            borderRadius: BorderRadius.circular(context.auraRadii.md),
+            side: BorderSide(
+              color: canFire
+                  ? c.loss.withValues(alpha: 0.4)
+                  : c.borderSubtle,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              PhosphorIconsBold.stopCircle,
+              size: 18.sp,
+              color: canFire ? c.loss : c.textTertiary,
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Pause all operations',
+                    style: text.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: canFire ? c.loss : c.textTertiary,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    canFire
+                        ? '${running.length} bot${running.length == 1 ? '' : 's'} running. Stops every engine.'
+                        : 'Nothing is running.',
+                    style: text.labelSmall?.copyWith(
+                      color: c.textTertiary,
+                      fontSize: 11.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _confirmKillSwitch(
+  BuildContext context,
+  WidgetRef ref,
+  List<Bot> running,
+) async {
+  final c = context.aura;
+  final text = context.auraText;
+  final go = await showModalBottomSheet<bool>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => Container(
+      padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 24.h),
+      decoration: ShapeDecoration(
+        color: c.background,
+        shape: ContinuousRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(context.auraRadii.xl),
+          ),
+          side: BorderSide(color: c.borderSubtle),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: c.textTertiary.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'Pause all operations?',
+            style: text.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: c.textPrimary,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'Aura will stop every running engine. Open positions are not closed — you can resume each bot manually.',
+            style: text.bodySmall?.copyWith(
+              color: c.textSecondary,
+              height: 1.45,
+            ),
+          ),
+          SizedBox(height: 20.h),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => Navigator.of(ctx).pop(false),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    decoration: ShapeDecoration(
+                      color: c.surface,
+                      shape: ContinuousRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          context.auraRadii.md,
+                        ),
+                        side: BorderSide(color: c.borderSubtle),
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Cancel',
+                        style: text.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: c.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => Navigator.of(ctx).pop(true),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    decoration: ShapeDecoration(
+                      color: c.loss,
+                      shape: ContinuousRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          context.auraRadii.md,
+                        ),
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Pause all',
+                        style: text.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+
+  if (go != true) return;
+  final repo = ref.read(botRepositoryProvider);
+  for (final b in running) {
+    try {
+      await repo.stopBot(b.botId);
+    } catch (_) {/* swallow per-bot, continue stopping the rest */}
+  }
+  ref.read(botListProvider.notifier).refresh();
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Stopped ${running.length} bot${running.length == 1 ? '' : 's'}')),
+    );
+  }
 }

@@ -24,13 +24,13 @@ import 'package:aura/features/setup/presentation/widgets/review_fund_step.dart';
 import 'package:aura/features/chat/models/chat_models.dart';
 import 'package:aura/features/chat/presentation/widgets/setup_chat_step.dart';
 import 'package:aura/shared/widgets/deposit_sheet.dart';
-import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
+import 'package:aura/shared/widgets/aura_bottom_sheet.dart';
 import 'package:aura/features/chat/providers/chat_provider.dart';
 
 /// Setup Wizard — shown once after first wallet connection.
 ///
 /// Three steps:
-///   1. Choose path (Sage AI / Custom) + execution mode radio
+///   1. Choose path (Aura AI / Custom) + execution mode radio
 ///   2. Configure strategy parameters
 ///   3. Review, fund wallet (live mode), accept disclaimers & activate
 class SetupScreen extends ConsumerStatefulWidget {
@@ -48,11 +48,11 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   bool _showCustomize = false;
   bool _isActivating = false;
   String _deployStatus = '';
-  bool _useAiChat = false; // true = "Talk to Sage" instead of manual sliders
+  bool _useAiChat = false; // true = "Talk to Aura" instead of manual sliders
   Timer? _persistDebounce;
   final TextEditingController _nameController = TextEditingController();
 
-  // ── Sage AI overrides ──
+  // ── Aura AI overrides ──
   late double _positionSize = kDefaultRiskConfig.positionSizeSOL;
   late double _simulationBalanceSol = kDefaultSimulationBalanceSOL;
   late double _dailyLimit = kDefaultRiskConfig.maxDailyLossSOL;
@@ -85,7 +85,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       _step = saved.step;
 
       if (saved.path != null) {
-        _path = saved.path == 'sage-ai' ? SetupPath.sageAi : SetupPath.custom;
+        _path = saved.path == 'aura-ai' ? SetupPath.auraAi : SetupPath.custom;
       }
       if (saved.execMode != null) {
         _execMode = saved.execMode == 'live' && kLiveTradingEnabled
@@ -121,8 +121,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     _persistDebounce = Timer(const Duration(milliseconds: 800), () {
       if (!mounted) return;
       final persistence = ref.read(chatPersistenceProvider);
-      final pathStr = _path == SetupPath.sageAi
-          ? 'sage-ai'
+      final pathStr = _path == SetupPath.auraAi
+          ? 'aura-ai'
           : _path == SetupPath.custom
           ? 'custom'
           : null;
@@ -189,7 +189,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
   void _setSimulationBalance(double value) {
     setState(() {
-      if (_path == SetupPath.sageAi) {
+      if (_path == SetupPath.auraAi) {
         // Bankroll-relative: re-derive config from the new balance.
         final rawBalance = normalizeSimulationBalanceSOL(value);
         final cfg = configForBankroll(_risk, rawBalance);
@@ -240,27 +240,45 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   /// Apply AI-extracted strategy parameters to the setup state.
   void _applyAiParams(StrategyParams params) {
     setState(() {
-      if (params.entryScoreThreshold != null)
+      if (params.entryScoreThreshold != null) {
         _entryScore = params.entryScoreThreshold!;
-      if (params.minVolume24h != null) _minVolume = params.minVolume24h!;
-      if (params.minLiquidity != null) _minLiquidity = params.minLiquidity!;
-      if (params.maxLiquidity != null) _maxLiquidity = params.maxLiquidity!;
-      if (params.positionSizeSOL != null)
+      }
+      if (params.minVolume24h != null) {
+        _minVolume = params.minVolume24h!;
+      }
+      if (params.minLiquidity != null) {
+        _minLiquidity = params.minLiquidity!;
+      }
+      if (params.maxLiquidity != null) {
+        _maxLiquidity = params.maxLiquidity!;
+      }
+      if (params.positionSizeSOL != null) {
         _positionSize = params.positionSizeSOL!;
+      }
       if (params.simulationBalanceSOL != null) {
         _simulationBalanceSol = params.simulationBalanceSOL!;
       }
-      if (params.maxConcurrentPositions != null)
+      if (params.maxConcurrentPositions != null) {
         _maxConcurrent = params.maxConcurrentPositions!;
-      if (params.defaultBinRange != null) _binRange = params.defaultBinRange!;
-      if (params.profitTargetPercent != null)
+      }
+      if (params.defaultBinRange != null) {
+        _binRange = params.defaultBinRange!;
+      }
+      if (params.profitTargetPercent != null) {
         _profitTarget = params.profitTargetPercent!;
-      if (params.stopLossPercent != null) _stopLoss = params.stopLossPercent!;
-      if (params.maxHoldTimeMinutes != null)
+      }
+      if (params.stopLossPercent != null) {
+        _stopLoss = params.stopLossPercent!;
+      }
+      if (params.maxHoldTimeMinutes != null) {
         _maxHoldMinutes = params.maxHoldTimeMinutes!;
-      if (params.maxDailyLossSOL != null) _dailyLimit = params.maxDailyLossSOL!;
-      if (params.cooldownMinutes != null)
+      }
+      if (params.maxDailyLossSOL != null) {
+        _dailyLimit = params.maxDailyLossSOL!;
+      }
+      if (params.cooldownMinutes != null) {
         _cooldownMinutes = params.cooldownMinutes!;
+      }
 
       _simulationBalanceSol = clampSimulationBalanceSOL(
         requested: _simulationBalanceSol,
@@ -294,8 +312,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     }
 
     try {
-      final isSageAi = _path == SetupPath.sageAi;
-      final strategyMode = isSageAi ? 'sage-ai' : 'rule-based';
+      final isAuraAi = _path == SetupPath.auraAi;
+      final strategyMode = isAuraAi ? 'aura-ai' : 'rule-based';
       final riskCfg = riskConfigs[_risk]!;
       final isLive = _execMode == ExecutionMode.live;
 
@@ -313,33 +331,33 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         config: {
           'strategyMode': strategyMode,
           'positionSizeSOL': _positionSize,
-          'entryScoreThreshold': isSageAi
+          'entryScoreThreshold': isAuraAi
               ? riskCfg.entryScoreThreshold
               : _entryScore,
-          'maxConcurrentPositions': isSageAi
+          'maxConcurrentPositions': isAuraAi
               ? riskCfg.maxConcurrentPositions
               : _maxConcurrent,
           'profitTargetPercent': _profitTarget,
           'stopLossPercent': _stopLoss,
-          'maxHoldTimeMinutes': isSageAi
+          'maxHoldTimeMinutes': isAuraAi
               ? riskCfg.maxHoldTimeMinutes
               : _maxHoldMinutes,
           'maxDailyLossSOL': _dailyLimit,
-          'cooldownMinutes': isSageAi
+          'cooldownMinutes': isAuraAi
               ? kDefaultCustomEntry.cooldownMinutes
               : _cooldownMinutes,
           'cronIntervalSeconds': 30,
           'simulationBalanceSOL': _simulationBalanceSol,
-          'minVolume24h': isSageAi
+          'minVolume24h': isAuraAi
               ? kDefaultCustomEntry.minVolume24h
               : _minVolume,
-          'minLiquidity': isSageAi
+          'minLiquidity': isAuraAi
               ? kDefaultCustomEntry.minLiquidity
               : _minLiquidity,
-          'maxLiquidity': isSageAi
+          'maxLiquidity': isAuraAi
               ? kDefaultCustomEntry.maxLiquidity
               : _maxLiquidity,
-          'defaultBinRange': isSageAi
+          'defaultBinRange': isAuraAi
               ? kDefaultCustomEntry.defaultBinRange
               : _binRange,
         },
@@ -362,8 +380,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         updateStatus('Fund your bot…');
         final recommended =
             (_positionSize + 0.07) *
-            (isSageAi ? riskCfg.maxConcurrentPositions : _maxConcurrent);
-        await SageBottomSheet.show<bool>(
+            (isAuraAi ? riskCfg.maxConcurrentPositions : _maxConcurrent);
+        await AuraBottomSheet.show<bool>(
           context: context,
           title: 'Fund Your Bot',
           builder: (c, text) => DepositSheet(
@@ -399,7 +417,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_friendlyActivateError(e)),
-            backgroundColor: context.sage.loss,
+            backgroundColor: context.aura.loss,
           ),
         );
       }
@@ -464,8 +482,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
 
     Widget stepWidget;
 
@@ -493,7 +511,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
             ref
                 .read(setupChatProvider.notifier)
                 .setSimulationBalance(_simulationBalanceSol);
-            // "Talk to Sage" — AI chat for strategy configuration
+            // "Talk to Aura" — AI chat for strategy configuration
             stepWidget = SetupChatStep(
               key: const ValueKey('setup-chat'),
               onBack: () {
@@ -516,7 +534,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                 setState(() => _step = 0);
               },
               onNext: _nextToReview,
-              onTalkToSage: () {
+              onTalkToAura: () {
                 HapticFeedback.mediumImpact();
                 setState(() => _useAiChat = true);
                 _persistSetupState();
@@ -619,16 +637,16 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         break;
 
       default: // step 2 — review, fund & activate
-        final isSageAi = _path == SetupPath.sageAi;
+        final isAuraAi = _path == SetupPath.auraAi;
         final riskCfg = riskConfigs[_risk]!;
         stepWidget = ReviewFundStep(
           key: const ValueKey('review'),
-          path: _path ?? SetupPath.sageAi,
+          path: _path ?? SetupPath.auraAi,
           mode: _execMode,
           positionSizeSOL: _positionSize,
           simulationBalanceSOL: _simulationBalanceSol,
           onSimulationBalanceChanged: _setSimulationBalance,
-          maxConcurrentPositions: isSageAi
+          maxConcurrentPositions: isAuraAi
               ? riskCfg.maxConcurrentPositions
               : _maxConcurrent,
           profitTargetPercent: _profitTarget,

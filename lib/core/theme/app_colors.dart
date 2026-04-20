@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 /// Screens access tokens via `context.aura.<token>`.
 ///
 /// Themes: dark (default), light, midnight, solana.
-class SageColors extends ThemeExtension<SageColors> {
+class AuraColors extends ThemeExtension<AuraColors> {
   final Brightness brightness;
 
   // ── Surfaces ──
@@ -55,7 +55,7 @@ class SageColors extends ThemeExtension<SageColors> {
   final Color onboardingNavy;
   final Color onboardingAccent;
 
-  const SageColors({
+  const AuraColors({
     required this.brightness,
     required this.background,
     required this.surface,
@@ -90,7 +90,7 @@ class SageColors extends ThemeExtension<SageColors> {
   // ─────────────────────────────────────────────────────
   // DARK — primary experience
   // ─────────────────────────────────────────────────────
-  static const dark = SageColors(
+  static const dark = AuraColors(
     brightness: Brightness.dark,
     background: Color(0xFF050506),
     surface: Color(0xFF141416),
@@ -125,7 +125,7 @@ class SageColors extends ThemeExtension<SageColors> {
   // ─────────────────────────────────────────────────────
   // LIGHT
   // ─────────────────────────────────────────────────────
-  static const light = SageColors(
+  static const light = AuraColors(
     brightness: Brightness.light,
     background: Color(0xFFFFFFFF),
     surface: Color(0xFFF2F2F7),
@@ -160,7 +160,7 @@ class SageColors extends ThemeExtension<SageColors> {
   // ─────────────────────────────────────────────────────
   // MIDNIGHT — pure OLED black, cooler accents
   // ─────────────────────────────────────────────────────
-  static const midnight = SageColors(
+  static const midnight = AuraColors(
     brightness: Brightness.dark,
     background: Color(0xFF000000),
     surface: Color(0xFF0C0C0E),
@@ -195,7 +195,7 @@ class SageColors extends ThemeExtension<SageColors> {
   // ─────────────────────────────────────────────────────
   // SOLANA — Solana-branded accents (green/purple)
   // ─────────────────────────────────────────────────────
-  static const solana = SageColors(
+  static const solana = AuraColors(
     brightness: Brightness.dark,
     background: Color(0xFF0E0E12),
     surface: Color(0xFF18181E),
@@ -228,7 +228,7 @@ class SageColors extends ThemeExtension<SageColors> {
   );
 
   /// All available themes, keyed by name.
-  static const Map<String, SageColors> themes = {
+  static const Map<String, AuraColors> themes = {
     'dark': dark,
     'light': light,
     'midnight': midnight,
@@ -236,12 +236,12 @@ class SageColors extends ThemeExtension<SageColors> {
   };
 
   @override
-  SageColors copyWith() => this;
+  AuraColors copyWith() => this;
 
   @override
-  SageColors lerp(SageColors? other, double t) {
+  AuraColors lerp(AuraColors? other, double t) {
     if (other == null) return this;
-    return SageColors(
+    return AuraColors(
       brightness: t < 0.5 ? brightness : other.brightness,
       background: Color.lerp(background, other.background, t)!,
       surface: Color.lerp(surface, other.surface, t)!,
@@ -287,7 +287,7 @@ class SageColors extends ThemeExtension<SageColors> {
   }
 }
 
-/// Quick access: `context.sage.accent`, `context.sage.background`, etc.
-extension SageColorsX on BuildContext {
-  SageColors get sage => Theme.of(this).extension<SageColors>()!;
+/// Quick access: `context.aura.accent`, `context.aura.background`, etc.
+extension AuraColorsX on BuildContext {
+  AuraColors get aura => Theme.of(this).extension<AuraColors>()!;
 }

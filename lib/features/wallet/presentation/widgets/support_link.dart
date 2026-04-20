@@ -10,7 +10,7 @@ class SupportLink extends StatelessWidget {
   final IconData icon;
   final String label;
   final String url;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const SupportLink({

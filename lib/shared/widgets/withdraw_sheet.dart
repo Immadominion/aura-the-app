@@ -9,17 +9,18 @@ import 'package:aura/core/repositories/wallet_repository.dart';
 import 'package:aura/core/services/auth_service.dart';
 import 'package:aura/core/services/domain_resolver.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 
-/// Withdraw SOL from Sage bot wallets back to user's wallet.
+/// Withdraw SOL from Aura bot wallets back to user's wallet.
 ///
 /// The backend decrypts the bot's server-side keypair and signs
 /// the transfer — no MWA signature required from the user.
 ///
-/// Designed for use inside [SageBottomSheet.show()].
+/// Designed for use inside [AuraBottomSheet.show()].
 /// Handles its own loading/success/error state.
 ///
 /// ```dart
-/// SageBottomSheet.show<bool>(
+/// AuraBottomSheet.show<bool>(
 ///   context: context,
 ///   title: 'Withdraw',
 ///   builder: (c, text) => WithdrawSheet(
@@ -33,7 +34,7 @@ import 'package:aura/core/theme/app_colors.dart';
 class WithdrawSheet extends ConsumerStatefulWidget {
   final String botId;
   final double availableBalanceSol;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const WithdrawSheet({
@@ -238,7 +239,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
   // Input state — withdrawal confirmation
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildInput(SageColors c, TextTheme text) {
+  Widget _buildInput(AuraColors c, TextTheme text) {
     final hasEnough = widget.availableBalanceSol > 0;
     final shortWallet = _connectedWallet.length > 8
         ? '${_connectedWallet.substring(0, 6)}\u2026${_connectedWallet.substring(_connectedWallet.length - 4)}'
@@ -305,7 +306,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
                     color: _useCustomDest
                         ? c.accent.withValues(alpha: 0.15)
                         : c.surfaceElevated,
-                    borderRadius: BorderRadius.circular(6.r),
+                    borderRadius: BorderRadius.circular(context.auraRadii.xs),
                     border: Border.all(
                       color: _useCustomDest ? c.accent : c.borderSubtle,
                       width: 1,
@@ -330,7 +331,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
           Container(
             decoration: BoxDecoration(
               color: c.surfaceElevated,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.sm),
               border: Border.all(
                 color: _resolveError != null ? c.loss : c.borderSubtle,
               ),
@@ -452,7 +453,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               color: hasEnough ? c.accent : c.buttonDisabled,
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.lg),
             ),
             child: Center(
               child: Text(
@@ -491,7 +492,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
   // Loading state
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildLoading(SageColors c, TextTheme text) {
+  Widget _buildLoading(AuraColors c, TextTheme text) {
     return SizedBox(
       height: 200.h,
       child: Center(
@@ -529,7 +530,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
   // Success state
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildSuccess(SageColors c, TextTheme text) {
+  Widget _buildSuccess(AuraColors c, TextTheme text) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -601,7 +602,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               color: c.accent,
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.lg),
             ),
             child: Center(
               child: Text(
@@ -624,7 +625,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
   // Error state
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildError(SageColors c, TextTheme text) {
+  Widget _buildError(AuraColors c, TextTheme text) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -668,7 +669,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               color: c.accent,
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.lg),
             ),
             child: Center(
               child: Text(
@@ -710,7 +711,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
 class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const _InfoRow({

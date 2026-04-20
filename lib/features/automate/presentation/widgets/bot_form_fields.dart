@@ -3,11 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 
 /// Section header label (uppercase, spaced).
 class SectionLabel extends StatelessWidget {
   final String label;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
   const SectionLabel({
     super.key,
@@ -33,7 +34,7 @@ class SectionLabel extends StatelessWidget {
 class BotInputField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const BotInputField({
@@ -58,15 +59,15 @@ class BotInputField extends StatelessWidget {
         filled: true,
         fillColor: c.surface,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.md),
           borderSide: BorderSide(color: c.borderSubtle),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.md),
           borderSide: BorderSide(color: c.borderSubtle),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.md),
           borderSide: BorderSide(color: c.accent, width: 1.5),
         ),
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
@@ -80,7 +81,7 @@ class SegmentedPicker<T> extends StatelessWidget {
   final T value;
   final Map<T, String> options;
   final ValueChanged<T> onChanged;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const SegmentedPicker({
@@ -97,7 +98,7 @@ class SegmentedPicker<T> extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(context.auraRadii.md),
         border: Border.all(color: c.borderSubtle),
       ),
       child: Row(
@@ -113,7 +114,7 @@ class SegmentedPicker<T> extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 12.h),
                 decoration: BoxDecoration(
                   color: isSelected ? c.accent : Colors.transparent,
-                  borderRadius: BorderRadius.circular(11.r),
+                  borderRadius: BorderRadius.circular(context.auraRadii.sm),
                 ),
                 child: Center(
                   child: Text(
@@ -143,7 +144,7 @@ class SliderRow extends StatelessWidget {
   final String unit;
   final String Function(double) format;
   final ValueChanged<double> onChanged;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const SliderRow({
@@ -187,7 +188,7 @@ class SliderRow extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(context.auraRadii.sm),
             border: Border.all(color: c.borderSubtle),
           ),
           child: Text(

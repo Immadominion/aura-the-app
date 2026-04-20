@@ -12,15 +12,15 @@ import 'package:aura/core/theme/app_colors.dart';
 import 'package:aura/features/chat/models/chat_models.dart';
 import 'package:aura/features/chat/providers/chat_provider.dart';
 import 'package:aura/features/chat/presentation/widgets/chat_bubble.dart';
-import 'package:aura/features/chat/presentation/widgets/sage_voice_input.dart';
+import 'package:aura/features/chat/presentation/widgets/aura_voice_input.dart';
 import 'package:aura/features/chat/presentation/widgets/strategy_params_card.dart';
 import 'package:aura/features/setup/presentation/widgets/step_indicator.dart';
 
-/// Setup Step 1.5 — Talk to Sage to configure strategy via conversation.
+/// Setup Step 1.5 — Talk to Aura to configure strategy via conversation.
 class SetupChatStep extends ConsumerStatefulWidget {
   final VoidCallback onBack;
   final void Function(StrategyParams params) onApplyParams;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const SetupChatStep({
@@ -143,7 +143,7 @@ class _SetupChatStepState extends ConsumerState<SetupChatStep> {
               SizedBox(height: 28.h),
 
               // ── Headline ──
-              Text('Talk to Sage', style: widget.text.headlineLarge)
+              Text('Talk to Aura', style: widget.text.headlineLarge)
                   .animate()
                   .fadeIn(duration: 600.ms)
                   .slideY(begin: 0.05, end: 0, curve: Curves.easeOutCubic),
@@ -151,7 +151,7 @@ class _SetupChatStepState extends ConsumerState<SetupChatStep> {
               SizedBox(height: 8.h),
 
               Text(
-                'Describe your trading style and Sage\nconfigures your strategy.',
+                'Describe your trading style and Aura\nconfigures your strategy.',
                 style: widget.text.bodyMedium?.copyWith(
                   color: widget.c.textSecondary,
                   height: 1.4,
@@ -280,7 +280,7 @@ class _SetupChatStepState extends ConsumerState<SetupChatStep> {
             ),
           )
         else
-          SageVoiceInput(
+          AuraVoiceInput(
             isRecording: chatState.isRecording,
             isTranscribing: chatState.isTranscribing,
             isLoading: chatState.isLoading,
@@ -304,7 +304,7 @@ class _SetupChatStepState extends ConsumerState<SetupChatStep> {
 // ─────────────────────────────────────────────────────────────
 
 class _AnimatedSuggestion extends StatefulWidget {
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
   final ValueChanged<String> onTap;
 

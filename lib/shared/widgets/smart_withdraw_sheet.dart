@@ -8,6 +8,7 @@ import 'package:rive/rive.dart';
 import 'package:aura/core/models/wallet.dart';
 import 'package:aura/core/repositories/wallet_repository.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 
 /// Smart multi-wallet withdraw sheet.
 ///
@@ -15,9 +16,9 @@ import 'package:aura/core/theme/app_colors.dart';
 /// select which wallets to withdraw from, then batch-withdraws SOL
 /// back to their connected Phantom wallet.
 ///
-/// Designed for use inside [SageBottomSheet.show()].
+/// Designed for use inside [AuraBottomSheet.show()].
 class SmartWithdrawSheet extends ConsumerStatefulWidget {
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const SmartWithdrawSheet({super.key, required this.c, required this.text});
@@ -152,7 +153,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
   // Loading
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildLoading(SageColors c, TextTheme text) {
+  Widget _buildLoading(AuraColors c, TextTheme text) {
     return SizedBox(
       height: 200.h,
       child: Center(
@@ -185,7 +186,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
   // Select wallets (chumbucket-inspired grid)
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildSelect(SageColors c, TextTheme text) {
+  Widget _buildSelect(AuraColors c, TextTheme text) {
     final wallets = _balances!.wallets;
 
     if (wallets.isEmpty) {
@@ -280,7 +281,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
             decoration: BoxDecoration(
               color: c.accent.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.md),
               border: Border.all(color: c.accent.withValues(alpha: 0.2)),
             ),
             child: Row(
@@ -321,7 +322,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               color: _hasSelection ? c.accent : c.buttonDisabled,
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.lg),
             ),
             child: Center(
               child: Text(
@@ -360,7 +361,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
 
   Widget _buildWalletItem(
     BotWalletBalances wallet,
-    SageColors c,
+    AuraColors c,
     TextTheme text,
   ) {
     final selected = _selectedBotIds.contains(wallet.botId);
@@ -384,7 +385,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
         padding: EdgeInsets.all(10.w),
         decoration: BoxDecoration(
           color: selected ? c.accent.withValues(alpha: 0.1) : c.surface,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.lg),
           border: Border.all(
             color: selected
                 ? c.accent
@@ -481,7 +482,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
   // Withdrawing
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildWithdrawing(SageColors c, TextTheme text) {
+  Widget _buildWithdrawing(AuraColors c, TextTheme text) {
     return SizedBox(
       height: 200.h,
       child: Center(
@@ -519,7 +520,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
   // Success
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildSuccess(SageColors c, TextTheme text) {
+  Widget _buildSuccess(AuraColors c, TextTheme text) {
     final r = _result!;
     final succeeded = r.results.where((x) => x.success).toList();
     final failed = r.results.where((x) => !x.success).toList();
@@ -615,7 +616,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               color: c.accent,
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.lg),
             ),
             child: Center(
               child: Text(
@@ -634,12 +635,12 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
     );
   }
 
-  Widget _statusChip(String label, Color color, SageColors c, TextTheme text) {
+  Widget _statusChip(String label, Color color, AuraColors c, TextTheme text) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8.r),
+        borderRadius: BorderRadius.circular(context.auraRadii.sm),
       ),
       child: Text(
         label,
@@ -656,7 +657,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
   // Error
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildError(SageColors c, TextTheme text) {
+  Widget _buildError(AuraColors c, TextTheme text) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -698,7 +699,7 @@ class _SmartWithdrawSheetState extends ConsumerState<SmartWithdrawSheet> {
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               color: c.accent,
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.lg),
             ),
             child: Center(
               child: Text(

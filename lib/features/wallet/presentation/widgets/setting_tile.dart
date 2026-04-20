@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/core/theme/app_theme.dart';
 
 /// Settings tile with icon, title, subtitle, and chevron.
@@ -25,8 +26,8 @@ class SettingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
 
     return Column(
       children: [
@@ -36,7 +37,7 @@ class SettingTile extends StatelessWidget {
             padding: EdgeInsets.all(10.w),
             decoration: BoxDecoration(
               color: c.surface,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.md),
             ),
             child: Icon(icon, size: 20.sp, color: c.textSecondary),
           ),

@@ -5,6 +5,7 @@ import '../core/providers/connectivity_provider.dart';
 import '../core/repositories/position_repository.dart';
 import '../core/services/auth_service.dart';
 import '../core/services/event_service.dart';
+import '../core/services/push_notification_service.dart';
 
 /// Observes app lifecycle (foreground/background) and connectivity changes
 /// to pause / resume SSE streaming and avoid wasted battery / stale data.
@@ -91,6 +92,15 @@ class _AppLifecycleManagerState extends ConsumerState<AppLifecycleManager>
     // every BotEvent to NotificationService.handleBotEvent().
     // Notifications are gated by per-event-type user preferences.
     ref.watch(notificationBridgeProvider);
+
+    // ── Initialize FCM push notifications once authenticated ──
+    ref.listen<AsyncValue<dynamic>>(authStateProvider, (prev, next) {
+      final wasLoggedIn = prev?.value != null;
+      final isLoggedIn = next.value != null;
+      if (!wasLoggedIn && isLoggedIn) {
+        ref.read(pushNotificationServiceProvider).initialize();
+      }
+    });
 
     return widget.child;
   }

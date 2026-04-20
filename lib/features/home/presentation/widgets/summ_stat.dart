@@ -7,7 +7,7 @@ class SummStat extends StatelessWidget {
   final String label;
   final String value;
   final Color? valueColor;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const SummStat({

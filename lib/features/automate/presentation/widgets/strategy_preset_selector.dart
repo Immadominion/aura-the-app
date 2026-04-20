@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:aura/core/models/strategy.dart';
 import 'package:aura/core/repositories/strategy_repository.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 
 /// Preset selector that fetches strategies from the backend
 /// and displays them as selectable chips.
@@ -12,7 +13,7 @@ class StrategyPresetSelector extends ConsumerWidget {
   final StrategyPreset? selectedPreset;
   final ValueChanged<StrategyPreset> onPresetSelected;
   final VoidCallback onCustomSelected;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const StrategyPresetSelector({
@@ -34,7 +35,7 @@ class StrategyPresetSelector extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 14.h),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.md),
           border: Border.all(color: c.borderSubtle),
         ),
         child: Center(
@@ -52,7 +53,7 @@ class StrategyPresetSelector extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 16.w),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.md),
           border: Border.all(color: c.borderSubtle),
         ),
         child: Text(
@@ -99,7 +100,7 @@ class PresetChip extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const PresetChip({
@@ -120,7 +121,7 @@ class PresetChip extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: isSelected ? c.accent : c.surface,
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.lg),
           border: Border.all(
             color: isSelected ? c.accent : c.borderSubtle,
             width: isSelected ? 1.5 : 1,

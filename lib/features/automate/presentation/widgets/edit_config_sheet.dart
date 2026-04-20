@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:aura/core/models/bot.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/core/theme/app_theme.dart';
 import 'package:aura/core/utils/bot_validators.dart';
 
@@ -94,16 +95,20 @@ class _EditConfigSheetState extends State<EditConfigSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
       padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, bottomInset + 24.h),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: c.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-        border: Border(top: BorderSide(color: c.borderSubtle)),
+        shape: ContinuousRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(context.auraRadii.xl),
+          ),
+          side: BorderSide(color: c.borderSubtle),
+        ),
       ),
       child: SingleChildScrollView(
         child: Form(
@@ -119,7 +124,7 @@ class _EditConfigSheetState extends State<EditConfigSheet> {
                 height: 4.h,
                 decoration: BoxDecoration(
                   color: c.textTertiary.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2.r),
+                  borderRadius: BorderRadius.circular(context.auraRadii.xs),
                 ),
               ),
             ),
@@ -212,7 +217,7 @@ class _EditConfigSheetState extends State<EditConfigSheet> {
                     color: _saving
                         ? c.accent.withValues(alpha: 0.5)
                         : c.accent,
-                    borderRadius: BorderRadius.circular(14.r),
+                    borderRadius: BorderRadius.circular(context.auraRadii.lg),
                   ),
                   child: Center(
                     child: _saving
@@ -247,7 +252,7 @@ class _EditConfigSheetState extends State<EditConfigSheet> {
 class _ConfigField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
   final bool isInt;
   final String? Function(String?)? validator;
@@ -311,23 +316,23 @@ class _ConfigField extends StatelessWidget {
                 errorMaxLines: 1,
                 errorStyle: TextStyle(fontSize: 10.sp, height: 1.2),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(context.auraRadii.sm),
                   borderSide: BorderSide(color: c.borderSubtle),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(context.auraRadii.sm),
                   borderSide: BorderSide(color: c.borderSubtle),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(context.auraRadii.sm),
                   borderSide: BorderSide(color: c.accent),
                 ),
                 errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(context.auraRadii.sm),
                   borderSide: const BorderSide(color: Colors.redAccent),
                 ),
                 focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(context.auraRadii.sm),
                   borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
                 ),
               ),

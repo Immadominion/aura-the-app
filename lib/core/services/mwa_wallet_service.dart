@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -43,7 +42,7 @@ String _base58encode(Uint8List bytes) {
 }
 
 // ─────────────────────────────────────────────────────────
-// MWA Wallet Service — Sage
+// MWA Wallet Service — Aura
 //
 // Single entry point for wallet operations via Solana
 // Mobile Wallet Adapter. Android-only (Seeker target).
@@ -99,7 +98,7 @@ class SiwsResult {
   });
 }
 
-/// Lightweight MWA service for Sage.
+/// Lightweight MWA service for Aura.
 ///
 /// Handles connect / disconnect. Sign operations will be
 /// added when the trading engine is wired up.
@@ -166,7 +165,7 @@ class MwaWalletService {
 
       final auth = await client.authorize(
         identityUri: _identityUri,
-        identityName: 'Sage',
+        identityName: 'Aura',
         iconUri: Uri.parse('logo.png'),
         cluster: 'mainnet-beta',
       );
@@ -214,7 +213,7 @@ class MwaWalletService {
       // Step 1: Authorize — wallet shows approval prompt.
       final auth = await client.authorize(
         identityUri: _identityUri,
-        identityName: 'Sage',
+        identityName: 'Aura',
         iconUri: Uri.parse('logo.png'),
         cluster: 'mainnet-beta',
       );
@@ -277,7 +276,7 @@ class MwaWalletService {
       // Reauthorize using stored auth token.
       final reauth = await client.reauthorize(
         identityUri: _identityUri,
-        identityName: 'Sage',
+        identityName: 'Aura',
         iconUri: Uri.parse('logo.png'),
         authToken: _authToken!,
       );
@@ -319,7 +318,7 @@ class MwaWalletService {
   /// Returns the list of base58 transaction signatures.
   ///
   /// [cluster] defaults to `'mainnet-beta'`. Pass `'devnet'` when
-  /// transacting against devnet programs (e.g. Seal on devnet).
+  /// transacting against devnet programs.
   Future<List<String>> signAndSendTransactions(
     List<Uint8List> transactions, {
     String cluster = 'mainnet-beta',
@@ -343,7 +342,7 @@ class MwaWalletService {
         try {
           final reauth = await client.reauthorize(
             identityUri: _identityUri,
-            identityName: 'Sage',
+            identityName: 'Aura',
             iconUri: Uri.parse('logo.png'),
             authToken: _authToken!,
           );
@@ -366,7 +365,7 @@ class MwaWalletService {
         debugPrint('[MWA] Using full authorize flow (cluster=$cluster)');
         final auth = await client.authorize(
           identityUri: _identityUri,
-          identityName: 'Sage',
+          identityName: 'Aura',
           iconUri: Uri.parse('logo.png'),
           cluster: cluster,
         );
@@ -446,7 +445,7 @@ class MwaWalletService {
         try {
           final reauth = await client.reauthorize(
             identityUri: _identityUri,
-            identityName: 'Sage',
+            identityName: 'Aura',
             iconUri: Uri.parse('logo.png'),
             authToken: _authToken!,
           );
@@ -468,7 +467,7 @@ class MwaWalletService {
         debugPrint('[MWA] Using full authorize flow (cluster=$cluster)');
         final auth = await client.authorize(
           identityUri: _identityUri,
-          identityName: 'Sage',
+          identityName: 'Aura',
           iconUri: Uri.parse('logo.png'),
           cluster: cluster,
         );

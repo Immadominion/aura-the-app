@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:rive/rive.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:aura/core/router/app_router.dart';
 import 'package:aura/core/theme/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialize Firebase for push notifications
+  await Firebase.initializeApp();
   // Initialize Rive before first graphic loads.
   await RiveNative.init();
   runApp(const ProviderScope(child: AuraApp()));

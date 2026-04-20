@@ -21,8 +21,8 @@ class StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
 
     return Column(
       children: [

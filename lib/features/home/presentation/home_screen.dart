@@ -9,8 +9,9 @@ import 'package:aura/core/repositories/bot_repository.dart';
 import 'package:aura/core/repositories/position_repository.dart';
 import 'package:aura/core/services/event_service.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/core/theme/app_theme.dart';
-import 'package:aura/shared/widgets/sage_components.dart';
+import 'package:aura/shared/widgets/aura_components.dart';
 
 import 'package:aura/features/home/presentation/widgets/empty_state.dart';
 import 'package:aura/features/home/presentation/widgets/bot_row.dart';
@@ -46,8 +47,8 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
 
@@ -113,7 +114,7 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildBody(
     BuildContext context,
     WidgetRef ref,
-    SageColors c,
+    AuraColors c,
     TextTheme text,
     double topPad,
     double bottomPad,
@@ -172,14 +173,14 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   SizedBox(height: topPad + 56.h),
 
-                  const SageLabel(
+                  const AuraLabel(
                     'HOME',
                   ).animate().fadeIn(duration: 500.ms, delay: 200.ms),
 
                   SizedBox(height: 10.h),
 
                   // Total SOL in LP positions (real data)
-                  SageMetric(wholePart, decimal: decimalPart)
+                  AuraMetric(wholePart, decimal: decimalPart)
                       .animate()
                       .fadeIn(duration: 600.ms, delay: 350.ms)
                       .slideY(begin: 0.06, end: 0, curve: Curves.easeOutCubic),
@@ -222,10 +223,12 @@ class HomeScreen extends ConsumerWidget {
             child:
                 Container(
                       width: double.infinity,
-                      decoration: BoxDecoration(
+                      decoration: ShapeDecoration(
                         color: c.panelBackground,
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(24.r),
+                        shape: ContinuousRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(context.auraRadii.xl),
+                          ),
                         ),
                       ),
                       child: SingleChildScrollView(
@@ -241,7 +244,10 @@ class HomeScreen extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             // Aggregate stats
-                            Row(
+                            // Hidden in zero state — nothing meaningful to
+                            // show with 0 positions / 0 bots.
+                            if (bots.isNotEmpty || allPositions.isNotEmpty)
+                              Row(
                               children: [
                                 Expanded(
                                   child: Container(
@@ -250,9 +256,11 @@ class HomeScreen extends ConsumerWidget {
                                       color: c.panelBorder.withValues(
                                         alpha: 0.4,
                                       ),
-                                      borderRadius: BorderRadius.circular(12.r),
+                                      borderRadius: BorderRadius.circular(
+                                        context.auraRadii.md,
+                                      ),
                                     ),
-                                    child: SageStatBox(
+                                    child: AuraStatBox(
                                       label: 'Positions',
                                       value: '${allPositions.length}',
                                     ),
@@ -266,9 +274,11 @@ class HomeScreen extends ConsumerWidget {
                                       color: c.panelBorder.withValues(
                                         alpha: 0.4,
                                       ),
-                                      borderRadius: BorderRadius.circular(12.r),
+                                      borderRadius: BorderRadius.circular(
+                                        context.auraRadii.md,
+                                      ),
                                     ),
-                                    child: SageStatBox(
+                                    child: AuraStatBox(
                                       label: 'Win Rate',
                                       value:
                                           '${avgWinRate.toStringAsFixed(0)}%',
@@ -280,19 +290,31 @@ class HomeScreen extends ConsumerWidget {
 
                             SizedBox(height: 24.h),
 
-                            Text(
-                              'YOUR BOTS',
-                              style: text.titleSmall?.copyWith(
-                                color: c.panelTextSecondary,
-                              ),
-                            ),
-
-                            SizedBox(height: 8.h),
-
-                            // Bot rows — show up to 3 most recent, tappable
-                            if (bots.isEmpty)
-                              EmptyState(c: c, text: text)
+                            // ── Zero state ──
+                            // No bots AND no positions — show the warmer
+                            // 2-card welcome instead of stats/bots/positions.
+                            if (bots.isEmpty && allPositions.isEmpty)
+                              HomeZeroState(c: c, text: text)
                             else ...[
+                              // Section caption (demoted from H2 — audit §5.5
+                              // H2-collision fix: only “ACTIVE POSITIONS”
+                              // holds H2 weight in the panel scroll).
+                              Text(
+                                'YOUR BOTS',
+                                style: text.labelSmall?.copyWith(
+                                  color: c.panelTextSecondary,
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+
+                              SizedBox(height: 8.h),
+
+                              // Bot rows — show up to 3 most recent, tappable
+                              if (bots.isEmpty)
+                                const SizedBox.shrink()
+                              else ...[
                               ...bots.take(2).toList().asMap().entries.map((
                                 entry,
                               ) {
@@ -365,7 +387,7 @@ class HomeScreen extends ConsumerWidget {
 
                             SizedBox(height: 20.h),
 
-                            // ── Active Positions ──
+                            // ── Active Positions (only H2 in panel) ──
                             PositionsSection(),
 
                             // ── View History link ──
@@ -390,6 +412,31 @@ class HomeScreen extends ConsumerWidget {
                                 ],
                               ),
                             ),
+
+                            // ── Pools Aura is watching (Phase 15, audit §6.1) ──
+                            SizedBox(height: 6.h),
+                            GestureDetector(
+                              onTap: () => context.push('/pools'),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    'Pools Aura is watching',
+                                    style: text.labelMedium?.copyWith(
+                                      color: c.accent,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4.w),
+                                  Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: 12.sp,
+                                    color: c.accent,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            ], // end non-zero-state branch
                           ],
                         ),
                       ),
@@ -407,7 +454,7 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildShell(
     BuildContext context,
     WidgetRef ref,
-    SageColors c,
+    AuraColors c,
     TextTheme text,
     double topPad,
     double bottomPad, {
@@ -425,7 +472,7 @@ class HomeScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: topPad + 56.h),
-                const SageLabel('Deployed'),
+                const AuraLabel('Deployed'),
                 SizedBox(height: 10.h),
                 if (isLoading)
                   SizedBox(
@@ -471,9 +518,13 @@ class HomeScreen extends ConsumerWidget {
           flex: 6,
           child: Container(
             width: double.infinity,
-            decoration: BoxDecoration(
+            decoration: ShapeDecoration(
               color: c.panelBackground,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+              shape: ContinuousRectangleBorder(
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(context.auraRadii.xl),
+                ),
+              ),
             ),
           ),
         ),

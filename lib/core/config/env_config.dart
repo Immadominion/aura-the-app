@@ -1,4 +1,4 @@
-/// Environment configuration for the Sage app.
+/// Environment configuration for the Aura app.
 ///
 /// Manages base URLs, feature flags, and environment-specific settings.
 /// Configured via `--dart-define` at build time:
@@ -169,4 +169,43 @@ class EnvConfig {
   /// Returns `false` in production/staging when neither `--dart-define` nor
   /// [_kProductionApiUrl] is set. The app should show a config error screen.
   static bool get isApiConfigured => apiBaseUrl.isNotEmpty;
+
+  // ────────────────────────────────────────────────────────────────────
+  // Phantom Embedded Wallet config
+  // ────────────────────────────────────────────────────────────────────
+
+  /// Phantom App ID — provisioned at https://phantom.com/portal.
+  ///
+  /// MUST be supplied at build time via `--dart-define=PHANTOM_APP_ID=<id>`.
+  /// Never hardcoded so the value stays out of git history and binaries
+  /// for non-authorised builds.
+  static const String _phantomAppId = String.fromEnvironment('PHANTOM_APP_ID');
+
+  /// Phantom App ID. Throws if missing in non-development builds.
+  static String get phantomAppId {
+    if (_phantomAppId.isEmpty && !isDevelopment) {
+      debugPrint(
+        '⚠️ PHANTOM_APP_ID not configured. '
+        'Pass --dart-define=PHANTOM_APP_ID=<id> at build time.',
+      );
+    }
+    return _phantomAppId;
+  }
+
+  /// Custom URL scheme used for Phantom OAuth deep-link callback.
+  ///
+  /// Must match the iOS `CFBundleURLSchemes` and Android intent-filter
+  /// `<data android:scheme="..." />` configured in the platform projects,
+  /// AND match the redirect URI registered in the Phantom Portal.
+  static const String phantomScheme = 'aura';
+
+  /// Phantom OAuth redirect URI — used for OIDC callback.
+  ///
+  /// Must be registered verbatim in the Phantom Portal under the App's
+  /// "Allowed Redirect URIs".
+  static String get phantomRedirectUri =>
+      '$phantomScheme://phantom-auth-callback';
+
+  /// Whether the Phantom App ID is configured.
+  static bool get isPhantomConfigured => phantomAppId.isNotEmpty;
 }

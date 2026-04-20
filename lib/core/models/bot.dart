@@ -5,7 +5,7 @@ enum BotMode { simulation, live }
 
 enum BotStatus { stopped, starting, running, stopping, error }
 
-enum StrategyMode { ruleBased, sageAi, both }
+enum StrategyMode { ruleBased, auraAi, both }
 
 class Bot {
   final int id;
@@ -201,8 +201,8 @@ class Bot {
     switch (s) {
       case 'rule-based':
         return StrategyMode.ruleBased;
-      case 'sage-ai':
-        return StrategyMode.sageAi;
+      case 'aura-ai':
+        return StrategyMode.auraAi;
       case 'both':
         return StrategyMode.both;
       default:

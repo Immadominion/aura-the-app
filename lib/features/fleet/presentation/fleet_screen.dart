@@ -10,13 +10,13 @@ import 'package:aura/core/theme/app_theme.dart';
 import 'package:aura/features/fleet/data/fleet_repository.dart';
 import 'package:aura/features/fleet/models/fleet_models.dart';
 import 'package:aura/features/fleet/presentation/widgets/fleet_card.dart';
-import 'package:aura/shared/widgets/sage_components.dart';
+import 'package:aura/shared/widgets/aura_components.dart';
 import 'package:aura/features/automate/presentation/widgets/stat_chip.dart';
 
 /// Fleet — pushed over app shell from Automate CTA.
 ///
 /// Platform-wide leaderboard of top-performing bots.
-/// Consistent with Automate screen — SageLabel, SageMetric, bare stats.
+/// Consistent with Automate screen — AuraLabel, AuraMetric, bare stats.
 class FleetScreen extends ConsumerStatefulWidget {
   const FleetScreen({super.key});
 
@@ -29,8 +29,8 @@ class _FleetScreenState extends ConsumerState<FleetScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
 
@@ -71,7 +71,7 @@ class _FleetScreenState extends ConsumerState<FleetScreen> {
           SizedBox(height: 16.h),
 
           // ── Label ──
-          const SageLabel('Fleet'),
+          const AuraLabel('Fleet'),
 
           SizedBox(height: 20.h),
 
@@ -195,7 +195,7 @@ class _FleetScreenState extends ConsumerState<FleetScreen> {
     );
   }
 
-  Widget _buildStatsHero(SageColors c, TextTheme text, FleetStats stats) {
+  Widget _buildStatsHero(AuraColors c, TextTheme text, FleetStats stats) {
     final pnlAbs = stats.totalPnlSol.abs();
     final pnlWhole = pnlAbs.toStringAsFixed(2).split('.')[0];
     final pnlDecimal = '.${pnlAbs.toStringAsFixed(2).split('.')[1]} SOL';
@@ -204,7 +204,7 @@ class _FleetScreenState extends ConsumerState<FleetScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SageMetric(
+        AuraMetric(
           '$pnlPrefix$pnlWhole',
           decimal: pnlDecimal,
           color: stats.totalPnlSol >= 0 ? c.profit : c.loss,
@@ -256,11 +256,11 @@ class _FleetScreenState extends ConsumerState<FleetScreen> {
     );
   }
 
-  Widget _buildStatsPlaceholder(SageColors c, TextTheme text) {
+  Widget _buildStatsPlaceholder(AuraColors c, TextTheme text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SageMetric('…', decimal: ' SOL'),
+        AuraMetric('…', decimal: ' SOL'),
         SizedBox(height: 10.h),
         Text(
           'Loading fleet stats…',
@@ -273,7 +273,7 @@ class _FleetScreenState extends ConsumerState<FleetScreen> {
     );
   }
 
-  Widget _buildEmptyState(SageColors c, TextTheme text) {
+  Widget _buildEmptyState(AuraColors c, TextTheme text) {
     return Padding(
       padding: EdgeInsets.only(top: 60.h),
       child: Center(
@@ -313,7 +313,7 @@ class _SortChip extends StatelessWidget {
   final String label;
   final String value;
   final String current;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
   final VoidCallback onTap;
 

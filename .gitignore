@@ -8,6 +8,10 @@
 .build/
 .buildlog/
 .history
+
+# Secrets — never commit. Use .secrets.example.json as the template.
+.secrets.json
+
 .svn/
 .swiftpm/
 migrate_working_dir/
@@ -43,6 +47,3 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-
-# Internal audit/roadmap (not for public)
-SAGE_AUDIT_ROADMAP.md

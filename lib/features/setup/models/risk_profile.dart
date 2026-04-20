@@ -12,7 +12,7 @@
 
 import 'dart:math' as math;
 
-enum SetupPath { sageAi, custom }
+enum SetupPath { auraAi, custom }
 
 enum RiskProfile { conservative, balanced, aggressive }
 

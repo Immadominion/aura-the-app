@@ -12,7 +12,7 @@ import 'package:aura/features/setup/presentation/widgets/tick_marks.dart';
 class RiskSlider extends StatelessWidget {
   final double value;
   final ValueChanged<double> onChanged;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const RiskSlider({

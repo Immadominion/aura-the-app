@@ -12,7 +12,7 @@ class ChatRepository {
 
   ChatRepository(this._api);
 
-  /// Send a message to Sage AI.
+  /// Send a message to Aura AI.
   /// Returns the AI response and optional strategy params.
   /// [currentParams] sends the user's active strategy so the AI can modify
   /// values incrementally instead of starting from scratch.

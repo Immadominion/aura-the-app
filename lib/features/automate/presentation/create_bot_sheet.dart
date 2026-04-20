@@ -8,11 +8,12 @@ import 'package:aura/core/models/bot.dart';
 import 'package:aura/core/models/strategy.dart';
 import 'package:aura/core/repositories/bot_repository.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/core/theme/app_theme.dart';
 import 'package:aura/core/utils/bot_validators.dart';
 import 'package:aura/features/setup/models/risk_profile.dart';
 import 'package:aura/shared/widgets/deposit_sheet.dart';
-import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
+import 'package:aura/shared/widgets/aura_bottom_sheet.dart';
 
 import 'package:aura/features/automate/presentation/widgets/bot_form_fields.dart';
 import 'package:aura/features/automate/presentation/widgets/strategy_preset_selector.dart';
@@ -22,7 +23,7 @@ import 'package:aura/features/automate/presentation/widgets/strategy_preset_sele
 /// Fields:
 /// - Name (free text)
 /// - Mode (simulation / live)
-/// - Strategy mode (rule-based / sage-ai / both)
+/// - Strategy mode (rule-based / aura-ai / both)
 /// - Position size (SOL)
 /// - Entry threshold (%)
 /// - Max concurrent positions
@@ -160,8 +161,8 @@ class _CreateBotSheetState extends ConsumerState<CreateBotSheet> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) {
-          final c = ctx.sage;
-          final text = ctx.sageText;
+          final c = ctx.aura;
+          final text = ctx.auraText;
           return AlertDialog(
             backgroundColor: c.background,
             shape: RoundedRectangleBorder(
@@ -244,8 +245,8 @@ class _CreateBotSheetState extends ConsumerState<CreateBotSheet> {
         config: {
           'strategyMode': _strategyMode == StrategyMode.ruleBased
               ? 'rule-based'
-              : _strategyMode == StrategyMode.sageAi
-              ? 'sage-ai'
+              : _strategyMode == StrategyMode.auraAi
+              ? 'aura-ai'
               : 'both',
           'positionSizeSOL': _positionSize,
           'entryScoreThreshold': _entryThreshold,
@@ -271,7 +272,7 @@ class _CreateBotSheetState extends ConsumerState<CreateBotSheet> {
       if (mounted && bot.mode == BotMode.live) {
         // Live bot: show deposit sheet so user can fund the wallet immediately
         final recommended = (_positionSize + 0.07) * _maxConcurrent;
-        await SageBottomSheet.show<bool>(
+        await AuraBottomSheet.show<bool>(
           context: context,
           title: 'Fund Your Bot',
           builder: (c, text) => DepositSheet(
@@ -301,16 +302,20 @@ class _CreateBotSheetState extends ConsumerState<CreateBotSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
       padding: EdgeInsets.only(bottom: bottomInset),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: c.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-        border: Border(top: BorderSide(color: c.borderSubtle, width: 1)),
+        shape: ContinuousRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(context.auraRadii.xl),
+          ),
+          side: BorderSide(color: c.borderSubtle, width: 1),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -327,7 +332,7 @@ class _CreateBotSheetState extends ConsumerState<CreateBotSheet> {
                   height: 4.h,
                   decoration: BoxDecoration(
                     color: c.textTertiary.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2.r),
+                    borderRadius: BorderRadius.circular(context.auraRadii.xs),
                   ),
                 ),
               ),
@@ -399,7 +404,7 @@ class _CreateBotSheetState extends ConsumerState<CreateBotSheet> {
                 value: _strategyMode,
                 options: const {
                   StrategyMode.ruleBased: 'Rule-Based',
-                  StrategyMode.sageAi: 'Sage AI',
+                  StrategyMode.auraAi: 'Aura AI',
                   StrategyMode.both: 'Hybrid',
                 },
                 onChanged: (v) => setState(() => _strategyMode = v),
@@ -410,7 +415,7 @@ class _CreateBotSheetState extends ConsumerState<CreateBotSheet> {
                 Padding(
                   padding: EdgeInsets.only(top: 6.h),
                   child: Text(
-                    _strategyMode == StrategyMode.sageAi
+                    _strategyMode == StrategyMode.auraAi
                         ? 'ML model predictions only (XGBoost V3)'
                         : 'Rule-based score × ML confidence',
                     style: text.bodySmall?.copyWith(

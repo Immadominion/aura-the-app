@@ -5,8 +5,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/features/chat/models/chat_models.dart';
-import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
+import 'package:aura/shared/widgets/aura_bottom_sheet.dart';
 
 /// Inline strategy receipt — replaces voice input when AI picks a strategy.
 ///
@@ -18,7 +19,7 @@ class StrategyParamsCard extends StatelessWidget {
   final VoidCallback? onApply;
   final VoidCallback? onDismiss;
   final ValueChanged<StrategyParams>? onParamsChanged;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const StrategyParamsCard({
@@ -34,14 +35,17 @@ class StrategyParamsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entries = _buildEntries();
+    final radii = context.auraRadii;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 8.h),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: c.borderSubtle, width: 1),
-        boxShadow: [
+        shape: ContinuousRectangleBorder(
+          borderRadius: BorderRadius.circular(radii.lg),
+          side: BorderSide(color: c.borderSubtle, width: 1),
+        ),
+        shadows: [
           // Outer lift shadow
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -58,7 +62,7 @@ class StrategyParamsCard extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(context.auraRadii.lg),
         child: CustomPaint(
           painter: _InnerShadowPainter(c: c),
           child: Padding(
@@ -94,7 +98,7 @@ class StrategyParamsCard extends StatelessWidget {
                     if (onDismiss != null) SizedBox(width: 10.w),
 
                     Text(
-                      'SAGE STRATEGY',
+                      'AURA STRATEGY',
                       style: text.labelSmall?.copyWith(
                         color: c.textTertiary,
                         fontWeight: FontWeight.w700,
@@ -185,7 +189,7 @@ class StrategyParamsCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: c.textPrimary,
-                          borderRadius: BorderRadius.circular(999.r),
+                          borderRadius: BorderRadius.circular(context.auraRadii.pill),
                           boxShadow: [
                             BoxShadow(
                               color: c.textPrimary.withValues(alpha: 0.2),
@@ -229,7 +233,7 @@ class StrategyParamsCard extends StatelessWidget {
   void _openEditor(BuildContext context, _ParamEntry entry) {
     HapticFeedback.selectionClick();
 
-    SageBottomSheet.show(
+    AuraBottomSheet.show(
       context: context,
       title: entry.label,
       builder: (c, text) => _ParamEditorContent(
@@ -455,7 +459,7 @@ class StrategyParamsCard extends StatelessWidget {
 
 class _ReceiptRow extends StatelessWidget {
   final _ParamEntry entry;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
   final VoidCallback? onTap;
 
@@ -600,7 +604,7 @@ class _ReceiptWavyDividerPainter extends CustomPainter {
 // ═══════════════════════════════════════════════════════════
 
 class _InnerShadowPainter extends CustomPainter {
-  final SageColors c;
+  final AuraColors c;
   _InnerShadowPainter({required this.c});
 
   @override
@@ -631,14 +635,14 @@ class _InnerShadowPainter extends CustomPainter {
 }
 
 // ═══════════════════════════════════════════════════════════
-// Parameter editor — content inside SageBottomSheet
+// Parameter editor — content inside AuraBottomSheet
 // ═══════════════════════════════════════════════════════════
 
 class _ParamEditorContent extends StatefulWidget {
   final _ParamEntry entry;
   final StrategyParams currentParams;
   final ValueChanged<StrategyParams> onChanged;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const _ParamEditorContent({
@@ -759,7 +763,7 @@ class _ParamEditorContentState extends State<_ParamEditorContent> {
               padding: EdgeInsets.symmetric(vertical: 16.h),
               decoration: BoxDecoration(
                 color: c.accent,
-                borderRadius: BorderRadius.circular(16.r),
+                borderRadius: BorderRadius.circular(context.auraRadii.md),
                 boxShadow: [
                   BoxShadow(
                     color: c.accent.withValues(alpha: 0.25),

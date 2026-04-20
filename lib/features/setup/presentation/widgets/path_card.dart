@@ -3,9 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 
 /// Path card — step 1 selection card for choosing
-/// Sage AI vs Custom Strategy.
+/// Aura AI vs Custom Strategy.
 class PathCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -14,7 +15,7 @@ class PathCard extends StatelessWidget {
   final bool isSelected;
   final bool isRecommended;
   final VoidCallback onTap;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const PathCard({
@@ -38,12 +39,14 @@ class PathCard extends StatelessWidget {
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
         padding: EdgeInsets.all(16.r),
-        decoration: BoxDecoration(
+        decoration: ShapeDecoration(
           color: isSelected ? c.accent.withValues(alpha: 0.08) : c.surface,
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: isSelected ? c.accent.withValues(alpha: 0.4) : c.border,
-            width: isSelected ? 1.5 : 1,
+          shape: ContinuousRectangleBorder(
+            borderRadius: BorderRadius.circular(context.auraRadii.lg),
+            side: BorderSide(
+              color: isSelected ? c.accent.withValues(alpha: 0.4) : c.border,
+              width: isSelected ? 1.5 : 1,
+            ),
           ),
         ),
         child: Column(

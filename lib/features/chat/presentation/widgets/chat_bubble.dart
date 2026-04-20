@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/features/chat/models/chat_models.dart';
 import 'package:aura/shared/utils/simple_markdown.dart';
 
@@ -17,7 +18,7 @@ import 'package:aura/shared/utils/simple_markdown.dart';
 /// Assistant messages: left-aligned, surface-tinted.
 class ChatBubble extends StatelessWidget {
   final ChatMessage message;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   /// 0.0–1.0. Older messages should pass lower values to visually recede.
@@ -89,7 +90,7 @@ class ChatBubble extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: c.accent.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: BorderRadius.circular(context.auraRadii.sm),
                         border: Border.all(
                           color: c.accent.withValues(alpha: 0.3),
                           width: 1,
@@ -129,7 +130,7 @@ class ChatBubble extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 
 class TypingIndicator extends StatefulWidget {
-  final SageColors c;
+  final AuraColors c;
 
   const TypingIndicator({super.key, required this.c});
 

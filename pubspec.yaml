@@ -50,8 +50,7 @@ dependencies:
   gap: ^3.0.1
   rive: ^0.14.3
   audioplayers: ^6.1.0
-  solana_mobile_client:
-    path: ../espresso-cash-public/packages/solana_mobile_client
+  solana_mobile_client: ^0.1.2
   shared_preferences: ^2.3.4
   dio: ^5.9.1
   web_socket_channel: ^3.0.3
@@ -60,14 +59,17 @@ dependencies:
   flutter_client_sse: ^2.0.3
   url_launcher: ^6.3.1
   bs58: ^1.0.2
-  seal_dart:
-    path: ../seal/sdk/seal-dart
   record: ^6.2.0
   path_provider: ^2.1.5
   flutter_local_notifications: ^19.2.1
+  firebase_core: ^4.7.0
+  firebase_messaging: ^16.2.0
   solana: ^0.31.0
-  tld_parser:
-    path: ../tld_parser_dart
+  tld_parser: ^0.1.0
+
+  # Phantom embedded wallet SDK (local)
+  phantom_flutter_sdk:
+    path: ../phantom/phantom_flutter_sdk
 
 dev_dependencies:
   flutter_test:
@@ -90,9 +92,9 @@ dev_dependencies:
 dependency_overrides:
   freezed_annotation: ^2.4.4
 
-# Flutter Launcher Icons — generate app icons from sage-logo.png
+# Flutter Launcher Icons — generate app icons from aura-logo.png
 flutter_launcher_icons:
-  image_path: "assets/images/sage-logo.png"
+  image_path: "assets/images/aura-logo.png"
   android: true
   ios: true
   remove_alpha_ios: true

@@ -6,12 +6,13 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/config/live_trading_flags.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/features/setup/models/risk_profile.dart';
 import 'package:aura/features/setup/presentation/widgets/path_card.dart';
 import 'package:aura/features/setup/presentation/widgets/step_indicator.dart';
-import 'package:aura/shared/widgets/sage_button.dart';
+import 'package:aura/shared/widgets/aura_button.dart';
 
-/// Step 1 — Choose path (Sage AI / Custom) + execution mode radio.
+/// Step 1 — Choose path (Aura AI / Custom) + execution mode radio.
 class PathStep extends StatelessWidget {
   final SetupPath? selected;
   final ValueChanged<SetupPath> onSelect;
@@ -20,7 +21,7 @@ class PathStep extends StatelessWidget {
   final VoidCallback onNext;
   final VoidCallback? onSkip;
   final VoidCallback? onClose;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   /// Optional name input — shown when creating a new strategy (not during
@@ -95,7 +96,7 @@ class PathStep extends StatelessWidget {
 
                   // ── Headline ──
                   Text(
-                        'How should Sage\nwork for you?',
+                        'How should Aura\nwork for you?',
                         style: text.headlineLarge,
                       )
                       .animate()
@@ -124,15 +125,15 @@ class PathStep extends StatelessWidget {
                         filled: true,
                         fillColor: c.surface,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.r),
+                          borderRadius: BorderRadius.circular(context.auraRadii.md),
                           borderSide: BorderSide.none,
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.r),
+                          borderRadius: BorderRadius.circular(context.auraRadii.md),
                           borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.r),
+                          borderRadius: BorderRadius.circular(context.auraRadii.md),
                           borderSide: BorderSide(color: c.accent, width: 1),
                         ),
                         contentPadding: EdgeInsets.symmetric(
@@ -157,17 +158,17 @@ class PathStep extends StatelessWidget {
 
                   SizedBox(height: 24.h),
 
-                  // ── Sage AI card ──
+                  // ── Aura AI card ──
                   PathCard(
                         icon: PhosphorIconsBold.sparkle,
-                        title: 'Sage AI',
+                        title: 'Aura AI',
                         subtitle: 'Delegate to intelligence',
                         description:
                             'ML-powered LP positions on Meteora. '
-                            'Set your limits — Sage finds the opportunities.',
-                        isSelected: selected == SetupPath.sageAi,
+                            'Set your limits — Aura finds the opportunities.',
+                        isSelected: selected == SetupPath.auraAi,
                         isRecommended: true,
-                        onTap: () => onSelect(SetupPath.sageAi),
+                        onTap: () => onSelect(SetupPath.auraAi),
                         c: c,
                         text: text,
                       )
@@ -288,7 +289,7 @@ class PathStep extends StatelessWidget {
                   SizedBox(height: 14.h),
 
                   // ── Continue ──
-                  SageButton(
+                  AuraButton(
                     label: 'Continue',
                     onPressed: onNext,
                     enabled: selected != null,
@@ -336,7 +337,7 @@ class _StatusPill extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final bool enabled;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const _StatusPill({
@@ -370,7 +371,7 @@ class _StatusPill extends StatelessWidget {
               : enabled
               ? Colors.transparent
               : c.surface,
-          borderRadius: BorderRadius.circular(100.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.pill),
           border: Border.all(
             color: isSelected ? activeBorderColor : c.borderSubtle,
             width: 1.5,

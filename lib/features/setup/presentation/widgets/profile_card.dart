@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/features/setup/models/risk_profile.dart';
 
 /// Profile card — feature list for the selected risk plan.
@@ -14,7 +15,7 @@ class ProfileCard extends StatelessWidget {
   final RiskProfile risk;
   final double profitTarget;
   final double stopLoss;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const ProfileCard({
@@ -75,7 +76,7 @@ class ProfileCard extends StatelessWidget {
         padding: EdgeInsets.all(16.r),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.lg),
           border: Border.all(color: c.borderSubtle),
         ),
         child: Column(
@@ -111,7 +112,7 @@ class ProfileCard extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
                     color: c.profit.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20.r),
+                    borderRadius: BorderRadius.circular(context.auraRadii.lg),
                   ),
                   child: Text(
                     'SIM',

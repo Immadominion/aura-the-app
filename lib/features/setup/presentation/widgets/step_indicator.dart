@@ -7,7 +7,7 @@ import 'package:aura/core/theme/app_colors.dart';
 class StepIndicator extends StatelessWidget {
   final int current;
   final int total;
-  final SageColors c;
+  final AuraColors c;
 
   const StepIndicator({
     super.key,

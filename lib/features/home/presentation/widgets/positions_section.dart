@@ -6,6 +6,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/repositories/position_repository.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/core/theme/app_theme.dart';
 
 /// Active positions section — fetched from /position/active endpoint.
@@ -14,8 +15,8 @@ class PositionsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
 
     final posAsync = ref.watch(activePositionsProvider);
 
@@ -82,7 +83,9 @@ class PositionsSection extends ConsumerWidget {
                     padding: EdgeInsets.all(14.w),
                     decoration: BoxDecoration(
                       color: c.panelBorder.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(
+                        context.auraRadii.md,
+                      ),
                     ),
                     child: Row(
                       children: [

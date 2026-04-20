@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/features/setup/presentation/widgets/arrow_thumb_shape.dart';
 import 'package:aura/features/setup/presentation/widgets/tick_marks.dart';
 
@@ -18,7 +19,7 @@ class TuneSlider extends StatelessWidget {
   final String unit;
   final String Function(double) format;
   final ValueChanged<double> onChanged;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const TuneSlider({
@@ -59,7 +60,7 @@ class TuneSlider extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
               decoration: BoxDecoration(
                 color: c.accent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6.r),
+                borderRadius: BorderRadius.circular(context.auraRadii.xs),
               ),
               child: Text(
                 '${format(value)} $unit',

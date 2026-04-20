@@ -1,4 +1,4 @@
-/// Chat message model for Sage AI conversations.
+/// Chat message model for Aura AI conversations.
 class ChatMessage {
   final String role; // "user" or "assistant"
   final String content;
@@ -151,25 +151,45 @@ class StrategyParams {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
-    if (entryScoreThreshold != null)
+    if (entryScoreThreshold != null) {
       map['entryScoreThreshold'] = entryScoreThreshold;
-    if (minVolume24h != null) map['minVolume24h'] = minVolume24h;
-    if (minLiquidity != null) map['minLiquidity'] = minLiquidity;
-    if (maxLiquidity != null) map['maxLiquidity'] = maxLiquidity;
-    if (positionSizeSOL != null) map['positionSizeSOL'] = positionSizeSOL;
+    }
+    if (minVolume24h != null) {
+      map['minVolume24h'] = minVolume24h;
+    }
+    if (minLiquidity != null) {
+      map['minLiquidity'] = minLiquidity;
+    }
+    if (maxLiquidity != null) {
+      map['maxLiquidity'] = maxLiquidity;
+    }
+    if (positionSizeSOL != null) {
+      map['positionSizeSOL'] = positionSizeSOL;
+    }
     if (simulationBalanceSOL != null) {
       map['simulationBalanceSOL'] = simulationBalanceSOL;
     }
-    if (maxConcurrentPositions != null)
+    if (maxConcurrentPositions != null) {
       map['maxConcurrentPositions'] = maxConcurrentPositions;
-    if (defaultBinRange != null) map['defaultBinRange'] = defaultBinRange;
-    if (profitTargetPercent != null)
+    }
+    if (defaultBinRange != null) {
+      map['defaultBinRange'] = defaultBinRange;
+    }
+    if (profitTargetPercent != null) {
       map['profitTargetPercent'] = profitTargetPercent;
-    if (stopLossPercent != null) map['stopLossPercent'] = stopLossPercent;
-    if (maxHoldTimeMinutes != null)
+    }
+    if (stopLossPercent != null) {
+      map['stopLossPercent'] = stopLossPercent;
+    }
+    if (maxHoldTimeMinutes != null) {
       map['maxHoldTimeMinutes'] = maxHoldTimeMinutes;
-    if (maxDailyLossSOL != null) map['maxDailyLossSOL'] = maxDailyLossSOL;
-    if (cooldownMinutes != null) map['cooldownMinutes'] = cooldownMinutes;
+    }
+    if (maxDailyLossSOL != null) {
+      map['maxDailyLossSOL'] = maxDailyLossSOL;
+    }
+    if (cooldownMinutes != null) {
+      map['cooldownMinutes'] = cooldownMinutes;
+    }
     return map;
   }
 }

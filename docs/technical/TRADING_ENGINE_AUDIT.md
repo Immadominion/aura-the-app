@@ -1,7 +1,7 @@
 # Trading Engine Audit — Fix Tiers
 
 > **Date**: April 11, 2026
-> **Scope**: sage-backend trading engine, simulation math, ML pipeline, wallet architecture
+> **Scope**: -backend trading engine, simulation math, ML pipeline, wallet architecture
 > **Context**: Deep audit of how profit targets flow through the system, simulation accuracy vs real DLMM, and what makes the bot actually smart.
 
 ---

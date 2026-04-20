@@ -11,14 +11,14 @@ import 'package:aura/core/theme/app_theme.dart';
 /// Position History — Layer 4: Forensics.
 ///
 /// Shows closed positions with PnL, exit reason, and hold duration.
-/// Redesigned to match Sage dark canvas design language.
+/// Redesigned to match Aura dark canvas design language.
 class PositionHistoryScreen extends ConsumerWidget {
   const PositionHistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
 
@@ -338,7 +338,7 @@ class _StatChip extends StatelessWidget {
   final String label;
   final String value;
   final Color? valueColor;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const _StatChip({

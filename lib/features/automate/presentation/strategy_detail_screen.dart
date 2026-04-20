@@ -15,6 +15,7 @@ import 'package:aura/core/repositories/bot_repository.dart';
 import 'package:aura/core/repositories/wallet_repository.dart';
 import 'package:aura/core/services/event_service.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/core/theme/app_theme.dart';
 
 import 'package:aura/features/automate/presentation/widgets/stat_chip.dart';
@@ -23,7 +24,7 @@ import 'package:aura/features/automate/presentation/widgets/param_row.dart';
 import 'package:aura/features/automate/presentation/widgets/pulsing_dot.dart';
 import 'package:aura/features/automate/presentation/widgets/edit_config_sheet.dart';
 import 'package:aura/shared/widgets/mwa_button_tap_effect.dart';
-import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
+import 'package:aura/shared/widgets/aura_bottom_sheet.dart';
 import 'package:aura/shared/widgets/withdraw_sheet.dart';
 import 'package:aura/shared/widgets/deposit_sheet.dart';
 
@@ -120,14 +121,14 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
     final botAsync = ref.read(botDetailProvider(widget.botId));
     final isLiveBot = botAsync.value?.mode == BotMode.live;
 
-    // Confirm with bottom sheet — matches Sage design language
+    // Confirm with bottom sheet — matches Aura design language
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        final c = ctx.sage;
-        final text = ctx.sageText;
+        final c = ctx.aura;
+        final text = ctx.auraText;
         return Container(
           decoration: BoxDecoration(
             color: c.surface,
@@ -331,8 +332,8 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        final c = ctx.sage;
-        final text = ctx.sageText;
+        final c = ctx.aura;
+        final text = ctx.auraText;
         final hasPositions = bot.livePositions.isNotEmpty;
         return Container(
           decoration: BoxDecoration(
@@ -526,7 +527,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
     }
   }
 
-  /// Show a bottom sheet to fund the Seal wallet (live bots only).
+  /// Show a bottom sheet to fund the bot wallet (live bots only).
   Future<void> _showFundSheet(Bot bot) async {
     if (bot.mode != BotMode.live) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -546,7 +547,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
     final recommended =
         (bot.positionSizeSOL + 0.07) * bot.maxConcurrentPositions;
 
-    final success = await SageBottomSheet.show<bool>(
+    final success = await AuraBottomSheet.show<bool>(
       context: context,
       title: 'Fund Wallet',
       builder: (c, text) => DepositSheet(
@@ -564,7 +565,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
     }
   }
 
-  /// Show withdraw bottom sheet — pull SOL from Sage wallet back to user.
+  /// Show withdraw bottom sheet — pull SOL from Aura wallet back to user.
   Future<void> _showWithdrawSheet() async {
     if (!kLiveTradingEnabled) {
       _showLiveTradingUnavailableSnackBar(context);
@@ -597,7 +598,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
     }
 
     if (!mounted) return;
-    final success = await SageBottomSheet.show<bool>(
+    final success = await AuraBottomSheet.show<bool>(
       context: context,
       title: 'Withdraw',
       builder: (c, text) => WithdrawSheet(
@@ -634,8 +635,8 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
-        final c = ctx.sage;
-        final text = ctx.sageText;
+        final c = ctx.aura;
+        final text = ctx.auraText;
         return AlertDialog(
           backgroundColor: c.background,
           shape: RoundedRectangleBorder(
@@ -708,7 +709,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
       // Show deposit sheet so user can fund the new live wallet
       final recommended =
           (updated.positionSizeSOL + 0.07) * updated.maxConcurrentPositions;
-      await SageBottomSheet.show<bool>(
+      await AuraBottomSheet.show<bool>(
         context: context,
         title: 'Fund Your Bot',
         builder: (c, text) => DepositSheet(
@@ -735,8 +736,8 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     final botAsync = ref.watch(botDetailProvider(widget.botId));
 
     // Listen to SSE events — auto-refresh when this bot's state changes
@@ -822,7 +823,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
     );
   }
 
-  Widget _buildError(SageColors c, TextTheme text, Object err) {
+  Widget _buildError(AuraColors c, TextTheme text, Object err) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -851,7 +852,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
 
   Widget _buildBody(
     BuildContext context,
-    SageColors c,
+    AuraColors c,
     TextTheme text,
     Bot bot,
   ) {
@@ -893,8 +894,8 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
     // Strategy mode label
     final strategyLabel = bot.strategyMode == StrategyMode.ruleBased
         ? 'Rule-Based'
-        : bot.strategyMode == StrategyMode.sageAi
-        ? 'Sage AI'
+        : bot.strategyMode == StrategyMode.auraAi
+        ? 'Aura AI'
         : 'Hybrid';
 
     // Engine stats
@@ -904,7 +905,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
     final posClosed = stats?.positionsClosed ?? 0;
     final waitingForMlEntry =
         bot.engineRunning &&
-        bot.strategyMode == StrategyMode.sageAi &&
+        bot.strategyMode == StrategyMode.auraAi &&
         posOpened == 0 &&
         totalScans > 0 &&
         bot.lastError == null;
@@ -1286,6 +1287,56 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
                     ),
                   ),
 
+                  // ── PnL sparkline placeholder (audit §5.7) ──
+                  // Deferred: backend doesn't expose a daily PnL series yet.
+                  // When `/bot/:id/pnl-history` lands, drop a sparkline here
+                  // (single line, semantic colour, ~24 px tall).
+
+                  SizedBox(height: 28.h),
+
+                  // ── Strategy Shape mini-card (audit §5.7) ──
+                  // Symbolic preview of this bot's bin distribution — lets
+                  // the operator see the configured shape at a glance.
+                  Text(
+                    'STRATEGY SHAPE',
+                    style: text.titleSmall?.copyWith(
+                      fontSize: 10.sp,
+                      letterSpacing: 1.5,
+                      color: c.textTertiary,
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  _StrategyShapeCard(
+                    binRange: bot.defaultBinRange,
+                    c: c,
+                    text: text,
+                  ),
+
+                  // ── PnL sparkline placeholder (audit §5.7) ──
+                  // Deferred: backend doesn't expose a daily PnL series yet.
+                  // When `/bot/:id/pnl-history` lands, drop a sparkline here
+                  // (single line, semantic colour, ~24 px tall).
+
+                  SizedBox(height: 28.h),
+
+                  // ── Strategy Shape mini-card (audit §5.7) ──
+                  // Symbolic preview of this bot's bin distribution — lets
+                  // the operator see the configured shape at a glance.
+                  Text(
+                    'STRATEGY SHAPE',
+                    style: text.titleSmall?.copyWith(
+                      fontSize: 10.sp,
+                      letterSpacing: 1.5,
+                      color: c.textTertiary,
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  _StrategyShapeCard(
+                    binRange: bot.defaultBinRange,
+                    c: c,
+                    text: text,
+                  ),
+
                   SizedBox(height: 28.h),
 
                   // ── Engine Stats (if running) ──
@@ -1374,6 +1425,28 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
                         ],
                       ),
                     ),
+                    SizedBox(height: 10.h),
+                    GestureDetector(
+                      onTap: () => context.push('/decisions/${bot.botId}'),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'View Decision Log',
+                            style: text.bodySmall?.copyWith(
+                              color: c.accent,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(width: 4.w),
+                          Icon(
+                            PhosphorIconsBold.arrowRight,
+                            size: 14.sp,
+                            color: c.accent,
+                          ),
+                        ],
+                      ),
+                    ),
                     SizedBox(height: 24.h),
                   ],
 
@@ -1390,7 +1463,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
                     label: 'Entry Threshold',
                     value: '${bot.entryScoreThreshold.toStringAsFixed(0)}%',
                   ),
-                  if (bot.strategyMode == StrategyMode.sageAi ||
+                  if (bot.strategyMode == StrategyMode.auraAi ||
                       bot.strategyMode == StrategyMode.both) ...[
                     Divider(height: 1, color: c.borderSubtle),
                     ParamRow(label: 'ML Threshold', value: mlThresholdLabel),
@@ -1445,7 +1518,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
                       width: double.infinity,
                       padding: EdgeInsets.all(12.w),
                       child: Text(
-                        'Sage AI is scanning normally, but no pool has cleared the $mlThresholdLabel ML threshold yet. The bot will stay in cash until a stronger setup appears.',
+                        'Aura AI is scanning normally, but no pool has cleared the $mlThresholdLabel ML threshold yet. The bot will stay in cash until a stronger setup appears.',
                         style: text.bodySmall?.copyWith(
                           color: c.textSecondary,
                           fontSize: 12.sp,
@@ -1490,7 +1563,7 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
                       ),
                   ],
 
-                  // ── Seal Session Status (live mode only) ──
+                  // ── Bot Wallet Status (live mode only) ──
                   if (bot.mode == BotMode.live && !kLiveTradingEnabled) ...[
                     SizedBox(height: 28.h),
                     Container(
@@ -1529,10 +1602,10 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Seal Status Banner (read-only)
+// Bot Wallet Status Banner (read-only)
 // ═══════════════════════════════════════════════════════════════
 
-/// Lightweight read-only banner showing Seal session status for live bots.
+/// Lightweight read-only banner showing wallet status for live bots.
 /// Agent + session are now auto-created during bot deployment — no manual
 /// Wallet section for live bots — shows address, balance, deposit/withdraw.
 class _WalletSection extends ConsumerWidget {
@@ -1548,8 +1621,8 @@ class _WalletSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sage;
-    final text = context.sageText;
+    final c = context.aura;
+    final text = context.auraText;
     final addr = bot.walletAddress ?? '';
     final shortAddr = addr.length > 8
         ? '${addr.substring(0, 4)}...${addr.substring(addr.length - 4)}'
@@ -1625,7 +1698,7 @@ class _WalletSection extends ConsumerWidget {
                   color: c.textTertiary,
                 ),
               ),
-              error: (_, __) => GestureDetector(
+              error: (_, _) => GestureDetector(
                 onTap: () => ref.invalidate(walletBalanceProvider(bot.botId)),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1732,4 +1805,139 @@ class _WalletSection extends ConsumerWidget {
       ],
     );
   }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Phase 11 (audit §5.7) — Strategy Shape mini-card
+// ══════════════════════════════════════════════════════════════════
+
+class _StrategyShapeCard extends StatelessWidget {
+  final int binRange;
+  final AuraColors c;
+  final TextTheme text;
+
+  const _StrategyShapeCard({
+    required this.binRange,
+    required this.c,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 14.h),
+      decoration: ShapeDecoration(
+        color: c.surface,
+        shape: ContinuousRectangleBorder(
+          borderRadius: BorderRadius.circular(context.auraRadii.lg),
+          side: BorderSide(color: c.borderSubtle),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Bin range ±$binRange',
+                style: text.titleMedium?.copyWith(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w700,
+                  color: c.textPrimary,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'Concentrated liquidity',
+                style: text.labelSmall?.copyWith(
+                  fontSize: 11.sp,
+                  color: c.textTertiary,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          SizedBox(
+            height: 48.h,
+            child: CustomPaint(
+              size: Size.infinite,
+              painter: _StrategyShapePainter(
+                binRange: binRange,
+                shadeColor: c.accent.withValues(alpha: 0.18),
+                binColor: c.borderSubtle,
+                centerColor: c.accent,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StrategyShapePainter extends CustomPainter {
+  final int binRange;
+  final Color shadeColor;
+  final Color binColor;
+  final Color centerColor;
+
+  _StrategyShapePainter({
+    required this.binRange,
+    required this.shadeColor,
+    required this.binColor,
+    required this.centerColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final windowBins = binRange.clamp(2, 60);
+    final totalBins = (windowBins * 2 + windowBins).clamp(8, 120);
+    final binW = size.width / totalBins;
+    final centerX = size.width / 2;
+    final midY = size.height / 2;
+    final maxBarH = size.height * 0.85;
+
+    final shadeRect = Rect.fromLTWH(
+      centerX - windowBins * binW,
+      0,
+      windowBins * 2 * binW,
+      size.height,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(shadeRect, const Radius.circular(4)),
+      Paint()..color = shadeColor,
+    );
+
+    final binPaint = Paint()
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < totalBins; i++) {
+      final x = (i + 0.5) * binW;
+      final binIndex = i - totalBins ~/ 2;
+      final inside = binIndex.abs() <= windowBins;
+      final h = inside
+          ? maxBarH * (1 - binIndex.abs() / (windowBins + 1))
+          : maxBarH * 0.18;
+      binPaint.color = inside
+          ? centerColor.withValues(alpha: 0.55)
+          : binColor;
+      canvas.drawLine(
+        Offset(x, midY - h / 2),
+        Offset(x, midY + h / 2),
+        binPaint,
+      );
+    }
+
+    canvas.drawLine(
+      Offset(centerX, 0),
+      Offset(centerX, size.height),
+      Paint()
+        ..color = centerColor
+        ..strokeWidth = 1.5,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _StrategyShapePainter old) =>
+      old.binRange != binRange || old.centerColor != centerColor;
 }

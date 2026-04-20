@@ -37,10 +37,7 @@ class WalletRepository {
   }) async {
     final response = await _api.post(
       '/wallet/withdraw/$botId',
-      data: {
-        'amountSOL': amountSOL,
-        if (destination != null) 'destination': destination,
-      },
+      data: {'amountSOL': amountSOL, 'destination': ?destination},
     );
     return WithdrawalResult.fromJson(response.data as Map<String, dynamic>);
   }

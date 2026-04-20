@@ -4,70 +4,104 @@ import 'package:bs58/bs58.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:seal_dart/sentinel_dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user.dart';
 import '../config/env_config.dart';
 import 'api_client.dart';
 import 'mwa_wallet_service.dart';
+import 'phantom_wallet_service.dart';
+import 'push_notification_service.dart';
 
 /// SIWS (Sign-In With Solana) authentication service.
 ///
-/// Uses the Seal SDK's [SiwsService] for MWA + SIWS orchestration.
-/// All HTTP calls happen while Sage is in the foreground — the MWA
-/// phase is network-free, solving Seeker's background networking issue.
+/// Uses [MwaWalletService.connectAndSign] for single-session MWA + SIWS
+/// orchestration. All HTTP calls happen while Aura is in the foreground —
+/// the MWA phase is network-free, solving Seeker's background networking
+/// issue.
 ///
 /// Flow:
-///   Phase 1 (foreground): POST /auth/nonce → get nonce
-///   Phase 2 (MWA):        authorize + build message + sign (no HTTP)
+///   Phase 1 (foreground): POST /auth/nonce → get nonce + issuedAt
+///   Phase 2 (MWA):        authorize + build SIWS message + sign (no HTTP)
 ///   Phase 3 (foreground):  POST /auth/verify → get JWT tokens
 class AuthService {
   final ApiClient _api;
-  final SiwsService _siws;
+  final MwaWalletService _mwa;
+  final PhantomWalletService _phantom;
 
   static const _cachedUserKey = 'cached_user_json';
 
-  AuthService({required ApiClient api, required SiwsService siws})
-    : _api = api,
-      _siws = siws;
+  AuthService({
+    required ApiClient api,
+    required MwaWalletService mwa,
+    required PhantomWalletService phantom,
+  })  : _api = api,
+        _mwa = mwa,
+        _phantom = phantom;
 
   /// Connected wallet address (from last successful sign-in).
-  String? get walletAddress => _siws.walletAddress;
+  String? get walletAddress => _mwa.publicKey ?? _phantom.walletAddress;
 
   /// MWA auth token from last SIWS sign-in (for transaction signing).
-  String? get mwaAuthToken => _siws.mwaAuthToken;
+  String? get mwaAuthToken => _mwa.authToken;
 
-  /// Full SIWS auth flow via Seal SDK.
+  /// Build a SIWS message matching the backend's expected format.
+  static String _buildSiwsMessage(
+    String walletAddress,
+    String nonce,
+    String issuedAt,
+  ) {
+    final chainId = EnvConfig.solanaNetwork == 'mainnet-beta'
+        ? 'mainnet'
+        : EnvConfig.solanaNetwork;
+    return [
+      'useaura.wtf wants you to sign in with your Solana account:',
+      walletAddress,
+      '',
+      'Sign in to Aura — your autonomous LP trading agent.',
+      '',
+      'URI: https://useaura.wtf',
+      'Version: 1',
+      'Chain ID: $chainId',
+      'Nonce: $nonce',
+      'Issued At: $issuedAt',
+    ].join('\n');
+  }
+
+  /// Full SIWS auth flow using MWA directly.
   ///
   /// 1. Fetches a server nonce **before** opening MWA (foreground).
   /// 2. MWA session: authorize → build SIWS message locally → sign.
   /// 3. Verifies signature **after** MWA closes (foreground).
   Future<User> signIn() async {
-    final result = await _siws.signIn<Map<String, dynamic>>(
-      fetchNonce: () async {
-        debugPrint('[Auth] Phase 1: fetching nonce (foreground)');
-        final response = await _api.post('/auth/nonce', data: {});
-        final data = response.data as Map<String, dynamic>;
-        final nonce = data['nonce'] as String;
-        debugPrint('[Auth] Got nonce: ${nonce.substring(0, 8)}...');
-        return nonce;
-      },
-      verify: (payload) async {
-        debugPrint('[Auth] Phase 3: verifying signature (foreground)');
-        final response = await _api.post(
-          '/auth/verify',
-          data: {
-            'walletAddress': payload.walletAddress,
-            'signature': base58.encode(payload.signatureBytes),
-            'message': payload.message,
-          },
-        );
-        return response.data as Map<String, dynamic>;
+    // Phase 1: fetch nonce from backend (no wallet address needed).
+    debugPrint('[Auth] Phase 1: fetching nonce (foreground)');
+    final nonceResponse = await _api.post('/auth/nonce', data: {});
+    final nonceData = nonceResponse.data as Map<String, dynamic>;
+    final nonce = nonceData['nonce'] as String;
+    final issuedAt = nonceData['issuedAt'] as String;
+    debugPrint('[Auth] Got nonce: ${nonce.substring(0, 8)}...');
+
+    // Phase 2: single MWA session — authorize + sign SIWS message.
+    late String siwsMessage;
+    final siwsResult = await _mwa.connectAndSign(
+      getMessageToSign: (walletAddress) async {
+        siwsMessage = _buildSiwsMessage(walletAddress, nonce, issuedAt);
+        return Uint8List.fromList(utf8.encode(siwsMessage));
       },
     );
 
-    final verifyData = result.serverData;
+    // Phase 3: verify signature with backend.
+    debugPrint('[Auth] Phase 3: verifying signature (foreground)');
+    final verifyResponse = await _api.post(
+      '/auth/verify',
+      data: {
+        'walletAddress': siwsResult.publicKey,
+        'signature': base58.encode(siwsResult.signature),
+        'message': siwsMessage,
+      },
+    );
+    final verifyData = verifyResponse.data as Map<String, dynamic>;
 
     // Store JWT tokens.
     await _api.setTokens(
@@ -75,7 +109,13 @@ class AuthService {
       refreshToken: verifyData['refreshToken'] as String,
     );
 
-    debugPrint('[Auth] Authenticated as ${result.walletAddress}');
+    // Persist MWA auth token for transaction signing.
+    await _mwa.setAuthToken(
+      siwsResult.authToken,
+      publicKey: siwsResult.publicKey,
+    );
+
+    debugPrint('[Auth] Authenticated as ${siwsResult.publicKey}');
     final userJson = verifyData['user'];
     User user;
     if (userJson is Map<String, dynamic>) {
@@ -87,6 +127,67 @@ class AuthService {
     // Cache user for offline resilience.
     await _cacheUser(user);
 
+    return user;
+  }
+
+  /// SIWS auth flow via Phantom embedded wallet (social login).
+  ///
+  /// [authProvider] is `'google'` or `'apple'`.
+  ///
+  /// Flow:
+  ///   1. Connect embedded wallet via social OAuth.
+  ///   2. Fetch nonce from backend.
+  ///   3. Build SIWS message and sign with embedded wallet's Ed25519 key.
+  ///   4. Verify signature with backend → JWT.
+  Future<User> signInWithPhantom(String authProvider) async {
+    // Step 1: Connect embedded wallet (opens OAuth browser flow).
+    debugPrint('[Auth] Phantom: connecting via $authProvider');
+    final connectResult = await _phantom.connect(authProvider);
+    final walletAddress = connectResult.walletAddress;
+    debugPrint('[Auth] Phantom: connected, wallet=$walletAddress');
+
+    // Step 2: Fetch nonce from backend.
+    debugPrint('[Auth] Phantom: fetching nonce');
+    final nonceResponse = await _api.post('/auth/nonce', data: {
+      'walletAddress': walletAddress,
+    });
+    final nonceData = nonceResponse.data as Map<String, dynamic>;
+    final nonce = nonceData['nonce'] as String;
+    final issuedAt = nonceData['issuedAt'] as String;
+
+    // Step 3: Build SIWS message and sign with embedded wallet.
+    final siwsMessage = _buildSiwsMessage(walletAddress, nonce, issuedAt);
+    debugPrint('[Auth] Phantom: signing SIWS message');
+    final signature = await _phantom.signMessage(siwsMessage);
+
+    // Step 4: Verify with backend.
+    debugPrint('[Auth] Phantom: verifying signature');
+    final verifyResponse = await _api.post(
+      '/auth/verify',
+      data: {
+        'walletAddress': walletAddress,
+        'signature': signature,
+        'message': siwsMessage,
+      },
+    );
+    final verifyData = verifyResponse.data as Map<String, dynamic>;
+
+    // Store JWT tokens.
+    await _api.setTokens(
+      accessToken: verifyData['accessToken'] as String,
+      refreshToken: verifyData['refreshToken'] as String,
+    );
+
+    debugPrint('[Auth] Phantom: authenticated as $walletAddress');
+    final userJson = verifyData['user'];
+    User user;
+    if (userJson is Map<String, dynamic>) {
+      user = User.fromJson(userJson);
+    } else {
+      user = await getCurrentUser();
+    }
+
+    await _cacheUser(user);
     return user;
   }
 
@@ -103,7 +204,6 @@ class AuthService {
   /// Sign out — clear tokens and cached user.
   Future<void> signOut() async {
     await _api.clearTokens();
-    _siws.disconnect();
     await _clearCachedUser();
   }
 
@@ -223,20 +323,12 @@ class AuthException implements Exception {
   String toString() => 'AuthException: $message';
 }
 
-/// Seal SIWS service provider.
-///
-/// Uses [SiwsConfig.sage] (mainnet) in production, and
-/// [SiwsConfig.sageDev] (devnet) in development/staging.
-final siwsServiceProvider = Provider<SiwsService>((ref) {
-  final config = EnvConfig.isProduction ? SiwsConfig.sage : SiwsConfig.sageDev;
-  return SiwsService(config: config);
-});
-
 /// AuthService Riverpod provider.
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(
     api: ref.read(apiClientProvider),
-    siws: ref.read(siwsServiceProvider),
+    mwa: ref.read(mwaWalletServiceProvider),
+    phantom: ref.read(phantomWalletServiceProvider),
   );
 });
 
@@ -256,6 +348,11 @@ final connectedWalletAddressProvider = Provider<String?>((ref) {
   final auth = ref.read(authServiceProvider);
   if (auth.walletAddress != null && auth.walletAddress!.isNotEmpty) {
     return auth.walletAddress;
+  }
+
+  final phantom = ref.read(phantomWalletServiceProvider);
+  if (phantom.walletAddress != null && phantom.walletAddress!.isNotEmpty) {
+    return phantom.walletAddress;
   }
 
   final mwa = ref.read(mwaWalletServiceProvider);
@@ -280,16 +377,19 @@ class AuthNotifier extends AsyncNotifier<User?> {
     state = const AsyncValue.loading();
     try {
       final user = await auth.signIn();
+      state = AsyncValue.data(user);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
+    }
+  }
 
-      // Sync MWA auth token from SiwsService → MwaWalletService so
-      // subsequent signAndSendTransactions calls work (e.g. Activate).
-      final mwaAuthToken = auth.mwaAuthToken;
-      final walletAddress = auth.walletAddress;
-      if (mwaAuthToken != null) {
-        final mwa = ref.read(mwaWalletServiceProvider);
-        await mwa.setAuthToken(mwaAuthToken, publicKey: walletAddress);
-      }
-
+  /// Sign in via Phantom embedded wallet (Google / Apple social login).
+  Future<void> signInWithPhantom(String authProvider) async {
+    final auth = ref.read(authServiceProvider);
+    state = const AsyncValue.loading();
+    try {
+      final user = await auth.signInWithPhantom(authProvider);
       state = AsyncValue.data(user);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -301,9 +401,17 @@ class AuthNotifier extends AsyncNotifier<User?> {
     final auth = ref.read(authServiceProvider);
     await auth.signOut();
 
+    // Unregister FCM device token so the server stops sending pushes.
+    final push = ref.read(pushNotificationServiceProvider);
+    await push.unregister();
+
     // Clear MWA auth token.
     final mwa = ref.read(mwaWalletServiceProvider);
     await mwa.disconnect();
+
+    // Clear Phantom embedded wallet session.
+    final phantom = ref.read(phantomWalletServiceProvider);
+    await phantom.disconnect();
 
     state = const AsyncValue.data(null);
   }

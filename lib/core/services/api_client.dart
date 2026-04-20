@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../config/env_config.dart';
 
-/// Central Dio-based HTTP client for the Sage backend.
+/// Central Dio-based HTTP client for the Aura backend.
 ///
 /// Handles:
 /// - Base URL configuration via EnvConfig (dev/staging/prod)

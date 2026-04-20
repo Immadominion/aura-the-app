@@ -18,7 +18,7 @@ class ModeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
+    final c = context.aura;
 
     final icons = [
       PhosphorIconsBold.stack,

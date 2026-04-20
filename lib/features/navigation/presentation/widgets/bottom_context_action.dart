@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 
 /// Floating action button at the bottom of the app shell.
 ///
@@ -21,7 +22,7 @@ class BottomContextAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sage;
+    final c = context.aura;
     final text = Theme.of(context).textTheme;
     final isAutomate = currentIndex == 2;
     final showPill = isAutomate;
@@ -47,7 +48,7 @@ class BottomContextAction extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: showPill ? 18.w : 0),
         decoration: BoxDecoration(
           color: c.textPrimary,
-          borderRadius: BorderRadius.circular(999.r),
+          borderRadius: BorderRadius.circular(context.auraRadii.pill),
           boxShadow: [
             BoxShadow(
               color: c.overlay,

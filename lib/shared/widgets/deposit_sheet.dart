@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +11,8 @@ import 'package:aura/core/repositories/wallet_repository.dart';
 import 'package:aura/core/services/auth_service.dart';
 import 'package:aura/core/services/mwa_wallet_service.dart';
 import 'package:aura/core/theme/app_colors.dart';
-import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
+import 'package:aura/core/theme/app_radii.dart';
+import 'package:aura/shared/widgets/aura_bottom_sheet.dart';
 
 /// Deposit SOL into a bot's wallet from the user's connected wallet.
 ///
@@ -20,7 +20,7 @@ import 'package:aura/shared/widgets/sage_bottom_sheet.dart';
 /// which the user signs via MWA. No server-side key access needed.
 ///
 /// ```dart
-/// SageBottomSheet.show<bool>(
+/// AuraBottomSheet.show<bool>(
 ///   context: context,
 ///   title: 'Fund Wallet',
 ///   builder: (c, text) => DepositSheet(
@@ -45,7 +45,7 @@ class DepositSheet extends ConsumerStatefulWidget {
   /// Maximum allowed deposit (defaults to recommended * 3).
   final double? maxSol;
 
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const DepositSheet({
@@ -153,7 +153,7 @@ class _DepositSheetState extends ConsumerState<DepositSheet> {
   }
 
   void _openAmountEditor() {
-    SageBottomSheet.show<double>(
+    AuraBottomSheet.show<double>(
       context: context,
       title: 'Deposit Amount',
       builder: (c, text) => _AmountEditorContent(
@@ -185,7 +185,7 @@ class _DepositSheetState extends ConsumerState<DepositSheet> {
   // Input state — amount selection
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildInput(SageColors c, TextTheme text) {
+  Widget _buildInput(AuraColors c, TextTheme text) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,7 +258,7 @@ class _DepositSheetState extends ConsumerState<DepositSheet> {
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               color: c.accent,
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.lg),
             ),
             child: Center(
               child: Text(
@@ -297,7 +297,7 @@ class _DepositSheetState extends ConsumerState<DepositSheet> {
   // Loading state
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildLoading(SageColors c, TextTheme text) {
+  Widget _buildLoading(AuraColors c, TextTheme text) {
     return SizedBox(
       height: 200.h,
       child: Center(
@@ -335,7 +335,7 @@ class _DepositSheetState extends ConsumerState<DepositSheet> {
   // Success state
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildSuccess(SageColors c, TextTheme text) {
+  Widget _buildSuccess(AuraColors c, TextTheme text) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -383,7 +383,7 @@ class _DepositSheetState extends ConsumerState<DepositSheet> {
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               color: c.accent,
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.lg),
             ),
             child: Center(
               child: Text(
@@ -406,7 +406,7 @@ class _DepositSheetState extends ConsumerState<DepositSheet> {
   // Error state
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildError(SageColors c, TextTheme text) {
+  Widget _buildError(AuraColors c, TextTheme text) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -454,7 +454,7 @@ class _DepositSheetState extends ConsumerState<DepositSheet> {
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               color: c.accent,
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.lg),
             ),
             child: Center(
               child: Text(
@@ -491,14 +491,14 @@ class _DepositSheetState extends ConsumerState<DepositSheet> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Amount Editor — slider inside SageBottomSheet
+// Amount Editor — slider inside AuraBottomSheet
 // ═══════════════════════════════════════════════════════════════
 
 class _AmountEditorContent extends StatefulWidget {
   final double current;
   final double min;
   final double max;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const _AmountEditorContent({
@@ -603,7 +603,7 @@ class _AmountEditorContentState extends State<_AmountEditorContent> {
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               color: c.accent,
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(context.auraRadii.md),
               boxShadow: [
                 BoxShadow(
                   color: c.accent.withValues(alpha: 0.25),

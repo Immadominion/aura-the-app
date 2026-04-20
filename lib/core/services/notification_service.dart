@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,17 +17,17 @@ import '../models/bot_event.dart';
 /// Channels are registered once at init and persist across sessions.
 /// Users can override importance per-channel in system settings.
 class _Channels {
-  static const positionAlerts = 'sage_position_alerts';
+  static const positionAlerts = 'aura_position_alerts';
   static const positionAlertsName = 'Position Alerts';
   static const positionAlertsDesc =
       'Notifications when LP positions are opened or closed';
 
-  static const botAlerts = 'sage_bot_alerts';
+  static const botAlerts = 'aura_bot_alerts';
   static const botAlertsName = 'Bot Alerts';
   static const botAlertsDesc =
       'Bot lifecycle events — start, stop, errors, emergency';
 
-  static const systemAlerts = 'sage_system_alerts';
+  static const systemAlerts = 'aura_system_alerts';
   static const systemAlertsName = 'System';
   static const systemAlertsDesc = 'Scan results and general updates';
 }
@@ -227,6 +226,29 @@ class NotificationService {
   }
 
   // ────────────────────────────────────────────
+  // FCM Push → Local Display
+  // ────────────────────────────────────────────
+
+  /// Display a push notification received via FCM while the app is
+  /// in the foreground. Uses the system alerts channel.
+  Future<void> showPushNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    if (!_initialized) return;
+    await _show(
+      title: title,
+      body: body,
+      channelId: _Channels.systemAlerts,
+      channelName: _Channels.systemAlertsName,
+      channelDesc: _Channels.systemAlertsDesc,
+      importance: Importance.high,
+      payload: payload,
+    );
+  }
+
+  // ────────────────────────────────────────────
   // Preference Toggles
   // ────────────────────────────────────────────
 
@@ -416,7 +438,7 @@ class NotificationService {
           ? Priority.high
           : Priority.defaultPriority,
       icon: '@mipmap/ic_launcher',
-      color: const Color(0xFF5B8DEF), // Sage accent (dark theme)
+      color: const Color(0xFF5B8DEF), // Aura accent (dark theme)
       enableVibration: importance == Importance.high,
     );
 

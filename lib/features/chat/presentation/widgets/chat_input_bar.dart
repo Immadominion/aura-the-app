@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
+import 'package:aura/core/theme/app_radii.dart';
 
 /// Chat input bar with text field, send button, and voice toggle.
 class ChatInputBar extends StatefulWidget {
@@ -15,7 +16,7 @@ class ChatInputBar extends StatefulWidget {
   final VoidCallback onStartRecording;
   final VoidCallback onStopRecording;
   final VoidCallback onCancelRecording;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
   final String? hintText;
 
@@ -121,7 +122,9 @@ class _ChatInputBarState extends State<ChatInputBar> {
                 constraints: BoxConstraints(maxHeight: 120.h),
                 decoration: BoxDecoration(
                   color: widget.c.inputFill,
-                  borderRadius: BorderRadius.circular(24.r),
+                  borderRadius: BorderRadius.circular(
+                    context.auraRadii.lg,
+                  ),
                   border: Border.all(
                     color: widget.c.border.withValues(alpha: 0.3),
                   ),
@@ -136,7 +139,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                     color: widget.c.textPrimary,
                   ),
                   decoration: InputDecoration(
-                    hintText: widget.hintText ?? 'Talk to Sage...',
+                    hintText: widget.hintText ?? 'Talk to Aura...',
                     hintStyle: widget.text.bodyMedium?.copyWith(
                       color: widget.c.textTertiary,
                     ),
@@ -191,7 +194,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
 class _RecordingBar extends StatelessWidget {
   final VoidCallback onStop;
   final VoidCallback onCancel;
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const _RecordingBar({
@@ -281,7 +284,7 @@ class _RecordingBar extends StatelessWidget {
 
 /// Transcribing state bar — shows spinner.
 class _TranscribingBar extends StatelessWidget {
-  final SageColors c;
+  final AuraColors c;
   final TextTheme text;
 
   const _TranscribingBar({required this.c, required this.text});

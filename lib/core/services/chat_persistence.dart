@@ -24,9 +24,9 @@ class ChatPersistence {
   ChatPersistence(this._api);
 
   // ── Local cache keys ──
-  static const _keyGeneralConvId = 'sage_active_general_conversation_id';
-  static const _keySetupConvId = 'sage_active_setup_conversation_id';
-  static const _keySetupProgress = 'sage_setup_progress_json';
+  static const _keyGeneralConvId = 'aura_active_general_conversation_id';
+  static const _keySetupConvId = 'aura_active_setup_conversation_id';
+  static const _keySetupProgress = 'aura_setup_progress_json';
 
   // ════════════════════════════════════════════════════
   // Conversation IDs (derived from server conversation list)
@@ -87,9 +87,9 @@ class ChatPersistence {
   }) async {
     final payload = <String, dynamic>{
       'step': step,
-      if (path != null) 'path': path,
-      if (execMode != null) 'execMode': execMode,
-      if (useAiChat != null) 'useAiChat': useAiChat,
+      'path': ?path,
+      'execMode': ?execMode,
+      'useAiChat': ?useAiChat,
       if (params != null && !params.isEmpty) 'params': params.toJson(),
     };
 

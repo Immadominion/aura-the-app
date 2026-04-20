@@ -12,7 +12,7 @@ import 'notification_service.dart';
 
 /// SSE (Server-Sent Events) service for real-time bot event streaming.
 ///
-/// Connects to `GET /events/stream` on the sage-backend.
+/// Connects to `GET /events/stream` on the aura-backend.
 /// Automatically reconnects on disconnect with exponential backoff.
 /// Broadcasts [BotEvent]s to all listeners via a [StreamController].
 class EventService {

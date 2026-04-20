@@ -21,8 +21,9 @@ String _friendlyError(Object e) {
         return 'Cannot reach the server. Check your connection.';
       case DioExceptionType.badResponse:
         final code = e.response?.statusCode;
-        if (code == 401 || code == 403)
+        if (code == 401 || code == 403) {
           return 'Session expired. Please sign in again.';
+        }
         if (code == 503) return 'Service temporarily unavailable.';
         return 'Server error. Please try again.';
       default:
@@ -109,7 +110,7 @@ class ChatNotifier extends Notifier<ChatState> {
   ChatRepository get _repo => ref.read(chatRepositoryProvider);
   ChatPersistence get _persistence => ref.read(chatPersistenceProvider);
 
-  /// Send a text message to Sage AI.
+  /// Send a text message to Aura AI.
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty || state.isLoading) return;
 
@@ -186,7 +187,7 @@ class ChatNotifier extends Notifier<ChatState> {
 
       final dir = await getTemporaryDirectory();
       final path =
-          '${dir.path}/sage_voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+          '${dir.path}/aura_voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
       await _recorder.start(
         const RecordConfig(
@@ -457,7 +458,7 @@ class SetupChatNotifier extends Notifier<ChatState> {
 
       final dir = await getTemporaryDirectory();
       final path =
-          '${dir.path}/sage_voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+          '${dir.path}/aura_voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
       await _recorder.start(
         const RecordConfig(
