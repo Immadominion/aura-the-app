@@ -38,9 +38,9 @@ class _PoolBrowserScreenState extends ConsumerState<PoolBrowserScreen> {
       case _PoolSort.score:
         out.sort((a, b) => b.score.compareTo(a.score));
       case _PoolSort.tvl:
-        out.sort((a, b) => b.tvlSol.compareTo(a.tvlSol));
+        out.sort((a, b) => b.tvlUsd.compareTo(a.tvlUsd));
       case _PoolSort.volume:
-        out.sort((a, b) => b.volume24hSol.compareTo(a.volume24hSol));
+        out.sort((a, b) => b.volume24hUsd.compareTo(a.volume24hUsd));
     }
     return out;
   }
@@ -185,10 +185,7 @@ class _PoolBrowserScreenState extends ConsumerState<PoolBrowserScreen> {
                       }
                       return _PoolRow(pool: pools[i], c: c, text: text)
                           .animate()
-                          .fadeIn(
-                            duration: 240.ms,
-                            delay: (40 * i).ms,
-                          )
+                          .fadeIn(duration: 240.ms, delay: (40 * i).ms)
                           .slideY(begin: 0.05, end: 0);
                     },
                   );
@@ -272,9 +269,11 @@ class _PoolRow extends StatelessWidget {
     PoolRecommendation.skip => c.textTertiary,
   };
 
-  String _fmtSol(double v) {
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}k';
-    return v.toStringAsFixed(0);
+  String _fmtUsd(double v) {
+    if (v >= 1e9) return '\$${(v / 1e9).toStringAsFixed(1)}B';
+    if (v >= 1e6) return '\$${(v / 1e6).toStringAsFixed(1)}M';
+    if (v >= 1e3) return '\$${(v / 1e3).toStringAsFixed(1)}k';
+    return '\$${v.toStringAsFixed(0)}';
   }
 
   @override
@@ -363,7 +362,7 @@ class _PoolRow extends StatelessWidget {
               Expanded(
                 child: _PoolStat(
                   label: 'TVL',
-                  value: '${_fmtSol(pool.tvlSol)} SOL',
+                  value: _fmtUsd(pool.tvlUsd),
                   c: c,
                   text: text,
                 ),
@@ -372,7 +371,7 @@ class _PoolRow extends StatelessWidget {
               Expanded(
                 child: _PoolStat(
                   label: '24h Vol',
-                  value: '${_fmtSol(pool.volume24hSol)} SOL',
+                  value: _fmtUsd(pool.volume24hUsd),
                   c: c,
                   text: text,
                 ),
@@ -437,11 +436,24 @@ class _MoreWaysToEarnCard extends StatelessWidget {
   const _MoreWaysToEarnCard({required this.c, required this.text});
 
   static const _products = <({String label, String url})>[
-    (label: 'DAMM v2', url: 'https://docs.meteora.ag/product-overview/dlmm-overview/dlmm-overview-introduction'),
+    (
+      label: 'DAMM v2',
+      url:
+          'https://docs.meteora.ag/product-overview/dlmm-overview/dlmm-overview-introduction',
+    ),
     (label: 'DBC', url: 'https://docs.meteora.ag/product-overview/meteora-dbc'),
-    (label: 'Alpha Vault', url: 'https://docs.meteora.ag/product-overview/alpha-vault'),
-    (label: 'Stake2Earn', url: 'https://docs.meteora.ag/product-overview/stake2earn'),
-    (label: 'Dynamic Vault', url: 'https://docs.meteora.ag/product-overview/dynamic-vaults'),
+    (
+      label: 'Alpha Vault',
+      url: 'https://docs.meteora.ag/product-overview/alpha-vault',
+    ),
+    (
+      label: 'Stake2Earn',
+      url: 'https://docs.meteora.ag/product-overview/stake2earn',
+    ),
+    (
+      label: 'Dynamic Vault',
+      url: 'https://docs.meteora.ag/product-overview/dynamic-vaults',
+    ),
   ];
 
   @override
@@ -477,7 +489,10 @@ class _MoreWaysToEarnCard extends StatelessWidget {
                   onTap: () async {
                     final uri = Uri.parse(p.url);
                     if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      );
                     }
                   },
                   child: Container(

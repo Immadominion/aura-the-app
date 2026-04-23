@@ -69,6 +69,15 @@ class BotRepository {
     final response = await _api.post('/bot/$botId/convert-to-live');
     return Bot.fromJson(response.data as Map<String, dynamic>);
   }
+
+  /// Reset all accumulated stats and virtual balance to zero.
+  /// Only valid when the bot is stopped.
+  /// Use this to clear inflated P&L figures caused by historical simulation
+  /// bugs (e.g., non-SOL-quoted pool trades before the mint_y guard was added).
+  Future<Bot> resetStats(String botId) async {
+    final response = await _api.post('/bot/$botId/reset-stats');
+    return Bot.fromJson(response.data as Map<String, dynamic>);
+  }
 }
 
 /// BotRepository Riverpod provider.

@@ -122,9 +122,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                 constraints: BoxConstraints(maxHeight: 120.h),
                 decoration: BoxDecoration(
                   color: widget.c.inputFill,
-                  borderRadius: BorderRadius.circular(
-                    context.auraRadii.lg,
-                  ),
+                  borderRadius: BorderRadius.circular(context.auraRadii.lg),
                   border: Border.all(
                     color: widget.c.border.withValues(alpha: 0.3),
                   ),

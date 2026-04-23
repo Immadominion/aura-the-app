@@ -5,13 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/core/theme/app_colors.dart';
-import 'package:aura/core/theme/app_radii.dart';
 
-/// Home zero state — shown when the user has no bots AND no positions.
+/// Home zero state — no bots, no positions.
 ///
-/// Per audit §5.5: a 2-card vertical stack that warms the user up, instead
-/// of a screen full of zeros. The stat boxes and YOUR BOTS / ACTIVE POSITIONS
-/// sections are suppressed by the parent in this state.
+/// Two flat rows. No nested containers, no boxed icons. The icon sits
+/// inline at glyph weight; the chevron is the only afford. The whole row
+/// is the tap target. Mirrors the interface-architecture rule: lists
+/// are living objects, not data rows.
 class HomeZeroState extends StatelessWidget {
   final AuraColors c;
   final TextTheme text;
@@ -30,40 +30,37 @@ class HomeZeroState extends StatelessWidget {
             style: text.titleLarge?.copyWith(
               color: c.panelText,
               fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
             ),
           ),
           SizedBox(height: 6.h),
           Text(
-            'Two ways to get started — just ask, or build it yourself.',
+            'Two ways in — just ask, or build it yourself.',
             style: text.bodyMedium?.copyWith(color: c.panelTextSecondary),
           ),
-          SizedBox(height: 20.h),
+          SizedBox(height: 24.h),
 
-          // Card 1 — Talk to Aura (primary, accent-tinted)
-          _ZeroStateCard(
+          _ZeroStateRow(
             c: c,
             text: text,
-            icon: PhosphorIconsBold.chatCircle,
+            icon: PhosphorIconsRegular.chatCircle,
             title: 'Talk to Aura',
-            subtitle:
-                'Ask “How should I start?” and Aura will walk you through it.',
+            subtitle: 'Ask “How should I start?” and Aura walks you through.',
             isPrimary: true,
             onTap: () {
               HapticFeedback.selectionClick();
-              // TODO(phase-13): pass a starter prompt once chat supports it.
               context.go('/intelligence');
             },
           ),
 
-          SizedBox(height: 12.h),
+          Divider(height: 1, color: c.panelBorder),
 
-          // Card 2 — Create a strategy (secondary)
-          _ZeroStateCard(
+          _ZeroStateRow(
             c: c,
             text: text,
-            icon: PhosphorIconsBold.sliders,
+            icon: PhosphorIconsRegular.sliders,
             title: 'Create a strategy',
-            subtitle: 'Pick a path, set your rules, and deploy it yourself.',
+            subtitle: 'Pick a path, set your rules, deploy.',
             isPrimary: false,
             onTap: () {
               HapticFeedback.selectionClick();
@@ -76,7 +73,7 @@ class HomeZeroState extends StatelessWidget {
   }
 }
 
-class _ZeroStateCard extends StatelessWidget {
+class _ZeroStateRow extends StatelessWidget {
   final AuraColors c;
   final TextTheme text;
   final IconData icon;
@@ -85,7 +82,7 @@ class _ZeroStateCard extends StatelessWidget {
   final bool isPrimary;
   final VoidCallback onTap;
 
-  const _ZeroStateCard({
+  const _ZeroStateRow({
     required this.c,
     required this.text,
     required this.icon,
@@ -97,41 +94,19 @@ class _ZeroStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = isPrimary
-        ? c.accent.withValues(alpha: 0.08)
-        : c.panelBorder.withValues(alpha: 0.35);
-    final borderColor = isPrimary
-        ? c.accent.withValues(alpha: 0.35)
-        : c.panelBorder;
     final iconColor = isPrimary ? c.accent : c.panelText;
+    final titleColor = isPrimary ? c.accent : c.panelText;
 
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: EdgeInsets.all(16.w),
-        decoration: ShapeDecoration(
-          color: bg,
-          shape: ContinuousRectangleBorder(
-            borderRadius: BorderRadius.circular(context.auraRadii.lg),
-            side: BorderSide(color: borderColor),
-          ),
-        ),
+      borderRadius: BorderRadius.circular(8.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 18.h),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              padding: EdgeInsets.all(10.w),
-              decoration: ShapeDecoration(
-                color: isPrimary
-                    ? c.accent.withValues(alpha: 0.15)
-                    : c.panelBackground,
-                shape: ContinuousRectangleBorder(
-                  borderRadius: BorderRadius.circular(context.auraRadii.md),
-                ),
-              ),
-              child: Icon(icon, size: 20.sp, color: iconColor),
-            ),
-            SizedBox(width: 14.w),
+            Icon(icon, size: 22.sp, color: iconColor),
+            SizedBox(width: 16.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,8 +114,9 @@ class _ZeroStateCard extends StatelessWidget {
                   Text(
                     title,
                     style: text.titleMedium?.copyWith(
-                      color: c.panelText,
+                      color: titleColor,
                       fontWeight: FontWeight.w700,
+                      fontSize: 16.sp,
                     ),
                   ),
                   SizedBox(height: 2.h),
@@ -148,6 +124,7 @@ class _ZeroStateCard extends StatelessWidget {
                     subtitle,
                     style: text.bodySmall?.copyWith(
                       color: c.panelTextSecondary,
+                      fontSize: 13.sp,
                     ),
                   ),
                 ],
@@ -155,9 +132,9 @@ class _ZeroStateCard extends StatelessWidget {
             ),
             SizedBox(width: 8.w),
             Icon(
-              Icons.arrow_forward_ios,
-              size: 12.sp,
-              color: isPrimary ? c.accent : c.panelTextSecondary,
+              PhosphorIconsRegular.caretRight,
+              size: 16.sp,
+              color: c.panelTextSecondary,
             ),
           ],
         ),
@@ -165,4 +142,3 @@ class _ZeroStateCard extends StatelessWidget {
     );
   }
 }
-

@@ -83,9 +83,7 @@ class PositionsSection extends ConsumerWidget {
                     padding: EdgeInsets.all(14.w),
                     decoration: BoxDecoration(
                       color: c.panelBorder.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(
-                        context.auraRadii.md,
-                      ),
+                      borderRadius: BorderRadius.circular(context.auraRadii.md),
                     ),
                     child: Row(
                       children: [

@@ -44,8 +44,8 @@ class PushNotificationService {
   PushNotificationService({
     required ApiClient api,
     required NotificationService notificationService,
-  })  : _api = api,
-        _notificationService = notificationService;
+  }) : _api = api,
+       _notificationService = notificationService;
 
   /// Initialize FCM — request permission, get token, set up listeners.
   ///
@@ -119,10 +119,10 @@ class PushNotificationService {
   /// Register the FCM token with the backend for server-sent pushes.
   Future<void> _registerTokenWithBackend(String token) async {
     try {
-      await _api.post('/auth/device-token', data: {
-        'token': token,
-        'platform': Platform.isIOS ? 'ios' : 'android',
-      });
+      await _api.post(
+        '/auth/device-token',
+        data: {'token': token, 'platform': Platform.isIOS ? 'ios' : 'android'},
+      );
       debugPrint('[FCM] Token registered with backend');
     } catch (e) {
       // Non-fatal — backend push won't work but local notifications still do
@@ -189,7 +189,9 @@ class PushNotificationService {
 // ═══════════════════════════════════════════════════════════════
 
 /// Push notification service provider — depends on ApiClient and NotificationService.
-final pushNotificationServiceProvider = Provider<PushNotificationService>((ref) {
+final pushNotificationServiceProvider = Provider<PushNotificationService>((
+  ref,
+) {
   final api = ref.read(apiClientProvider);
   final notificationService = ref.read(notificationServiceProvider);
   return PushNotificationService(

@@ -42,6 +42,7 @@ Top-level tabs:
 5. **Account** — subscription, wallet, security, settings.
 
 Persistent UI elements:
+
 - **Status bar:** paper/live badge, oracle freshness indicator, global kill-switch shortcut.
 - **Alert tray:** accessible from any screen; shows recent bot decisions, reconciliation warnings, system notices.
 
@@ -50,12 +51,14 @@ Persistent UI elements:
 ## 4. Core screens and their rules
 
 ### 4.1 Home
+
 - Hero card: total portfolio value, 24h change, mode badge (Paper / Live / Mixed).
 - Active bots list with per-bot mini-sparkline and status (running, paused, out-of-range, stuck).
 - Recent decisions feed: "Bot X opened position in pool Y. Expected net 24h: +$Z. Rationale: ⋯". Every row links to the decision record.
 - Market snapshot: a small set of pool cards surfaced by the model with a clear "predicted 24h net" and a "why" tap.
 
 ### 4.2 Position detail
+
 - Summary: entry time, range, strategy shape, current active-bin position relative to range (visual).
 - Live P&L card: realized fees (net of protocol fee), IL, costs, net. Every number has a tap-through to its derivation.
 - Event timeline: swaps affecting the bin, rebalances, claims, chunked closes.
@@ -64,7 +67,9 @@ Persistent UI elements:
 - Reconciliation badge: green (within tolerance), amber (drift observed), red (direction flip). Red opens an incident detail.
 
 ### 4.3 Create flow
+
 Step-by-step, with simulation preview at every step:
+
 1. Pick pool (search, filters, model-ranked list).
 2. Choose mode (Execute / Automate / Delegate).
 3. Configure range, shape, amount. Live simulation card updates in real time showing expected net P&L over a user-selected horizon with an uncertainty band.
@@ -73,6 +78,7 @@ Step-by-step, with simulation preview at every step:
 6. Confirmation shows the position entry ledger.
 
 ### 4.4 Bot detail
+
 - Rules: current config, editable.
 - Guardrails: max-loss, max-notional, allowed pools. Changing these is a signed action.
 - Decision log: full audit trail of the bot's recent reasoning.
@@ -80,9 +86,11 @@ Step-by-step, with simulation preview at every step:
 - Vault status: key health, last-rotation date (for the bot key).
 
 ### 4.5 Paper mode ubiquity
+
 Paper positions appear in the same lists as live positions, distinguished by a persistent "Paper" badge on every card and every detail screen. P&L columns visibly segregate paper vs live totals. There is never a state where a user could confuse a paper number for a live number.
 
 ### 4.6 Account
+
 - Subscription tier card (doc 05) with next renewal, usage meters for metered features.
 - Wallet section: connected wallet address (truncated), bot keypair vault status, per-bot key ages.
 - Security: biometric lock toggle, session devices list, sign-out-everywhere, passkey enrolment for Delegate.
@@ -93,11 +101,13 @@ Paper positions appear in the same lists as live positions, distinguished by a p
 ## 5. Trust and safety UI
 
 ### 5.1 Kill switches
+
 - Global "Stop everything" button in the status bar. Double confirmation + biometric.
 - Per-bot stop on the bot detail screen. Single confirmation.
 - System-initiated pause banner: when the platform auto-pauses (ML offline, oracle stale, reconciliation drift) the user sees a persistent banner explaining why and when automation will resume.
 
 ### 5.2 Signing prompts
+
 - Every MWA signature request is preceded by an in-app preview that shows:
   - Action in plain English ("Open $250 position in SOL/USDC, range X–Y, Spot shape").
   - Expected outcome (predicted net P&L from simulation).
@@ -107,11 +117,13 @@ Paper positions appear in the same lists as live positions, distinguished by a p
 - A mismatch between previewed action and the signed transaction triggers a client-side abort.
 
 ### 5.3 Freshness indicators
+
 - Every price shows its age in a subtle inline label ("9s"), turning amber at configurable thresholds.
 - Pool state timestamps shown on position cards when > 15s stale.
 - Model inference timestamp shown on decision cards; > 60s stale triggers a "refresh" prompt, blocks new actions.
 
 ### 5.4 Drift and reconciliation surfaces
+
 - Per-position reconciliation badge (§4.2).
 - Account-level health card: percentage of positions reconciling within tolerance, trended over 30 days.
 - If platform-wide drift triggers a promotion halt, user-visible banner: "Automation is temporarily conservative while we verify a model update."
@@ -121,17 +133,20 @@ Paper positions appear in the same lists as live positions, distinguished by a p
 ## 6. Mode-specific UX contracts
 
 ### 6.1 Execute
+
 - No bot keypair involved. User signs every action with the primary wallet via MWA.
 - Simpler create flow (steps 1, 3, 5 from §4.3).
 - No subscription required for basic Execute (see doc 05 free tier).
 
 ### 6.2 Automate
+
 - Bot keypair generated on first automation; user signs a delegation authorizing its scope.
 - Scope is explicit: pool allowlist, notional cap, time horizon, allowed action types.
 - Any change to scope is a signed action with a visible diff.
 - Emergency revoke: one-tap revocation of the bot's signing authority; all downstream actions refused.
 
 ### 6.3 Delegate
+
 - Requires Pro subscription + step-up auth (passkey or signed challenge).
 - Risk profile selector: conservative / balanced / aggressive — each mapped to concrete bounds (max drawdown, max concentration).
 - Performance fee disclosed on entry, calculated on close against high-water mark.
@@ -206,12 +221,14 @@ Paper positions appear in the same lists as live positions, distinguished by a p
 ## 14. Milestones
 
 ### U1 — Foundations
+
 - Design system, navigation skeleton, auth flow, MWA wiring.
 - Home with static data, Account, Settings.
 - Biometric app lock, dark mode, accessibility pass 1.
 - **Exit gate:** first-launch-to-connected-wallet in under 60 seconds.
 
 ### U2 — Paper Mode Complete
+
 - Discover with model-ranked pools (doc 01) over paper.
 - Create flow with live simulation preview (doc 02).
 - Paper positions list, position detail with full ledger and timeline.
@@ -219,6 +236,7 @@ Paper positions appear in the same lists as live positions, distinguished by a p
 - **Exit gate:** a user can open a paper position, monitor it end-to-end, and close it, with numbers reconciling to backend ledger to the cent.
 
 ### U3 — Live Execute
+
 - MWA sign preview with action + worst-case + costs.
 - Live position opening flow.
 - Live vs paper segregation across all lists.
@@ -226,24 +244,28 @@ Paper positions appear in the same lists as live positions, distinguished by a p
 - **Exit gate:** 50 successful devnet/live round-trips with no sign-preview mismatches; every abort path exercised.
 
 ### U4 — Automate
+
 - Bot create flow with scope authorization.
 - Bot detail with decision log, guardrails, pause/stop, revoke.
 - Notifications category: bot events.
 - **Exit gate:** a Pro tester runs an automated bot for 7 days with audit-trail completeness verified against the backend.
 
 ### U5 — Subscription & Entitlements UI
+
 - Tier selector (doc 05), upgrade flow, usage meters.
 - Entitlement-gated surfaces clearly signposted with upgrade CTAs.
 - Billing states (active, grace, delinquent) reflected in UI.
 - **Exit gate:** upgrade / downgrade / cancel flows each tested end-to-end including edge cases (card decline, refund).
 
 ### U6 — Delegate
+
 - Risk profile selector, step-up auth, high-water-mark fee disclosure.
 - Monthly statement view.
 - Performance dashboard comparing Delegate to Automate and to passive hold.
 - **Exit gate:** Delegate closed-beta with < N users, zero custodial-feeling incidents, audit of signing surface.
 
 ### U7 — Polish & Scale
+
 - iOS parity.
 - Localization for N languages.
 - Reduced-motion and full a11y audit closed.

@@ -127,12 +127,7 @@ class DecisionLogScreen extends ConsumerWidget {
                 final scanIds = grouped.keys.toList();
 
                 return ListView.builder(
-                  padding: EdgeInsets.fromLTRB(
-                    20.w,
-                    0,
-                    20.w,
-                    bottomPad + 20.h,
-                  ),
+                  padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, bottomPad + 20.h),
                   itemCount: scanIds.length,
                   itemBuilder: (context, index) {
                     final scanId = scanIds[index];
@@ -176,9 +171,15 @@ class _ScanGroup extends StatelessWidget {
     final text = context.auraText;
     final radii = Theme.of(context).extension<AuraRadii>()!;
 
-    final entered = decisions.where((d) => d.decision == DecisionVerdict.entered).length;
-    final watched = decisions.where((d) => d.decision == DecisionVerdict.watched).length;
-    final skipped = decisions.where((d) => d.decision == DecisionVerdict.skipped).length;
+    final entered = decisions
+        .where((d) => d.decision == DecisionVerdict.entered)
+        .length;
+    final watched = decisions
+        .where((d) => d.decision == DecisionVerdict.watched)
+        .length;
+    final skipped = decisions
+        .where((d) => d.decision == DecisionVerdict.skipped)
+        .length;
 
     return Padding(
       padding: EdgeInsets.only(bottom: 16.h),
@@ -356,8 +357,9 @@ class _DecisionRowState extends State<_DecisionRow> {
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
           secondChild: _ExpandedDetail(decision: d),
-          crossFadeState:
-              _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState: _expanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
       ],

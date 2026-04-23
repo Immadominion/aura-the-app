@@ -38,7 +38,7 @@ class PathCard extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
-        padding: EdgeInsets.all(16.r),
+        padding: EdgeInsets.all(12.r),
         decoration: ShapeDecoration(
           color: isSelected ? c.accent.withValues(alpha: 0.08) : c.surface,
           shape: ContinuousRectangleBorder(

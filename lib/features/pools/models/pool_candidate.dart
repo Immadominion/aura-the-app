@@ -21,8 +21,8 @@ class PoolCandidate {
   final String pairName; // e.g. "SOL/USDC"
   final double score; // 0..1, model-assigned ranking score
   final double mlConfidence; // 0..1
-  final double tvlSol; // current TVL in SOL
-  final double volume24hSol; // 24h volume in SOL
+  final double tvlUsd; // current TVL in USD (LP Agent canonical unit)
+  final double volume24hUsd; // 24h volume in USD
   final int binStep;
   final PoolRecommendation recommendation;
 
@@ -31,8 +31,8 @@ class PoolCandidate {
     required this.pairName,
     required this.score,
     required this.mlConfidence,
-    required this.tvlSol,
-    required this.volume24hSol,
+    required this.tvlUsd,
+    required this.volume24hUsd,
     required this.binStep,
     required this.recommendation,
   });

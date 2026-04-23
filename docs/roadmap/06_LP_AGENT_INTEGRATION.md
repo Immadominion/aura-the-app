@@ -27,26 +27,31 @@
 ## 3. Capabilities we consume (launch scope)
 
 ### 3.1 Pool discovery
+
 - Endpoint: `GET /pools/discover` on the LP Agent API.
 - Inputs we map: pair search, min TVL, min 24h volume, min 24h fees, bin-step bounds, protocol filter (Meteora DLMM, DAMM v2), sort field (volume, fees, TVL, APR).
 - Outputs we surface: pool metadata, protocol, tokens, bin step, TVL, volume24h, fees24h, fee/TVL ratio, active-bin summary.
 - Consumption: the Discover tab's "Opportunities" list blends LP-Agent-ranked pools with Aura's model-ranked pools under a single canonical schema.
 
 ### 3.2 Open positions (external)
+
 - Endpoint: `GET /lp-positions/opening?owner=<wallet>`.
 - Use case: when a user connects a wallet that already has positions opened outside Aura (directly on Meteora or via another tool), we show those positions in the Positions tab, labelled clearly as "External" and non-manageable from inside Aura (read-only until they are closed and re-opened via Aura).
 - Data surfaced: range, strategy, current active-bin status, fees claimed, P&L as reported, in-range flag.
 
 ### 3.3 Historical positions
+
 - Endpoint: `GET /lp-positions/historical?owner=<wallet>`.
 - Use case: "lifetime summary" card for connected wallets.
 - Data surfaced: closed positions, total fees earned, total P&L — tagged "External history".
 
 ### 3.4 Zap in
+
 - Single-token deposit into a DLMM position. User provides amount in one token; protocol splits into the target range according to the chosen shape.
 - Consumption: optional alternative path in the Create flow when the user's holdings are single-sided.
 
 ### 3.5 Zap out
+
 - Close a position and settle to a single chosen token.
 - Consumption: optional alternative path in the Close flow.
 
@@ -121,24 +126,28 @@ The product never depends on LP Agent for a critical path. Critical paths (openi
 ## 10. Milestones
 
 ### L1 — Adapter Skeleton & Secret Onboarding
+
 - Register for API access via the partner portal.
 - Store API key; implement `lp-intel-svc` shell with health check.
 - Define `LpIntelProvider` interface and Aura canonical domain types.
 - **Exit gate:** sandbox calls to `pools/discover` return through the adapter and are translated to canonical types.
 
 ### L2 — Discovery Integration
+
 - Wire `discoverPools` into the Discover tab alongside model-ranked pools.
 - Caching, rate limiting, cost attribution active.
 - Fallback path tested (kill the provider, Discover still works).
 - **Exit gate:** a user filter and sort set produces the same result set across two consecutive sessions; cache hit rate ≥ 60% in steady state.
 
 ### L3 — Portfolio Read-Through
+
 - `getOpenPositions` and `getClosedPositions` wired into the Positions tab and Account "lifetime" card.
 - Clear "External" labelling; no manage actions on external positions.
 - Per-user and per-wallet caching.
 - **Exit gate:** a tester whose wallet has both Aura-opened and externally opened positions sees a correct, de-duplicated list.
 
 ### L4 — Zap In / Zap Out
+
 - Quote + simulate + sign-preview + submit flow for Zap in.
 - Same for Zap out.
 - Integrated into Create and Close flows as an optional path when the user's holdings justify it.
@@ -146,11 +155,13 @@ The product never depends on LP Agent for a critical path. Critical paths (openi
 - **Exit gate:** 25 devnet/mainnet Zap round-trips with sign-preview parity and reconciliation within tolerance.
 
 ### L5 — Premium Capabilities (post-launch)
+
 - Top-LPer and other premium endpoints folded into the adapter behind entitlement gates.
 - Dashboards comparing premium vs non-premium paths for decision on broad rollout.
 - **Exit gate:** premium path gated by entitlement with clean 402 upsell for non-eligible users.
 
 ### L6 — Provider Abstraction Hardened
+
 - Second provider prototype implemented behind the same `LpIntelProvider` interface for a subset of capabilities (not necessarily launched), to confirm the abstraction holds.
 - Feature flags to route capability-by-capability to a chosen provider per environment.
 - **Exit gate:** provider routing changes are config-only, zero code change in consumers.
@@ -160,6 +171,7 @@ The product never depends on LP Agent for a critical path. Critical paths (openi
 ## 11. Bounty / demo deliverable
 
 A dedicated demo flow showcases:
+
 - Pool discovery via LP Agent's catalogue, ranked and filtered.
 - External portfolio read-through for a connected wallet.
 - Zap in to a discovered pool, then Zap out to the original token.

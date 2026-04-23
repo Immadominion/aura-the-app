@@ -170,9 +170,7 @@ class PositionDetailScreen extends ConsumerWidget {
                   decoration: ShapeDecoration(
                     color: c.accent.withValues(alpha: 0.15),
                     shape: ContinuousRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        context.auraRadii.sm,
-                      ),
+                      borderRadius: BorderRadius.circular(context.auraRadii.sm),
                     ),
                   ),
                   child: Text(
@@ -390,11 +388,7 @@ class PositionDetailScreen extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  PhosphorIconsBold.question,
-                  size: 14.sp,
-                  color: c.accent,
-                ),
+                Icon(PhosphorIconsBold.question, size: 14.sp, color: c.accent),
                 SizedBox(width: 4.w),
                 Text(
                   'Why was this opened?',
@@ -456,8 +450,7 @@ class PositionDetailScreen extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => Consumer(
         builder: (ctx, ref, _) {
-          final decisionAsync =
-              ref.watch(positionDecisionProvider(positionId));
+          final decisionAsync = ref.watch(positionDecisionProvider(positionId));
           return Container(
             decoration: ShapeDecoration(
               color: c.surfaceElevated,
@@ -484,8 +477,7 @@ class PositionDetailScreen extends ConsumerWidget {
                       height: 4.h,
                       decoration: BoxDecoration(
                         color: c.textTertiary.withValues(alpha: 0.25),
-                        borderRadius:
-                            BorderRadius.circular(ctx.auraRadii.xs),
+                        borderRadius: BorderRadius.circular(ctx.auraRadii.xs),
                       ),
                     ),
                   ),
@@ -513,9 +505,7 @@ class PositionDetailScreen extends ConsumerWidget {
                       padding: EdgeInsets.symmetric(vertical: 24.h),
                       child: Text(
                         'No decision record found',
-                        style: text.bodyMedium?.copyWith(
-                          color: c.textTertiary,
-                        ),
+                        style: text.bodyMedium?.copyWith(color: c.textTertiary),
                       ),
                     ),
                     data: (decision) {
@@ -532,8 +522,12 @@ class PositionDetailScreen extends ConsumerWidget {
                           ),
                           SizedBox(height: 16.h),
                           if (decision.ruleScore != null)
-                            _sheetRow(c, text, 'Rule Score',
-                                decision.ruleScore!.toStringAsFixed(0)),
+                            _sheetRow(
+                              c,
+                              text,
+                              'Rule Score',
+                              decision.ruleScore!.toStringAsFixed(0),
+                            ),
                           if (decision.mlProbability != null)
                             _sheetRow(
                               c,
@@ -543,16 +537,36 @@ class PositionDetailScreen extends ConsumerWidget {
                             ),
                           if (sb != null) ...[
                             SizedBox(height: 8.h),
-                            _sheetRow(c, text, 'Volume',
-                                sb.volumeScore.toStringAsFixed(1)),
-                            _sheetRow(c, text, 'Liquidity',
-                                sb.liquidityScore.toStringAsFixed(1)),
-                            _sheetRow(c, text, 'Fee',
-                                sb.feeScore.toStringAsFixed(1)),
-                            _sheetRow(c, text, 'Momentum',
-                                sb.momentumScore.toStringAsFixed(1)),
-                            _sheetRow(c, text, 'Total',
-                                sb.totalScore.toStringAsFixed(1)),
+                            _sheetRow(
+                              c,
+                              text,
+                              'Volume',
+                              sb.volumeScore.toStringAsFixed(1),
+                            ),
+                            _sheetRow(
+                              c,
+                              text,
+                              'Liquidity',
+                              sb.liquidityScore.toStringAsFixed(1),
+                            ),
+                            _sheetRow(
+                              c,
+                              text,
+                              'Fee',
+                              sb.feeScore.toStringAsFixed(1),
+                            ),
+                            _sheetRow(
+                              c,
+                              text,
+                              'Momentum',
+                              sb.momentumScore.toStringAsFixed(1),
+                            ),
+                            _sheetRow(
+                              c,
+                              text,
+                              'Total',
+                              sb.totalScore.toStringAsFixed(1),
+                            ),
                           ],
                         ],
                       );
@@ -567,12 +581,7 @@ class PositionDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _sheetRow(
-    AuraColors c,
-    TextTheme? text,
-    String label,
-    String value,
-  ) {
+  Widget _sheetRow(AuraColors c, TextTheme? text, String label, String value) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 2.h),
       child: Row(
@@ -968,10 +977,7 @@ class _BinMiniMapPainter extends CustomPainter {
 
     // Active marker (current price drift)
     if (driftBins != null) {
-      final clamped = driftBins!.clamp(
-        -halfWindow * 2.0,
-        halfWindow * 2.0,
-      );
+      final clamped = driftBins!.clamp(-halfWindow * 2.0, halfWindow * 2.0);
       final activeX = centerX + clamped * binW;
       canvas.drawCircle(
         Offset(activeX, midY),

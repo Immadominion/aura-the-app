@@ -40,14 +40,8 @@ class AuraRadii extends ThemeExtension<AuraRadii> {
   /// `ScreenUtil` at build time via the [AuraRadii.responsive] factory.
   /// Use [AuraRadii.responsive] inside the theme builder so values track
   /// device width.
-  factory AuraRadii.responsive() => AuraRadii(
-        pill: 999.0,
-        xl: 28.r,
-        lg: 22.r,
-        md: 16.r,
-        sm: 10.r,
-        xs: 6.r,
-      );
+  factory AuraRadii.responsive() =>
+      AuraRadii(pill: 999.0, xl: 28.r, lg: 22.r, md: 16.r, sm: 10.r, xs: 6.r);
 
   /// Plain `BorderRadius` of the given tier — drop-in for existing
   /// `BoxDecoration(borderRadius: ...)` sites.
@@ -60,9 +54,8 @@ class AuraRadii extends ThemeExtension<AuraRadii> {
   /// Flutter's [ContinuousRectangleBorder] is the closest built-in
   /// approximation of the iOS superellipse. Pass the same numeric tier
   /// you would use for `BorderRadius.circular`.
-  ShapeBorder squircleShape(double r) => ContinuousRectangleBorder(
-        borderRadius: BorderRadius.circular(r),
-      );
+  ShapeBorder squircleShape(double r) =>
+      ContinuousRectangleBorder(borderRadius: BorderRadius.circular(r));
 
   /// Convenience: [squircleShape] + a stroke side, for cards that need
   /// both the squircle silhouette and a hairline border.
@@ -80,15 +73,14 @@ class AuraRadii extends ThemeExtension<AuraRadii> {
     double? md,
     double? sm,
     double? xs,
-  }) =>
-      AuraRadii(
-        pill: pill ?? this.pill,
-        xl: xl ?? this.xl,
-        lg: lg ?? this.lg,
-        md: md ?? this.md,
-        sm: sm ?? this.sm,
-        xs: xs ?? this.xs,
-      );
+  }) => AuraRadii(
+    pill: pill ?? this.pill,
+    xl: xl ?? this.xl,
+    lg: lg ?? this.lg,
+    md: md ?? this.md,
+    sm: sm ?? this.sm,
+    xs: xs ?? this.xs,
+  );
 
   @override
   AuraRadii lerp(ThemeExtension<AuraRadii>? other, double t) {

@@ -92,9 +92,7 @@ class PhantomWalletService {
       ),
     );
 
-    final walletClient = PhantomClientWalletFacade(
-      stamper: adapter.stamper,
-    );
+    final walletClient = PhantomClientWalletFacade(stamper: adapter.stamper);
 
     final provider = EmbeddedProviderV2(
       config: EmbeddedProviderConfig(
@@ -139,21 +137,22 @@ class PhantomWalletService {
   /// Opens the OAuth browser flow, creates/restores the embedded wallet,
   /// and returns the Solana wallet address.
   Future<PhantomConnectResult> connect(String authProvider) async {
-    debugPrint('[PhantomWallet] connect($authProvider) — '
-        'appId=$_kPhantomAppId, '
-        'authUrl=$_kAuth2LoginUrl, '
-        'redirect=$_kRedirectUri, '
-        'kmsBase=$_kKmsApiBaseUrl, '
-        'authApi=$_kAuth2ApiBaseUrl');
+    debugPrint(
+      '[PhantomWallet] connect($authProvider) — '
+      'appId=$_kPhantomAppId, '
+      'authUrl=$_kAuth2LoginUrl, '
+      'redirect=$_kRedirectUri, '
+      'kmsBase=$_kKmsApiBaseUrl, '
+      'authApi=$_kAuth2ApiBaseUrl',
+    );
 
     final provider = await _ensureProvider();
 
-    final result = await provider.connect(
-      AuthOptions(provider: authProvider),
-    );
+    final result = await provider.connect(AuthOptions(provider: authProvider));
 
-    final solAddr =
-        result.addresses.where((a) => a.addressType == 'solana').firstOrNull;
+    final solAddr = result.addresses
+        .where((a) => a.addressType == 'solana')
+        .firstOrNull;
     if (solAddr == null) {
       throw Exception(
         'Phantom embedded wallet did not return a Solana address.',

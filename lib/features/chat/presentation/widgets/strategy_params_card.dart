@@ -189,7 +189,9 @@ class StrategyParamsCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: c.textPrimary,
-                          borderRadius: BorderRadius.circular(context.auraRadii.pill),
+                          borderRadius: BorderRadius.circular(
+                            context.auraRadii.pill,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: c.textPrimary.withValues(alpha: 0.2),

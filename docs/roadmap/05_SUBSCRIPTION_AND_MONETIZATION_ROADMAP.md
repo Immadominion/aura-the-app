@@ -22,6 +22,7 @@
 ## 2. Tier structure (launch intent)
 
 ### 2.1 Free
+
 - Execute mode unlocked (user signs every action).
 - **Paper mode unlocked** without limits — this is the product's honest shop window.
 - One (1) live automated bot with a small notional cap (e.g. $200) to let users feel Automate.
@@ -29,6 +30,7 @@
 - Basic notifications.
 
 ### 2.2 Pro — $9.99 / month
+
 - Unlimited automated bots (subject to per-user fleet caps for fairness).
 - Higher notional caps (user-configured within platform bounds).
 - Delegate mode eligibility (with step-up auth).
@@ -38,9 +40,11 @@
 - Priority support.
 
 ### 2.3 Data API (separate product, out of the subscription flow at launch)
+
 - Tiered API access to the model's predictions and the simulator's reports for third parties. Scaffolded in the architecture but not launched in phase one.
 
 ### 2.4 Performance fee (Delegate only)
+
 - 10% of realized profit on Delegate-mode positions, measured against a high-water mark.
 - Deducted on position close or on monthly reconciliation, whichever comes first.
 - Transparent calculation shown in the monthly statement.
@@ -117,21 +121,27 @@ The UI reads the same entitlement cache and hides/disables features, but the tru
 ## 8. Lifecycle states
 
 ### 8.1 Trialing → Active
+
 User subscribes; provider returns active status; entitlements upgraded; user notified.
 
 ### 8.2 Active → Past due
+
 Provider charge fails. User enters `grace` for a configured window (default 7 days). Entitlements remain active. UI shows a persistent banner with one-tap update-payment. After grace, entitlements revert to Free; automated bots exceeding free caps are paused (not force-closed) and displayed as "paused — subscription lapsed".
 
 ### 8.3 Active → Canceled (user-initiated)
+
 Cancel takes effect at period end. Entitlements remain active until period end. At period end, downgrade to Free with the same pause-not-close rule.
 
 ### 8.4 Paused (user-initiated, provider-supported)
+
 Subscription pause for a configurable window; treated like canceled for entitlement purposes during the pause; resumes with original renewal cadence.
 
 ### 8.5 Refund / chargeback
+
 Entitlements revert based on policy (§9). Audit trail preserved. If fraud-flagged, account moves into a manual-review state.
 
 ### 8.6 Reactivation
+
 User re-subscribes; entitlements restored; previously paused bots remain paused pending explicit user action (safety default).
 
 ---
@@ -197,12 +207,14 @@ User re-subscribes; entitlements restored; previously paused bots remain paused 
 ## 15. Milestones
 
 ### M1 — Catalog & Cache
+
 - Entitlement catalogue schema defined and seeded with launch tiers.
 - Entitlements cache service + read API.
 - Backend enforcement middleware in place for all paid endpoints.
 - **Exit gate:** a dummy user can be toggled across tiers by admin and every gated endpoint behaves correctly.
 
 ### M2 — Provider Integration (Trial Mode)
+
 - Webhook endpoint with signature verification, idempotent processing.
 - Subscription event log + reconciliation job.
 - In-app upgrade/downgrade/cancel flows against provider sandbox.
@@ -210,18 +222,21 @@ User re-subscribes; entitlements restored; previously paused bots remain paused 
 - **Exit gate:** 30-day trial-mode run in stage with synthetic users exercising every state transition without a single entitlement desync.
 
 ### M3 — UI & Communication
+
 - Account tier surfaces, upgrade modals from 402 responses, usage meters.
 - Billing event banners, dunning notifications, receipt mirror.
 - Support-side tools for viewing subscription event history.
 - **Exit gate:** a support engineer can answer any "why was I charged / why can't I do X" question in under a minute from the console.
 
 ### M4 — Performance Fee (Delegate prerequisite)
+
 - HWM tracking, accrual, debit pipeline against the simulator ledger.
 - Fee-escrow account and reconciliation.
 - Monthly statement generation + export.
 - **Exit gate:** a multi-month synthetic Delegate user has HWM, accrual, and debit records that reconcile to the simulator ledger to the cent.
 
 ### M5 — Go Live
+
 - Dry-run against provider production account with controlled user set.
 - Regulatory / tax / receipt review closed.
 - Rollback plan rehearsed.
@@ -229,6 +244,7 @@ User re-subscribes; entitlements restored; previously paused bots remain paused 
 - **Exit gate:** 72 hours in `live` with zero webhook failures, zero reconciliation divergences, zero erroneous 402s for paying users.
 
 ### M6 — Pricing Evolution
+
 - Regional pricing enabled via provider localization.
 - Annual plan option.
 - Data API tiering launched as a separate product surface.

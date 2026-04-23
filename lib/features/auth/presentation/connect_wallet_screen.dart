@@ -174,7 +174,7 @@ class _ConnectWalletScreenState extends ConsumerState<ConnectWalletScreen> {
                       Platform.isAndroid
                           ? 'Connect your Solana wallet to start trading.'
                           : 'Sign in to start trading. A secure Solana wallet '
-                            'is created for you automatically.',
+                                'is created for you automatically.',
                       style: text.bodyMedium,
                     ).animate().fadeIn(duration: 500.ms, delay: 250.ms),
 
@@ -196,13 +196,15 @@ class _ConnectWalletScreenState extends ConsumerState<ConnectWalletScreen> {
                     // ── Connect Wallet (primary CTA — MWA on Android) ──
                     if (Platform.isAndroid) ...[
                       AuraButton(
-                        label: _connecting && _activeProvider == 'mwa'
-                            ? 'Connecting…'
-                            : 'Connect Wallet',
-                        onPressed: _connectMwa,
-                        isLoading: _connecting && _activeProvider == 'mwa',
-                        enabled: !_connecting,
-                      ).animate().fadeIn(duration: 500.ms, delay: 350.ms)
+                            label: _connecting && _activeProvider == 'mwa'
+                                ? 'Connecting…'
+                                : 'Connect Wallet',
+                            onPressed: _connectMwa,
+                            isLoading: _connecting && _activeProvider == 'mwa',
+                            enabled: !_connecting,
+                          )
+                          .animate()
+                          .fadeIn(duration: 500.ms, delay: 350.ms)
                           .slideY(begin: 0.08, end: 0),
 
                       SizedBox(height: 20.h),
@@ -222,9 +224,9 @@ class _ConnectWalletScreenState extends ConsumerState<ConnectWalletScreen> {
                         child: providerButtons,
                       ).animate().fadeIn(duration: 500.ms, delay: 480.ms),
                     ] else ...[
-                      Center(
-                        child: providerButtons,
-                      ).animate().fadeIn(duration: 500.ms, delay: 350.ms)
+                      Center(child: providerButtons)
+                          .animate()
+                          .fadeIn(duration: 500.ms, delay: 350.ms)
                           .slideY(begin: 0.08, end: 0),
                     ],
 
@@ -274,70 +276,41 @@ class _ProviderCircleButton extends StatelessWidget {
     final c = context.aura;
     final enabledState = enabled && !isLoading;
 
-    return SizedBox(
-      width: 64.w,
-      height: 64.w,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            center: const Alignment(-0.28, -0.34),
-            radius: 0.92,
-            colors: enabledState
-                ? [
-                    c.surfaceElevated,
-                    c.panelBackground,
-                    c.background,
-                  ]
-                : [
-                    c.panelBackground.withValues(alpha: 0.86),
-                    c.background.withValues(alpha: 0.78),
-                    c.background.withValues(alpha: 0.72),
-                  ],
-            stops: const [0.0, 0.58, 1.0],
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: enabledState ? onPressed : null,
+        child: Container(
+          width: 56.w,
+          height: 56.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: c.surface,
+            border: Border.all(
+              color: enabledState
+                  ? c.borderSubtle
+                  : c.borderSubtle.withValues(alpha: 0.4),
+              width: 1,
+            ),
           ),
-          border: Border.all(
-            color: enabledState
-                ? c.border.withValues(alpha: 0.92)
-                : c.border.withValues(alpha: 0.45),
-            width: 1.15,
+          child: Center(
+            child: isLoading
+                ? SizedBox(
+                    width: 20.w,
+                    height: 20.w,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        c.textSecondary,
+                      ),
+                    ),
+                  )
+                : Icon(
+                    icon,
+                    size: 24.sp,
+                    color: enabledState ? c.textPrimary : c.textTertiary,
+                  ),
           ),
-          boxShadow: enabledState
-              ? [
-                  BoxShadow(
-                    color: c.overlay,
-                    blurRadius: 16,
-                    offset: const Offset(0, 8),
-                  ),
-                  BoxShadow(
-                    color: c.accent.withValues(alpha: 0.14),
-                    blurRadius: 18,
-                    spreadRadius: 0.5,
-                  ),
-                ]
-              : null,
-        ),
-        child: IconButton(
-          tooltip: tooltip,
-          onPressed: enabledState ? onPressed : null,
-          style: IconButton.styleFrom(
-            foregroundColor:
-                enabledState ? c.textPrimary : c.textTertiary,
-            shape: const CircleBorder(),
-            fixedSize: Size.square(64.w),
-            padding: EdgeInsets.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          icon: isLoading
-              ? SizedBox(
-                  width: 22.w,
-                  height: 22.w,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    valueColor: AlwaysStoppedAnimation<Color>(c.textPrimary),
-                  ),
-                )
-              : Icon(icon, size: 28.sp),
         ),
       ),
     );

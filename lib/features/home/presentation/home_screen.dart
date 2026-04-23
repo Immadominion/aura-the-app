@@ -12,6 +12,7 @@ import 'package:aura/core/theme/app_colors.dart';
 import 'package:aura/core/theme/app_radii.dart';
 import 'package:aura/core/theme/app_theme.dart';
 import 'package:aura/shared/widgets/aura_components.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:aura/features/home/presentation/widgets/empty_state.dart';
 import 'package:aura/features/home/presentation/widgets/bot_row.dart';
@@ -248,45 +249,23 @@ class HomeScreen extends ConsumerWidget {
                             // show with 0 positions / 0 bots.
                             if (bots.isNotEmpty || allPositions.isNotEmpty)
                               Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    padding: EdgeInsets.all(14.w),
-                                    decoration: BoxDecoration(
-                                      color: c.panelBorder.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                      borderRadius: BorderRadius.circular(
-                                        context.auraRadii.md,
-                                      ),
-                                    ),
+                                children: [
+                                  Expanded(
                                     child: AuraStatBox(
                                       label: 'Positions',
                                       value: '${allPositions.length}',
                                     ),
                                   ),
-                                ),
-                                SizedBox(width: 12.w),
-                                Expanded(
-                                  child: Container(
-                                    padding: EdgeInsets.all(14.w),
-                                    decoration: BoxDecoration(
-                                      color: c.panelBorder.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                      borderRadius: BorderRadius.circular(
-                                        context.auraRadii.md,
-                                      ),
-                                    ),
+                                  SizedBox(width: 24.w),
+                                  Expanded(
                                     child: AuraStatBox(
                                       label: 'Win Rate',
                                       value:
                                           '${avgWinRate.toStringAsFixed(0)}%',
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
 
                             SizedBox(height: 24.h),
 
@@ -315,127 +294,130 @@ class HomeScreen extends ConsumerWidget {
                               if (bots.isEmpty)
                                 const SizedBox.shrink()
                               else ...[
-                              ...bots.take(2).toList().asMap().entries.map((
-                                entry,
-                              ) {
-                                final i = entry.key;
-                                final bot = entry.value;
-                                final statusColor = bot.engineRunning
-                                    ? c.profit
-                                    : (bot.status == BotStatus.error
-                                          ? c.loss
-                                          : c.panelTextSecondary);
-                                final neverStarted =
-                                    bot.status == BotStatus.stopped &&
-                                    bot.totalTrades == 0 &&
-                                    bot.lastActivityAt == null;
-                                final statusText = bot.engineRunning
-                                    ? 'Running · ${bot.engineStats?.totalScans ?? 0} scans'
-                                    : neverStarted
-                                    ? 'Not Started'
-                                    : bot.status == BotStatus.error
-                                    ? 'Error'
-                                    : 'Stopped';
+                                ...bots.take(2).toList().asMap().entries.map((
+                                  entry,
+                                ) {
+                                  final i = entry.key;
+                                  final bot = entry.value;
+                                  final statusColor = bot.engineRunning
+                                      ? c.profit
+                                      : (bot.status == BotStatus.error
+                                            ? c.loss
+                                            : c.panelTextSecondary);
+                                  final neverStarted =
+                                      bot.status == BotStatus.stopped &&
+                                      bot.totalTrades == 0 &&
+                                      bot.lastActivityAt == null;
+                                  final statusText = bot.engineRunning
+                                      ? 'Running · ${bot.engineStats?.totalScans ?? 0} scans'
+                                      : neverStarted
+                                      ? 'Not Started'
+                                      : bot.status == BotStatus.error
+                                      ? 'Error'
+                                      : 'Stopped';
 
-                                return Column(
-                                  children: [
-                                    if (i > 0)
-                                      Divider(height: 1, color: c.panelBorder),
-                                    GestureDetector(
-                                      behavior: HitTestBehavior.opaque,
-                                      onTap: () => context.push(
-                                        '/strategy/${bot.botId}',
-                                      ),
-                                      child: BotRow(
-                                        name: bot.name,
-                                        balance:
-                                            '${bot.currentBalanceSol.toStringAsFixed(1)} SOL',
-                                        status: statusText,
-                                        statusColor: statusColor,
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              }),
-
-                              // "See All" link → navigates to Automate tab
-                              if (bots.length > 2) ...[
-                                SizedBox(height: 4.h),
-                                GestureDetector(
-                                  onTap: () => context.go('/control'),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
+                                  return Column(
                                     children: [
-                                      Text(
-                                        'See All ${bots.length} Bots',
-                                        style: text.labelMedium?.copyWith(
-                                          color: c.accent,
-                                          fontWeight: FontWeight.w600,
+                                      if (i > 0)
+                                        Divider(
+                                          height: 1,
+                                          color: c.panelBorder,
+                                        ),
+                                      GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () => context.push(
+                                          '/strategy/${bot.botId}',
+                                        ),
+                                        child: BotRow(
+                                          name: bot.name,
+                                          balance:
+                                              '${bot.currentBalanceSol.toStringAsFixed(1)} SOL',
+                                          status: statusText,
+                                          statusColor: statusColor,
                                         ),
                                       ),
-                                      SizedBox(width: 4.w),
-                                      Icon(
-                                        Icons.arrow_forward_ios,
-                                        size: 12.sp,
-                                        color: c.accent,
-                                      ),
                                     ],
+                                  );
+                                }),
+
+                                // "See All" link → navigates to Automate tab
+                                if (bots.length > 2) ...[
+                                  SizedBox(height: 4.h),
+                                  GestureDetector(
+                                    onTap: () => context.go('/control'),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          'See All ${bots.length} Bots',
+                                          style: text.labelMedium?.copyWith(
+                                            color: c.accent,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        SizedBox(width: 4.w),
+                                        Icon(
+                                          PhosphorIconsRegular.caretRight,
+                                          size: 14.sp,
+                                          color: c.accent,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
-                            ],
 
-                            SizedBox(height: 20.h),
+                              SizedBox(height: 20.h),
 
-                            // ── Active Positions (only H2 in panel) ──
-                            PositionsSection(),
+                              // ── Active Positions (only H2 in panel) ──
+                              PositionsSection(),
 
-                            // ── View History link ──
-                            GestureDetector(
-                              onTap: () => context.push('/history'),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    'Trade History',
-                                    style: text.labelMedium?.copyWith(
-                                      color: c.accent,
-                                      fontWeight: FontWeight.w600,
+                              // ── View History link ──
+                              GestureDetector(
+                                onTap: () => context.push('/history'),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'Trade History',
+                                      style: text.labelMedium?.copyWith(
+                                        color: c.accent,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(width: 4.w),
-                                  Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 12.sp,
-                                    color: c.accent,
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // ── Pools Aura is watching (Phase 15, audit §6.1) ──
-                            SizedBox(height: 6.h),
-                            GestureDetector(
-                              onTap: () => context.push('/pools'),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    'Pools Aura is watching',
-                                    style: text.labelMedium?.copyWith(
+                                    SizedBox(width: 4.w),
+                                    Icon(
+                                      PhosphorIconsRegular.caretRight,
+                                      size: 14.sp,
                                       color: c.accent,
-                                      fontWeight: FontWeight.w600,
                                     ),
-                                  ),
-                                  SizedBox(width: 4.w),
-                                  Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 12.sp,
-                                    color: c.accent,
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
+
+                              // ── Pools Aura is watching (Phase 15, audit §6.1) ──
+                              SizedBox(height: 6.h),
+                              GestureDetector(
+                                onTap: () => context.push('/pools'),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'Pools Aura is watching',
+                                      style: text.labelMedium?.copyWith(
+                                        color: c.accent,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    SizedBox(width: 4.w),
+                                    Icon(
+                                      PhosphorIconsRegular.caretRight,
+                                      size: 14.sp,
+                                      color: c.accent,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ], // end non-zero-state branch
                           ],
                         ),

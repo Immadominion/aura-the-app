@@ -16,6 +16,7 @@ import 'package:aura/core/theme/app_theme.dart';
 import 'package:aura/features/setup/models/risk_profile.dart';
 import 'package:aura/features/setup/presentation/widgets/custom_strategy_step.dart';
 import 'package:aura/features/setup/presentation/widgets/guardrails_step.dart';
+import 'package:aura/features/setup/presentation/widgets/llm_config_step.dart';
 import 'package:aura/features/setup/presentation/widgets/path_step.dart';
 import 'package:aura/features/setup/presentation/widgets/review_fund_step.dart';
 import 'package:aura/features/chat/models/chat_models.dart';
@@ -54,6 +55,9 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
   String _deployStatus = '';
 
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _llmApiKeyController = TextEditingController();
+  final TextEditingController _llmModelController = TextEditingController();
+  final TextEditingController _llmDailyCapController = TextEditingController();
 
   // ── Aura AI overrides ──
   double _positionSize = kDefaultRiskConfig.positionSizeSOL;
@@ -75,6 +79,9 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _llmApiKeyController.dispose();
+    _llmModelController.dispose();
+    _llmDailyCapController.dispose();
     super.dispose();
   }
 
@@ -112,7 +119,7 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
 
   void _setSimulationBalance(double value) {
     setState(() {
-      if (_path == SetupPath.auraAi) {
+      if (_path == SetupPath.auraAi || _path == SetupPath.llm) {
         // Bankroll-relative: re-derive config from the new balance.
         final rawBalance = normalizeSimulationBalanceSOL(value);
         final cfg = configForBankroll(_risk, rawBalance);
@@ -211,7 +218,13 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
 
     try {
       final isAuraAi = _path == SetupPath.auraAi;
-      final strategyMode = isAuraAi ? 'aura-ai' : 'rule-based';
+      final isLlm = _path == SetupPath.llm;
+      final useRiskCfg = isAuraAi || isLlm;
+      final strategyMode = isAuraAi
+          ? 'aura-ai'
+          : isLlm
+          ? 'llm'
+          : 'rule-based';
       final riskCfg = riskConfigs[_risk]!;
       final isLive = _execMode == ExecutionMode.live;
 
@@ -221,6 +234,8 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
 
       final modeName = isLive ? 'live' : 'simulation';
 
+      final llmDailyCap = double.tryParse(_llmDailyCapController.text.trim());
+
       final config = BotConfig(
         name: _nameController.text.trim().isEmpty
             ? null
@@ -229,35 +244,40 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
         config: {
           'strategyMode': strategyMode,
           'positionSizeSOL': _positionSize,
-          'entryScoreThreshold': isAuraAi
+          'entryScoreThreshold': useRiskCfg
               ? riskCfg.entryScoreThreshold
               : _entryScore,
-          'maxConcurrentPositions': isAuraAi
+          'maxConcurrentPositions': useRiskCfg
               ? riskCfg.maxConcurrentPositions
               : _maxConcurrent,
           'profitTargetPercent': _profitTarget,
           'stopLossPercent': _stopLoss,
-          'maxHoldTimeMinutes': isAuraAi
+          'maxHoldTimeMinutes': useRiskCfg
               ? riskCfg.maxHoldTimeMinutes
               : _maxHoldMinutes,
           'maxDailyLossSOL': _dailyLimit,
-          'cooldownMinutes': isAuraAi
+          'cooldownMinutes': useRiskCfg
               ? kDefaultCustomEntry.cooldownMinutes
               : _cooldownMinutes,
           'cronIntervalSeconds': 30,
           'simulationBalanceSOL': _simulationBalanceSol,
-          'minVolume24h': isAuraAi
+          'minVolume24h': useRiskCfg
               ? kDefaultCustomEntry.minVolume24h
               : _minVolume,
-          'minLiquidity': isAuraAi
+          'minLiquidity': useRiskCfg
               ? kDefaultCustomEntry.minLiquidity
               : _minLiquidity,
-          'maxLiquidity': isAuraAi
+          'maxLiquidity': useRiskCfg
               ? kDefaultCustomEntry.maxLiquidity
               : _maxLiquidity,
-          'defaultBinRange': isAuraAi
+          'defaultBinRange': useRiskCfg
               ? kDefaultCustomEntry.defaultBinRange
               : _binRange,
+          if (isLlm) 'llmApiKey': _llmApiKeyController.text.trim(),
+          if (isLlm && _llmModelController.text.trim().isNotEmpty)
+            'llmModel': _llmModelController.text.trim(),
+          if (isLlm && llmDailyCap != null && llmDailyCap > 0)
+            'llmMaxUsdPerDay': llmDailyCap,
         },
       );
 
@@ -278,7 +298,7 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
         updateStatus('Fund your bot…');
         final recommended =
             (_positionSize + 0.07) *
-            (isAuraAi ? riskCfg.maxConcurrentPositions : _maxConcurrent);
+            (useRiskCfg ? riskCfg.maxConcurrentPositions : _maxConcurrent);
         await AuraBottomSheet.show<bool>(
           context: context,
           title: 'Fund Your Bot',
@@ -380,7 +400,23 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
         break;
 
       case 1:
-        if (_path == SetupPath.custom) {
+        if (_path == SetupPath.llm) {
+          stepWidget = LlmConfigStep(
+            key: const ValueKey('llm'),
+            apiKeyController: _llmApiKeyController,
+            modelController: _llmModelController,
+            dailyCapController: _llmDailyCapController,
+            risk: _risk,
+            onSelectRisk: _selectRisk,
+            onNext: _nextToReview,
+            onBack: () {
+              HapticFeedback.selectionClick();
+              setState(() => _step = 0);
+            },
+            c: c,
+            text: text,
+          );
+        } else if (_path == SetupPath.custom) {
           if (_useAiChat) {
             stepWidget = SetupChatStep(
               key: const ValueKey('setup-chat'),
@@ -463,7 +499,7 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
         break;
 
       default:
-        final isAuraAi = _path == SetupPath.auraAi;
+        final useRiskCfg = _path == SetupPath.auraAi || _path == SetupPath.llm;
         final riskCfg = riskConfigs[_risk]!;
         stepWidget = ReviewFundStep(
           key: const ValueKey('review'),
@@ -472,7 +508,7 @@ class _CreateStrategyScreenState extends ConsumerState<CreateStrategyScreen> {
           positionSizeSOL: _positionSize,
           simulationBalanceSOL: _simulationBalanceSol,
           onSimulationBalanceChanged: _setSimulationBalance,
-          maxConcurrentPositions: isAuraAi
+          maxConcurrentPositions: useRiskCfg
               ? riskCfg.maxConcurrentPositions
               : _maxConcurrent,
           profitTargetPercent: _profitTarget,

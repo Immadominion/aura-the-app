@@ -23,6 +23,7 @@ import 'package:aura/features/automate/presentation/widgets/live_position_card.d
 import 'package:aura/features/automate/presentation/widgets/param_row.dart';
 import 'package:aura/features/automate/presentation/widgets/pulsing_dot.dart';
 import 'package:aura/features/automate/presentation/widgets/edit_config_sheet.dart';
+import 'package:rive/rive.dart';
 import 'package:aura/shared/widgets/mwa_button_tap_effect.dart';
 import 'package:aura/shared/widgets/aura_bottom_sheet.dart';
 import 'package:aura/shared/widgets/withdraw_sheet.dart';
@@ -824,26 +825,45 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
   }
 
   Widget _buildError(AuraColors c, TextTheme text, Object err) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(botDetailProvider(widget.botId));
+        await Future.delayed(const Duration(milliseconds: 400));
+      },
+      color: c.accent,
+      backgroundColor: c.surface,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Icon(PhosphorIconsBold.warningCircle, color: c.loss, size: 40.sp),
-          SizedBox(height: 12.h),
-          Text(
-            'Failed to load bot',
-            style: text.titleMedium?.copyWith(color: c.textPrimary),
+          // Background texture — same treatment as connect wallet screen
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.10,
+                child: Image.asset(
+                  'assets/images/bg-texture.png',
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.medium,
+                ),
+              ),
+            ),
           ),
-          SizedBox(height: 4.h),
-          Text(
-            '$err',
-            style: text.bodySmall?.copyWith(color: c.textTertiary),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16.h),
-          GestureDetector(
-            onTap: () => ref.invalidate(botDetailProvider(widget.botId)),
-            child: Text('Retry', style: TextStyle(color: c.accent)),
+
+          // Scrollable content — required for RefreshIndicator to trigger
+          ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.82,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // 404 Rive animation
+                    SizedBox(width: 300.w, height: 400.w, child: _ErrorRive()),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1291,7 +1311,6 @@ class _StrategyDetailScreenState extends ConsumerState<StrategyDetailScreen> {
                   // Deferred: backend doesn't expose a daily PnL series yet.
                   // When `/bot/:id/pnl-history` lands, drop a sparkline here
                   // (single line, semantic colour, ~24 px tall).
-
                   SizedBox(height: 28.h),
 
                   // ── Strategy Shape mini-card (audit §5.7) ──
@@ -1893,9 +1912,7 @@ class _StrategyShapePainter extends CustomPainter {
       final h = inside
           ? maxBarH * (1 - binIndex.abs() / (windowBins + 1))
           : maxBarH * 0.18;
-      binPaint.color = inside
-          ? centerColor.withValues(alpha: 0.55)
-          : binColor;
+      binPaint.color = inside ? centerColor.withValues(alpha: 0.55) : binColor;
       canvas.drawLine(
         Offset(x, midY - h / 2),
         Offset(x, midY + h / 2),
@@ -1915,4 +1932,49 @@ class _StrategyShapePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _StrategyShapePainter old) =>
       old.binRange != binRange || old.centerColor != centerColor;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// 404 Rive animation — used by _buildError
+// ──────────────────────────────────────────────────────────────────────────────
+
+class _ErrorRive extends StatefulWidget {
+  const _ErrorRive();
+
+  @override
+  State<_ErrorRive> createState() => _ErrorRiveState();
+}
+
+class _ErrorRiveState extends State<_ErrorRive> {
+  late final FileLoader _loader;
+
+  @override
+  void initState() {
+    super.initState();
+    _loader = FileLoader.fromAsset(
+      'assets/animation/rive/404-error.riv',
+      riveFactory: Factory.rive,
+    );
+  }
+
+  @override
+  void dispose() {
+    _loader.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RiveWidgetBuilder(
+      fileLoader: _loader,
+      builder: (context, state) => switch (state) {
+        RiveLoading() => const SizedBox.expand(),
+        RiveFailed() => const SizedBox.expand(),
+        RiveLoaded() => RiveWidget(
+          controller: state.controller,
+          fit: Fit.cover,
+        ),
+      },
+    );
+  }
 }

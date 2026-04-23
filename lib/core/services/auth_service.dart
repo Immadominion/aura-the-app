@@ -35,9 +35,9 @@ class AuthService {
     required ApiClient api,
     required MwaWalletService mwa,
     required PhantomWalletService phantom,
-  })  : _api = api,
-        _mwa = mwa,
-        _phantom = phantom;
+  }) : _api = api,
+       _mwa = mwa,
+       _phantom = phantom;
 
   /// Connected wallet address (from last successful sign-in).
   String? get walletAddress => _mwa.publicKey ?? _phantom.walletAddress;
@@ -148,9 +148,10 @@ class AuthService {
 
     // Step 2: Fetch nonce from backend.
     debugPrint('[Auth] Phantom: fetching nonce');
-    final nonceResponse = await _api.post('/auth/nonce', data: {
-      'walletAddress': walletAddress,
-    });
+    final nonceResponse = await _api.post(
+      '/auth/nonce',
+      data: {'walletAddress': walletAddress},
+    );
     final nonceData = nonceResponse.data as Map<String, dynamic>;
     final nonce = nonceData['nonce'] as String;
     final issuedAt = nonceData['issuedAt'] as String;
@@ -201,8 +202,24 @@ class AuthService {
     return user;
   }
 
-  /// Sign out — clear tokens and cached user.
+  /// Sign out — revokes the session server-side, clears local tokens and cached user.
+  ///
+  /// Calls `POST /auth/logout` first so the backend bumps `tokenVersion`
+  /// (invalidating the refresh token chain) and clears the stored hash.
+  /// Local cleanup runs unconditionally — even if the network call fails
+  /// the user must still be able to sign out locally.
   Future<void> signOut() async {
+    if (_api.isAuthenticated) {
+      try {
+        await _api.post('/auth/logout', data: {});
+      } on DioException catch (e) {
+        debugPrint(
+          '[Auth] /auth/logout failed (${e.response?.statusCode}) — continuing local sign-out',
+        );
+      } catch (e) {
+        debugPrint('[Auth] /auth/logout error — continuing local sign-out: $e');
+      }
+    }
     await _api.clearTokens();
     await _clearCachedUser();
   }
@@ -368,6 +385,17 @@ class AuthNotifier extends AsyncNotifier<User?> {
     // across hot-reloads and app restarts.
     final mwa = ref.read(mwaWalletServiceProvider);
     await mwa.loadAuthToken();
+
+    // React to backend-side revocation: when the API client decides our
+    // refresh token is dead (logout from another device, tokenVersion bump,
+    // server-side revoke) it pushes onto sessionRevokedStreamProvider.
+    // Force a clean local sign-out so the router redirects to /sign-in.
+    ref.listen(sessionRevokedStreamProvider, (_, next) {
+      next.whenData((_) {
+        debugPrint('[Auth] backend revoked session — signing out locally');
+        signOut();
+      });
+    });
 
     return auth.tryRestoreSession();
   }

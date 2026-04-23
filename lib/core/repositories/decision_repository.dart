@@ -42,14 +42,18 @@ final decisionRepositoryProvider = Provider<DecisionRepository>((ref) {
   return DecisionRepository(ref.read(apiClientProvider));
 });
 
-final botDecisionsProvider =
-    FutureProvider.family<List<BotDecision>, String>((ref, botId) async {
+final botDecisionsProvider = FutureProvider.family<List<BotDecision>, String>((
+  ref,
+  botId,
+) async {
   final repo = ref.read(decisionRepositoryProvider);
   return repo.getDecisions(botId);
 });
 
-final positionDecisionProvider =
-    FutureProvider.family<BotDecision, String>((ref, positionId) async {
+final positionDecisionProvider = FutureProvider.family<BotDecision, String>((
+  ref,
+  positionId,
+) async {
   final repo = ref.read(decisionRepositoryProvider);
   return repo.getPositionDecision(positionId);
 });

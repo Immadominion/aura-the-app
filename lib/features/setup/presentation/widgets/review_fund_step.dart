@@ -179,17 +179,21 @@ class _ReviewFundStepState extends State<ReviewFundStep> {
                 Row(
                   children: [
                     Icon(
-                      widget.path == SetupPath.auraAi
-                          ? PhosphorIconsBold.sparkle
-                          : PhosphorIconsBold.folderSimpleUser,
+                      switch (widget.path) {
+                        SetupPath.auraAi => PhosphorIconsBold.sparkle,
+                        SetupPath.llm => PhosphorIconsBold.brain,
+                        SetupPath.custom => PhosphorIconsBold.folderSimpleUser,
+                      },
                       size: 14.sp,
                       color: widget.c.accent,
                     ),
                     SizedBox(width: 6.w),
                     Text(
-                      widget.path == SetupPath.auraAi
-                          ? 'Aura AI'
-                          : 'Custom Strategy',
+                      switch (widget.path) {
+                        SetupPath.auraAi => 'Aura AI',
+                        SetupPath.llm => 'Talk to Claude',
+                        SetupPath.custom => 'Custom Strategy',
+                      },
                       style: widget.text.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: widget.c.textPrimary,

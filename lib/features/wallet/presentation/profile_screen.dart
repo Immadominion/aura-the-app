@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,33 +41,16 @@ class ProfileScreen extends ConsumerStatefulWidget {
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends ConsumerState<ProfileScreen>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _settingsAnim;
-  bool _settingsOpen = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _settingsAnim = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  void _openSettings() {
+    final c = context.aura;
+    final text = context.auraText;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => _SettingsSheet(c: c, text: text),
     );
-  }
-
-  @override
-  void dispose() {
-    _settingsAnim.dispose();
-    super.dispose();
-  }
-
-  void _toggleSettings() {
-    setState(() => _settingsOpen = !_settingsOpen);
-    if (_settingsOpen) {
-      _settingsAnim.forward();
-    } else {
-      _settingsAnim.reverse();
-    }
   }
 
   @override
@@ -183,7 +164,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                           ),
                         ),
                         GestureDetector(
-                          onTap: _toggleSettings,
+                          onTap: _openSettings,
                           child: Container(
                             padding: EdgeInsets.all(8.w),
                             decoration: BoxDecoration(
@@ -194,20 +175,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                                 width: 1,
                               ),
                             ),
-                            child: AnimatedBuilder(
-                              animation: _settingsAnim,
-                              builder: (context, child) {
-                                return Transform.rotate(
-                                  angle: _settingsAnim.value * math.pi / 4,
-                                  child: Icon(
-                                    _settingsOpen
-                                        ? PhosphorIconsBold.x
-                                        : PhosphorIconsBold.gear,
-                                    size: 20.sp,
-                                    color: c.textSecondary,
-                                  ),
-                                );
-                              },
+                            child: Icon(
+                              PhosphorIconsBold.gear,
+                              size: 20.sp,
+                              color: c.textSecondary,
                             ),
                           ),
                         ),
@@ -618,11 +589,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ],
               ),
             ),
-            // ── Settings Overlay ──
-            _SettingsOverlay(
-              animation: _settingsAnim,
-              onClose: _toggleSettings,
-            ),
           ],
         ),
       ),
@@ -631,152 +597,93 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 }
 
 // ─────────────────────────────────────────────────────────
-// Settings Overlay
+// Settings Bottom Sheet
 // ─────────────────────────────────────────────────────────
 
-class _SettingsOverlay extends ConsumerWidget {
-  final Animation<double> animation;
-  final VoidCallback onClose;
+class _SettingsSheet extends ConsumerWidget {
+  final AuraColors c;
+  final TextTheme text;
 
-  const _SettingsOverlay({required this.animation, required this.onClose});
+  const _SettingsSheet({required this.c, required this.text});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.aura;
-    final text = context.auraText;
-    final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
 
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, _) {
-        if (animation.value == 0) return const SizedBox.shrink();
-
-        return Positioned.fill(
-          child: GestureDetector(
-            onTap: onClose,
+    return Container(
+      padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, bottomPad + 24.h),
+      decoration: BoxDecoration(
+        color: c.background,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        border: Border(top: BorderSide(color: c.borderSubtle)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drag handle
+          Center(
             child: Container(
-              color: Colors.black.withValues(alpha: 0.3 * animation.value),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: FractionalTranslation(
-                  translation: Offset(1 - animation.value, 0),
-                  child: GestureDetector(
-                    onTap: () {}, // absorb taps on sheet
-                    child: Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      padding: EdgeInsets.fromLTRB(
-                        20.w,
-                        topPad + 12.h,
-                        20.w,
-                        bottomPad + 32.h,
-                      ),
-                      decoration: BoxDecoration(color: c.background),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Header with close button
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'SETTINGS',
-                                style: text.labelMedium?.copyWith(
-                                  letterSpacing: 1.2,
-                                  color: c.textTertiary,
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: onClose,
-                                child: Container(
-                                  padding: EdgeInsets.all(8.w),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: c.surface,
-                                    border: Border.all(
-                                      color: c.borderSubtle,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Icon(
-                                    PhosphorIconsBold.x,
-                                    size: 20.sp,
-                                    color: c.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 24.h),
-                          // Scrollable body prevents overflow on
-                          // shorter screens.
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Audit §5.x — collapsed from 9 rows to 3 sections.
-                                  SettingTile(
-                                    icon: PhosphorIconsBold.slidersHorizontal,
-                                    title: 'Risk preferences',
-                                    subtitle: 'Defaults for new bots',
-                                    onTap: () =>
-                                        _showRiskPreferencesSheet(context, ref, c, text),
-                                  ),
-                                  SettingTile(
-                                    icon: PhosphorIconsBold.bell,
-                                    title: 'Notifications',
-                                    subtitle: 'Execution alerts, price moves',
-                                    onTap: () =>
-                                        _showNotificationsSheet(context, c, text),
-                                  ),
-                                  SettingTile(
-                                    icon: PhosphorIconsBold.dotsThreeOutline,
-                                    title: 'Advanced',
-                                    subtitle: 'Security · Network · Support',
-                                    onTap: () => _showAdvancedSheet(context, c, text),
-                                    isLast: true,
-                                  ),
-                                  SizedBox(height: 24.h),
-                                  // ── Global kill switch (audit §5.x) ──
-                                  _KillSwitchButton(c: c, text: text),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 12.h),
-                          // Disconnect Wallet
-                          Center(
-                            child: TextButton(
-                              onPressed: () async {
-                                onClose();
-                                await ref
-                                    .read(authStateProvider.notifier)
-                                    .signOut();
-                                if (context.mounted) {
-                                  context.go('/connect-wallet');
-                                }
-                              },
-                              child: Text(
-                                'Disconnect Wallet',
-                                style: text.titleSmall?.copyWith(
-                                  color: c.loss,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+              width: 36.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: c.textTertiary.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+          ),
+          SizedBox(height: 20.h),
+          Text(
+            'SETTINGS',
+            style: text.labelMedium?.copyWith(
+              letterSpacing: 1.2,
+              color: c.textTertiary,
+            ),
+          ),
+          SizedBox(height: 16.h),
+          SettingTile(
+            icon: PhosphorIconsBold.slidersHorizontal,
+            title: 'Risk preferences',
+            subtitle: 'Defaults for new bots',
+            onTap: () => _showRiskPreferencesSheet(context, ref, c, text),
+          ),
+          SettingTile(
+            icon: PhosphorIconsBold.bell,
+            title: 'Notifications',
+            subtitle: 'Execution alerts, price moves',
+            onTap: () => _showNotificationsSheet(context, c, text),
+          ),
+          SettingTile(
+            icon: PhosphorIconsBold.dotsThreeOutline,
+            title: 'Advanced',
+            subtitle: 'Security · Network · Support',
+            onTap: () => _showAdvancedSheet(context, c, text),
+            isLast: true,
+          ),
+          SizedBox(height: 20.h),
+          _KillSwitchButton(c: c, text: text),
+          SizedBox(height: 8.h),
+          // Disconnect Wallet
+          Center(
+            child: TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await ref.read(authStateProvider.notifier).signOut();
+                if (context.mounted) {
+                  context.go('/connect-wallet');
+                }
+              },
+              child: Text(
+                'Disconnect Wallet',
+                style: text.titleSmall?.copyWith(
+                  color: c.loss,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }
@@ -1659,15 +1566,11 @@ class _KillSwitchButton extends ConsumerWidget {
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         decoration: ShapeDecoration(
-          color: canFire
-              ? c.loss.withValues(alpha: 0.08)
-              : c.surface,
+          color: canFire ? c.loss.withValues(alpha: 0.08) : c.surface,
           shape: ContinuousRectangleBorder(
             borderRadius: BorderRadius.circular(context.auraRadii.md),
             side: BorderSide(
-              color: canFire
-                  ? c.loss.withValues(alpha: 0.4)
-                  : c.borderSubtle,
+              color: canFire ? c.loss.withValues(alpha: 0.4) : c.borderSubtle,
             ),
           ),
         ),
@@ -1828,12 +1731,18 @@ Future<void> _confirmKillSwitch(
   for (final b in running) {
     try {
       await repo.stopBot(b.botId);
-    } catch (_) {/* swallow per-bot, continue stopping the rest */}
+    } catch (_) {
+      /* swallow per-bot, continue stopping the rest */
+    }
   }
   ref.read(botListProvider.notifier).refresh();
   if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Stopped ${running.length} bot${running.length == 1 ? '' : 's'}')),
+      SnackBar(
+        content: Text(
+          'Stopped ${running.length} bot${running.length == 1 ? '' : 's'}',
+        ),
+      ),
     );
   }
 }

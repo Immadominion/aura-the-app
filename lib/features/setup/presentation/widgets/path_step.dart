@@ -125,15 +125,21 @@ class PathStep extends StatelessWidget {
                         filled: true,
                         fillColor: c.surface,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(context.auraRadii.md),
+                          borderRadius: BorderRadius.circular(
+                            context.auraRadii.md,
+                          ),
                           borderSide: BorderSide.none,
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(context.auraRadii.md),
+                          borderRadius: BorderRadius.circular(
+                            context.auraRadii.md,
+                          ),
                           borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(context.auraRadii.md),
+                          borderRadius: BorderRadius.circular(
+                            context.auraRadii.md,
+                          ),
                           borderSide: BorderSide(color: c.accent, width: 1),
                         ),
                         contentPadding: EdgeInsets.symmetric(
@@ -156,7 +162,7 @@ class PathStep extends StatelessWidget {
                     ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
                   ],
 
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 20.h),
 
                   // ── Aura AI card ──
                   PathCard(
@@ -176,7 +182,27 @@ class PathStep extends StatelessWidget {
                       .fadeIn(duration: 500.ms, delay: 200.ms)
                       .slideY(begin: 0.06, end: 0, curve: Curves.easeOutCubic),
 
-                  SizedBox(height: 12.h),
+                  SizedBox(height: 8.h),
+
+                  // ── LLM card (Claude as the brain) ──
+                  PathCard(
+                        icon: PhosphorIconsBold.brain,
+                        title: 'Talk to Claude',
+                        subtitle: 'LLM-driven entries',
+                        description:
+                            'Bring your Anthropic key. Claude reads pool '
+                            'context and decides — you keep the leash.',
+                        isSelected: selected == SetupPath.llm,
+                        isRecommended: false,
+                        onTap: () => onSelect(SetupPath.llm),
+                        c: c,
+                        text: text,
+                      )
+                      .animate()
+                      .fadeIn(duration: 500.ms, delay: 260.ms)
+                      .slideY(begin: 0.06, end: 0, curve: Curves.easeOutCubic),
+
+                  SizedBox(height: 8.h),
 
                   // ── Custom Strategy card ──
                   PathCard(
@@ -193,9 +219,9 @@ class PathStep extends StatelessWidget {
                         text: text,
                       )
                       .animate()
-                      .fadeIn(duration: 500.ms, delay: 300.ms)
+                      .fadeIn(duration: 500.ms, delay: 320.ms)
                       .slideY(begin: 0.06, end: 0, curve: Curves.easeOutCubic),
-
+                  SizedBox(height: 16.h),
                   const Spacer(),
 
                   // ── Mode radio ──

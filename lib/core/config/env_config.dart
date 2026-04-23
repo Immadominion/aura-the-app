@@ -83,14 +83,12 @@ class EnvConfig {
           'Set _kProductionApiUrl in env_config.dart or pass '
           '--dart-define=API_BASE_URL=<url>',
         );
-        return 'https://sage-the-backend-production.up.railway.app';
+        return '';
       case Environment.development:
-        debugPrint(
-          '⚠️ Dev mode: using remote backend. '
-          'For local dev, pass '
-          '--dart-define=API_BASE_URL=http://<your-lan-ip>:3001',
-        );
-        return 'https://sage-the-backend-production.up.railway.app';
+        // Physical device on LAN / hotspot → use your Mac's IP.
+        // Emulator: change to http://10.0.2.2:3001
+        // ADB reverse: adb reverse tcp:3001 tcp:3001  →  http://localhost:3001
+        return 'http://10.231.191.172:3001';
     }
   }
 

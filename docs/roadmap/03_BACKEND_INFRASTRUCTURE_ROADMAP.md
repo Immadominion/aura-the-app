@@ -46,27 +46,33 @@ Inter-service comms: internal mTLS on a private VPC network. No service is inter
 ## 3. Data stores
 
 ### 3.1 Primary OLTP — Postgres (managed, multi-AZ)
+
 - Per-service schemas with row-level security on user_id / bot_id.
 - Read replicas for analytics and admin read paths.
 - Point-in-time recovery, 30-day retention. Daily logical backups to cold storage.
 - Connection via service-specific credentials rotated automatically.
 
 ### 3.2 Time-series — market data
+
 - Pool state snapshots, oracle ticks, swap events: partitioned by time, hot window in Postgres (7d) or a purpose-built TSDB, cold window in parquet on object storage.
 
 ### 3.3 Analytics / ML feature store — S3 + parquet
+
 - Continuation of the Old Faithful pipeline. Canonical location for training data and simulator inputs.
 - Immutable by convention: epochs are append-only.
 
 ### 3.4 Model artefacts — versioned object storage
+
 - `s3://aura-models/<family>/<semver>/…` (see doc 01).
 - Immutable. Served via signed URLs to `ml-inference-svc` only.
 
 ### 3.5 Secrets — managed secrets service (AWS Secrets Manager or equivalent)
+
 - No secret on disk, no secret in environment of a long-lived process beyond boot fetch.
 - Per-service access policies.
 
 ### 3.6 Wallet vault
+
 - Separate physical database, separate VPC subnet, separate IAM role.
 - Keypairs encrypted with AES-256-GCM.
 - **Data encryption key (DEK)** per bot, wrapped by a **key encryption key (KEK)** stored in KMS.
@@ -132,16 +138,19 @@ Idempotency: the intent carries a client-supplied idempotency key; retries at an
 ## 8. Security posture
 
 ### 8.1 Identity
+
 - User sessions: sign-in-with-Solana (SIWS) issuing short-lived JWTs (≤ 15 min) + refresh tokens bound to the device.
 - Delegate-mode promotion requires a step-up: wallet signature on a time-boxed challenge + optional passkey MFA.
 - Admin access to production: SSO + hardware MFA. No standing admin credentials; just-in-time elevation with audit trail.
 
 ### 8.2 Secrets
+
 - Service secrets injected at boot from Secrets Manager via IAM role.
 - User API keys (data tier) hashed at rest with a pepper; shown once at creation.
 - No secret ever in a log, a trace, or an error message. Static-analysis rules in CI to catch regressions.
 
 ### 8.3 Wallet vault (expanded)
+
 - DEK per bot, 256-bit, unique. Wrapped by KEK in KMS.
 - Sign operations performed in-process; plaintext key never crosses the service boundary.
 - Rotate KEK annually; DEK rewrap on rotation (no downtime — dual-unwrap window).
@@ -149,26 +158,31 @@ Idempotency: the intent carries a client-supplied idempotency key; retries at an
 - Every signature is logged (bot id, tx hash, program id, instruction set summary); logs are append-only in a tamper-evident store.
 
 ### 8.4 Data protection
+
 - TLS 1.3 everywhere, internal mTLS.
 - At rest: database and S3 encrypted with KMS-managed keys.
 - PII minimization: we store wallet addresses and opt-in contact info. We do not store names, government IDs, or geolocation unless required for compliance.
 - Per-user "delete my data" path wired from day one (regardless of legal requirement).
 
 ### 8.5 Input handling
+
 - Strict schema validation at the gateway (reject-by-default). Max body sizes per endpoint.
 - SQL via parameterised queries only; lint rule to forbid string concatenation in query builders.
 - Output encoding on anything rendered; no user string ever templated into a shell command.
 - File uploads: none in v1. Any future upload is virus-scanned and stored in an isolated bucket.
 
 ### 8.6 Supply chain
+
 - Dependency pinning; weekly vulnerability scan; SBOM generated per release.
 - Signed container images; admission controller enforces signature verification in production.
 - No `curl | bash` in build scripts. No fetch-at-runtime from untrusted sources.
 
 ### 8.7 OWASP Top 10 mapping
+
 For each category (Broken Access Control, Cryptographic Failures, Injection, Insecure Design, Security Misconfiguration, Vulnerable Components, Identification & Authentication Failures, Software & Data Integrity Failures, Security Logging & Monitoring Failures, SSRF) the release checklist requires a named owner, a concrete mitigation, and a test.
 
 ### 8.8 Abuse and fraud
+
 - Per-user and per-IP rate limits at the edge.
 - Fingerprinting for bot signup to reject mass registration.
 - Sanctions screening on withdrawal addresses (if/when the product lists such a feature).
@@ -198,6 +212,7 @@ For each category (Broken Access Control, Cryptographic Failures, Injection, Ins
 ## 11. Release gates
 
 No change reaches production without all of:
+
 1. Tests green (unit, integration, contract).
 2. Security scans clean (no high/critical findings; mediums with accepted-risk justification).
 3. Simulator CI green (doc 02) if the change touches execution, accounting, or models.
@@ -230,30 +245,35 @@ No change reaches production without all of:
 ## 14. Milestones
 
 ### B1 — Foundations
+
 - VPC, managed Postgres, KMS, Secrets Manager, EKS, base CI/CD.
 - `edge-gateway`, `auth-svc`, `user-svc`, `admin-svc` online with kill switches.
 - Observability stack (metrics, logs, traces) end-to-end.
 - **Exit gate:** a login flow is traceable end-to-end; a kill switch stops a dummy operation in < 30s.
 
 ### B2 — Wallet Vault & Execution Spine
+
 - `wallet-vault-svc` with KMS-backed key hierarchy, rate limits, anomaly detection.
 - `execution-svc` with idempotent intents, multi-RPC failover, structured tx logs.
 - `ledger-svc` tied to `execution-svc` events.
 - **Exit gate:** a signed devnet transaction round-trips through the full pipeline with complete ledger and audit trail. Vault passes a red-team exercise focused on key exfiltration.
 
 ### B3 — Market Data, ML, Simulation
+
 - `market-data-svc` with oracle + pool-state feeds.
 - `ml-inference-svc` serving the doc 01 model registry.
 - `simulation-svc` implementing doc 02 paper + shadow modes.
 - **Exit gate:** paper mode runs for 7 days without dropped ticks; shadow simulation reconciles against a live test position within tolerance.
 
 ### B4 — Billing & Entitlements
+
 - `billing-svc` wired to provider webhooks.
 - Entitlement middleware enforced at the gateway for all paid endpoints (doc 05).
 - Grace, dunning, refund flows defined.
 - **Exit gate:** subscription upgrades/downgrades reflect within 60s across all services.
 
 ### B5 — Hardening & Launch Readiness
+
 - External penetration test closed.
 - Load test at 3× target with no SLO violations.
 - DR drill: full prod restore to an isolated region from backups.
@@ -261,6 +281,7 @@ No change reaches production without all of:
 - **Exit gate:** launch sign-off from engineering, security, and legal.
 
 ### B6 — Post-GA Scaling
+
 - Multi-region active/active for stateless services; active/passive for stateful.
 - Data tiering (warm/cold) automation.
 - Cost attribution per tenant for pricing decisions.

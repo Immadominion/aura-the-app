@@ -20,12 +20,14 @@ If the simulator is wrong, the model is wrong, the audit cannot catch it, and th
 ## 1. Scope and non-scope
 
 ### In scope
+
 1. Deterministic **offline replay** over the Old Faithful parquet archive (historical P&L labelling and backtests).
 2. **Paper mode** — same engine driven by live Meteora pool state and live price feeds, no on-chain transactions.
 3. **Live shadow** — run the engine in parallel with real executions to produce a reconciliation delta stream.
 4. A single, versioned **simulation specification** that the training pipeline and the runtime must both conform to.
 
 ### Out of scope (explicit non-goals)
+
 - Simulating orderflow from market makers. We replay what happened, we do not generate counterfactual swaps.
 - Simulating other protocols (Orca, Raydium CLMM). DLMM only.
 - Multi-agent game-theoretic simulation. We model a single position against observed pool state.
@@ -80,6 +82,7 @@ Three execution modes, one shared core.
 The core is a **pure function of state and events**. It does not fetch, does not sign, does not sleep. It takes: an immutable pool-state snapshot stream, a position action log, and a cost schedule → it returns a reproducible P&L ledger and a structured event trace.
 
 All three modes differ only in how they source input:
+
 - Offline replay → parquet files from S3.
 - Paper mode → live Meteora SDK reads + live price oracle.
 - Live shadow → same inputs as paper mode, plus on-chain execution running in parallel.
@@ -110,20 +113,26 @@ Determinism rule: given identical event inputs, the core must produce byte-ident
 The governing principles — stated in plain terms, not code.
 
 ### 5.1 Only the active bin earns fees on any given swap
+
 DLMM routes a swap through the active bin until that bin's inventory is exhausted, then crosses to the next bin. Fees on a given swap increment belong **exclusively to the bin that was active for that increment**. A position earns fees on a swap increment only if:
+
 - the active bin during that increment was inside the position's `[lower, upper]` range, **and**
 - the position contributed liquidity to that specific bin.
 
 ### 5.2 Liquidity share within the active bin
+
 Within the active bin, the position's fee share equals its liquidity contribution to that bin divided by the bin's total liquidity at the moment of the swap. This ratio must be recomputed at every swap event — it changes whenever anyone adds or removes in that bin.
 
 ### 5.3 Protocol fee deduction
+
 The fee paid by the swapper is split: protocol takes a configurable percentage (currently 5%, read from pool state, not hardcoded), the rest is split among LPs in the active bin by their liquidity share. The simulator must read the protocol fee rate from the `PoolState` event at the time of the swap — it can change.
 
 ### 5.4 Dynamic fee component
+
 DLMM's variable fee depends on recent volatility (`volatility_accumulator` + `volatility_reference`). The simulator must replay these state machines per pool, not assume a static base fee. The parquet archive stores the raw values needed to reconstruct them.
 
 ### 5.5 Fee accounting output
+
 Each simulated position produces a fee ledger with, per swap increment: timestamp, bin id, gross fee, protocol fee, position share percentage, position fee credited, cumulative position fee to date. This ledger is the ground truth for the training label generator.
 
 ---
@@ -170,13 +179,17 @@ All costs expressed in USD using the same oracle series as the P&L. Cost ledger 
 ## 9. Edge cases (fixes D8, D9, plus a dozen others)
 
 ### 9.1 Chunked remove-liquidity
+
 A full close may require many transactions (one per bin array group). The simulator must:
+
 - Accept a partial-close state (position reduced but not closed) as a valid terminal state if the live client abandoned mid-close.
 - Correctly prorate fees earned on the remaining liquidity during the chunked-close window.
 - Produce a "stuck position" flag if close spans > N minutes without completion.
 
 ### 9.2 Out-of-range time
+
 For every tick in the position's life, record whether the active bin is inside `[lower, upper]`. Aggregate:
+
 - Total time in range.
 - Longest single out-of-range streak.
 - Fee-weighted in-range share (fees accrue only in range, so this must equal 1.0 by construction — a sanity check).
@@ -184,23 +197,29 @@ For every tick in the position's life, record whether the active bin is inside `
 This is the most predictive single feature for failure mode classification.
 
 ### 9.3 Active bin slippage (error 6004 analogue)
+
 If the active bin at add-time has moved beyond the position's intended range, the add would fail on-chain. The simulator emits an "entry failed" event and no position is opened. The training pipeline uses these as negative-entry examples.
 
 ### 9.4 Token2022 extensions
+
 - Transfer fee — deducted per §8.4.
 - Transfer hooks — flagged; position excluded if hook program is unknown to the allowlist.
 - Permanent delegate / confidential transfer — flagged and excluded from training set (distributional difference too large).
 
 ### 9.5 Pool parameter changes mid-position
+
 Base fee, protocol fee, bin step can change via governance. The simulator tracks parameter-change events and applies the new regime from that block forward.
 
 ### 9.6 Rebases, mint authority mischief
+
 If either token's supply changes non-proportionally during the position's life (rebase, mint drain), the position is flagged "non-standard token dynamics" and excluded from training labels. A separate, smaller evaluation set collects these for robustness testing.
 
 ### 9.7 Missing data
+
 If any input event is missing (gap in parquet archive), the position is marked "incomplete" and excluded from labels. Coverage metrics in the release manifest must show the exclusion count per run.
 
 ### 9.8 Clock skew between oracle and chain
+
 Oracle ticks and swap events come from different clocks. Join rule: each swap uses the most recent oracle tick with `oracle_ts ≤ swap_ts` and `swap_ts − oracle_ts < max_staleness`. If staler than `max_staleness`, emit a "stale price" warning and interpolate linearly only for IL computation, never for fee math.
 
 ---
@@ -217,6 +236,7 @@ Paper mode is the user-visible product surface for Tiers below "Delegate". It mu
 6. Persist paper runs with the same schema as live runs, tagged `mode=paper`, so analytics and UI widgets are mode-agnostic.
 
 Paper-mode guarantees:
+
 - No network mutations. Ever. Enforced at the infrastructure boundary (paper-mode service has no signer credentials).
 - Latency parity: paper mode uses the same pool-state polling cadence as live mode, so the model experiences comparable staleness.
 
@@ -227,12 +247,14 @@ Paper-mode guarantees:
 Purpose: detect simulator–reality drift on positions the user actually opens.
 
 Mechanism:
+
 1. When a live position opens, the backend registers a shadow simulation with identical entry parameters.
 2. The shadow runs in real time against the same pool-state stream.
 3. At every position event (claim, rebalance, close), the shadow's predicted deltas are compared to the on-chain deltas.
 4. A reconciliation report is emitted per position at close with signed residuals on fees, IL, costs, net P&L.
 
 Thresholds (configurable):
+
 - Mean absolute fee residual > X% of predicted fees → alert.
 - Cost residual > Y% → alert.
 - IL residual > Z% → alert.
@@ -264,11 +286,13 @@ The `input_digest` is a hash of the concatenated event stream. Two runs with the
 ## 13. Versioning and compatibility
 
 Simulator artefacts are versioned as `core@X.Y.Z` where:
+
 - **X (major)** bumps on any math change that alters historical labels. Requires full retrain and re-evaluation.
 - **Y (minor)** bumps on additive features (new event type, new cost component) that do not change existing labels.
 - **Z (patch)** bumps for bug fixes with identical outputs on the backtest suite.
 
 Rules:
+
 - Every model registered in the registry records the `core@X.Y.Z` it was trained against.
 - At inference time, the runtime refuses to load a model whose core major does not match the running core major.
 - The CI backtest suite is a fixed set of 200 historical positions covering all nine defect categories plus all seven edge-case categories. Any change to the core must produce the expected ledger on every one. Byte-for-byte.
@@ -278,12 +302,14 @@ Rules:
 ## 14. Milestones
 
 ### S1 — Event Model & Replay Skeleton
+
 - Finalize event schemas and parquet column mapping.
 - Stand up deterministic replay harness with digest-based reproducibility check.
 - Backfill 200-position CI suite with human-reviewed expected ledgers.
 - **Exit gate:** identical digests across three consecutive runs on a pinned input.
 
 ### S2 — Correctness Pass (D1–D7)
+
 - Active-bin-only fee accrual with liquidity share and protocol fee.
 - Strategy shape from observed distribution.
 - IL reconstruction at close.
@@ -291,6 +317,7 @@ Rules:
 - **Exit gate:** CI suite passes; sum-of-fees reconciles to on-chain ledger within 0.5% for each position.
 
 ### S3 — Edge Cases (D8, D9 + §9.1–9.8)
+
 - Chunked close handling.
 - Out-of-range accounting.
 - Entry-failure modelling.
@@ -300,18 +327,21 @@ Rules:
 - **Exit gate:** all seven edge-case categories have a dedicated CI fixture and pass.
 
 ### S4 — Paper Mode
+
 - Live pool-state and oracle feed wiring into the same core.
 - Ledger persistence schema unified across modes.
 - Paper-mode service hardened with no-signer boundary.
 - **Exit gate:** a paper run over 24 hours produces a ledger whose schema is byte-compatible with offline ledgers.
 
 ### S5 — Live Shadow & Reconciliation
+
 - Shadow simulation pipeline.
 - Reconciliation report generation and alerting.
 - Automatic promotion halt on sustained drift.
 - **Exit gate:** 50 consecutive live positions reconciled; fee residual < 1%, cost residual < 1%, no direction-flip false positives/negatives in the sample.
 
 ### S6 — Versioning and Governance
+
 - Formal `core@X.Y.Z` versioning on artefacts.
 - Model-registry integration (reject incompatible loads).
 - Public change-log doc auto-generated from CI output.

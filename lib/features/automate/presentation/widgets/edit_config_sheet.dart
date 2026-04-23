@@ -35,17 +35,20 @@ class _EditConfigSheetState extends State<EditConfigSheet> {
   void initState() {
     super.initState();
     final b = widget.bot;
-    _entryThreshold =
-        TextEditingController(text: b.entryScoreThreshold.toStringAsFixed(0));
-    _positionSize =
-        TextEditingController(text: b.positionSizeSOL.toStringAsFixed(1));
-    _maxConcurrent =
-        TextEditingController(text: '${b.maxConcurrentPositions}');
+    _entryThreshold = TextEditingController(
+      text: b.entryScoreThreshold.toStringAsFixed(0),
+    );
+    _positionSize = TextEditingController(
+      text: b.positionSizeSOL.toStringAsFixed(1),
+    );
+    _maxConcurrent = TextEditingController(text: '${b.maxConcurrentPositions}');
     _cooldown = TextEditingController(text: '${b.cooldownMinutes}');
-    _stopLoss =
-        TextEditingController(text: b.stopLossPercent.toStringAsFixed(1));
-    _profitTarget =
-        TextEditingController(text: b.profitTargetPercent.toStringAsFixed(1));
+    _stopLoss = TextEditingController(
+      text: b.stopLossPercent.toStringAsFixed(1),
+    );
+    _profitTarget = TextEditingController(
+      text: b.profitTargetPercent.toStringAsFixed(1),
+    );
     _maxHoldTime = TextEditingController(text: '${b.maxHoldTimeMinutes}');
     _cronInterval = TextEditingController(text: '${b.cronIntervalSeconds}');
   }
@@ -69,22 +72,14 @@ class _EditConfigSheetState extends State<EditConfigSheet> {
     setState(() => _saving = true);
     try {
       final config = <String, dynamic>{
-        'entryScoreThreshold':
-            double.parse(_entryThreshold.text.trim()),
-        'positionSizeSOL':
-            double.parse(_positionSize.text.trim()),
-        'maxConcurrentPositions':
-            int.parse(_maxConcurrent.text.trim()),
-        'cooldownMinutes':
-            int.parse(_cooldown.text.trim()),
-        'stopLossPercent':
-            double.parse(_stopLoss.text.trim()),
-        'profitTargetPercent':
-            double.parse(_profitTarget.text.trim()),
-        'maxHoldTimeMinutes':
-            int.parse(_maxHoldTime.text.trim()),
-        'cronIntervalSeconds':
-            int.parse(_cronInterval.text.trim()),
+        'entryScoreThreshold': double.parse(_entryThreshold.text.trim()),
+        'positionSizeSOL': double.parse(_positionSize.text.trim()),
+        'maxConcurrentPositions': int.parse(_maxConcurrent.text.trim()),
+        'cooldownMinutes': int.parse(_cooldown.text.trim()),
+        'stopLossPercent': double.parse(_stopLoss.text.trim()),
+        'profitTargetPercent': double.parse(_profitTarget.text.trim()),
+        'maxHoldTimeMinutes': int.parse(_maxHoldTime.text.trim()),
+        'cronIntervalSeconds': int.parse(_cronInterval.text.trim()),
       };
       await widget.onSave(config);
       if (mounted) Navigator.of(context).pop();
@@ -114,134 +109,134 @@ class _EditConfigSheetState extends State<EditConfigSheet> {
         child: Form(
           key: _formKey,
           child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Drag handle
-            Center(
-              child: Container(
-                width: 36.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                  color: c.textTertiary.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(context.auraRadii.xs),
-                ),
-              ),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'Edit Configuration',
-              style: text.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: c.textPrimary,
-              ),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              'Changes apply next time the bot starts.',
-              style: text.bodySmall?.copyWith(color: c.textTertiary),
-            ),
-            SizedBox(height: 20.h),
-
-            _ConfigField(
-              label: 'Entry Threshold (%)',
-              controller: _entryThreshold,
-              c: c,
-              text: text,
-              validator: BotValidators.entryThreshold,
-            ),
-            _ConfigField(
-              label: 'Position Size (SOL)',
-              controller: _positionSize,
-              c: c,
-              text: text,
-              validator: BotValidators.positionSize,
-            ),
-            _ConfigField(
-              label: 'Max Concurrent',
-              controller: _maxConcurrent,
-              c: c,
-              text: text,
-              isInt: true,
-              validator: BotValidators.maxConcurrent,
-            ),
-            _ConfigField(
-              label: 'Cooldown (min)',
-              controller: _cooldown,
-              c: c,
-              text: text,
-              isInt: true,
-              validator: BotValidators.cooldown,
-            ),
-            _ConfigField(
-              label: 'Stop Loss (%)',
-              controller: _stopLoss,
-              c: c,
-              text: text,
-              validator: BotValidators.stopLoss,
-            ),
-            _ConfigField(
-              label: 'Profit Target (%)',
-              controller: _profitTarget,
-              c: c,
-              text: text,
-              validator: BotValidators.profitTarget,
-            ),
-            _ConfigField(
-              label: 'Max Hold Time (min)',
-              controller: _maxHoldTime,
-              c: c,
-              text: text,
-              isInt: true,
-              validator: BotValidators.maxHoldTime,
-            ),
-            _ConfigField(
-              label: 'Scan Interval (sec)',
-              controller: _cronInterval,
-              c: c,
-              text: text,
-              isInt: true,
-              validator: BotValidators.cronInterval,
-            ),
-
-            SizedBox(height: 24.h),
-
-            // Save button
-            SizedBox(
-              width: double.infinity,
-              child: GestureDetector(
-                onTap: _saving ? null : _save,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag handle
+              Center(
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  width: 36.w,
+                  height: 4.h,
                   decoration: BoxDecoration(
-                    color: _saving
-                        ? c.accent.withValues(alpha: 0.5)
-                        : c.accent,
-                    borderRadius: BorderRadius.circular(context.auraRadii.lg),
-                  ),
-                  child: Center(
-                    child: _saving
-                        ? SizedBox(
-                            width: 20.w,
-                            height: 20.w,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(
-                            'Save Changes',
-                            style: text.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
+                    color: c.textTertiary.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(context.auraRadii.xs),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
+              SizedBox(height: 16.h),
+              Text(
+                'Edit Configuration',
+                style: text.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: c.textPrimary,
+                ),
+              ),
+              SizedBox(height: 4.h),
+              Text(
+                'Changes apply next time the bot starts.',
+                style: text.bodySmall?.copyWith(color: c.textTertiary),
+              ),
+              SizedBox(height: 20.h),
+
+              _ConfigField(
+                label: 'Entry Threshold (%)',
+                controller: _entryThreshold,
+                c: c,
+                text: text,
+                validator: BotValidators.entryThreshold,
+              ),
+              _ConfigField(
+                label: 'Position Size (SOL)',
+                controller: _positionSize,
+                c: c,
+                text: text,
+                validator: BotValidators.positionSize,
+              ),
+              _ConfigField(
+                label: 'Max Concurrent',
+                controller: _maxConcurrent,
+                c: c,
+                text: text,
+                isInt: true,
+                validator: BotValidators.maxConcurrent,
+              ),
+              _ConfigField(
+                label: 'Cooldown (min)',
+                controller: _cooldown,
+                c: c,
+                text: text,
+                isInt: true,
+                validator: BotValidators.cooldown,
+              ),
+              _ConfigField(
+                label: 'Stop Loss (%)',
+                controller: _stopLoss,
+                c: c,
+                text: text,
+                validator: BotValidators.stopLoss,
+              ),
+              _ConfigField(
+                label: 'Profit Target (%)',
+                controller: _profitTarget,
+                c: c,
+                text: text,
+                validator: BotValidators.profitTarget,
+              ),
+              _ConfigField(
+                label: 'Max Hold Time (min)',
+                controller: _maxHoldTime,
+                c: c,
+                text: text,
+                isInt: true,
+                validator: BotValidators.maxHoldTime,
+              ),
+              _ConfigField(
+                label: 'Scan Interval (sec)',
+                controller: _cronInterval,
+                c: c,
+                text: text,
+                isInt: true,
+                validator: BotValidators.cronInterval,
+              ),
+
+              SizedBox(height: 24.h),
+
+              // Save button
+              SizedBox(
+                width: double.infinity,
+                child: GestureDetector(
+                  onTap: _saving ? null : _save,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    decoration: BoxDecoration(
+                      color: _saving
+                          ? c.accent.withValues(alpha: 0.5)
+                          : c.accent,
+                      borderRadius: BorderRadius.circular(context.auraRadii.lg),
+                    ),
+                    child: Center(
+                      child: _saving
+                          ? SizedBox(
+                              width: 20.w,
+                              height: 20.w,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              'Save Changes',
+                              style: text.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -292,9 +287,7 @@ class _ConfigField extends StatelessWidget {
               controller: controller,
               validator: validator,
               autovalidateMode: AutovalidateMode.onUserInteraction,
-              keyboardType: TextInputType.numberWithOptions(
-                decimal: !isInt,
-              ),
+              keyboardType: TextInputType.numberWithOptions(decimal: !isInt),
               inputFormatters: [
                 if (isInt)
                   FilteringTextInputFormatter.digitsOnly
@@ -309,8 +302,10 @@ class _ConfigField extends StatelessWidget {
               ),
               decoration: InputDecoration(
                 isDense: true,
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 10.h,
+                ),
                 filled: true,
                 fillColor: c.surface,
                 errorMaxLines: 1,
@@ -333,7 +328,10 @@ class _ConfigField extends StatelessWidget {
                 ),
                 focusedErrorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(context.auraRadii.sm),
-                  borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                  borderSide: const BorderSide(
+                    color: Colors.redAccent,
+                    width: 1.5,
+                  ),
                 ),
               ),
             ),
